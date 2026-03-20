@@ -10,6 +10,7 @@ import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
+import { exportToExcel } from '../../lib/export'
 
 const schema = z.object({
   revenue_date:     z.string().min(1, 'التاريخ مطلوب'),
@@ -67,6 +68,18 @@ export default function DeliveryRevenuePage() {
     }),
     { gross: 0, commission: 0, net: 0 }
   )
+
+  const handleExport = () => {
+    const exportData = (revenues ?? []).map((r: any) => ({
+      'التاريخ': formatDate(r.revenue_date),
+      'المنصة': r.platform,
+      'طريقة الدفع': r.payment_method,
+      'الإجمالي': r.gross_amount,
+      'العمولة': r.commission_amount,
+      'الصافي': r.net_amount
+    }))
+    exportToExcel(exportData, 'إيرادات_التوصيل')
+  }
 
   return (
     <PageTransition>
@@ -163,7 +176,9 @@ export default function DeliveryRevenuePage() {
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontWeight: 600 }}>سجل الإيرادات</span>
-          <button className="btn btn-secondary btn-sm"><Download size={14}/> تصدير</button>
+          <button className="btn btn-secondary btn-sm" onClick={handleExport} disabled={!revenues?.length}>
+            <Download size={14}/> تصدير Excel
+          </button>
         </div>
         {isLoading ? (
           <div style={{ padding: 24 }}>{[...Array(4)].map((_, i) => <div key={i} className="skeleton" style={{ height: 40, marginBottom: 8 }}/>)}</div>

@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus } from 'lucide-react'
+import { Plus, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
+import { exportToExcel } from '../../lib/export'
 
 const EXPENSE_ACCOUNTS = [
   { code: '5201', name: 'رواتب وأجور' },
@@ -50,6 +51,19 @@ export default function ExpensesPage() {
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ'),
   })
 
+  const handleExport = () => {
+    const exportData = (expenses ?? []).map((e: any) => ({
+      'التاريخ': formatDate(e.expense_date),
+      'البيان': e.description,
+      'النوع': e.expense_type,
+      'طريقة الدفع': e.payment_method,
+      'المبلغ': e.amount,
+      'الضريبة': e.vat_amount,
+      'الإجمالي': e.total_amount
+    }))
+    exportToExcel(exportData, 'المصروفات')
+  }
+
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -57,7 +71,12 @@ export default function ExpensesPage() {
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>إدخال المصروفات</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>تسجيل المصروفات التشغيلية مع القيد المحاسبي</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> مصروف جديد</button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button className="btn btn-secondary" onClick={handleExport} disabled={!expenses?.length}>
+            <Download size={16}/> تصدير Excel
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> مصروف جديد</button>
+        </div>
       </div>
 
       {showForm && (

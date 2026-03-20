@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
 import { api } from '../../lib/api'
+import { exportToExcel } from '../../lib/export'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { formatSAR } from '../../lib/utils'
+import { Download } from 'lucide-react'
 
 export function TrialBalancePage() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
@@ -17,6 +18,26 @@ export function TrialBalancePage() {
   const totalCredit = (data ?? []).reduce((s: number, r: any) => s + Number(r.total_credit), 0)
   const isBalanced  = Math.abs(totalDebit - totalCredit) < 0.01
 
+  const handleExport = () => {
+    const exportData = (data ?? []).map((r: any) => ({
+      'كود الحساب': r.account_code,
+      'اسم الحساب': r.name_ar,
+      'النوع': r.type,
+      'إجمالي المدين': parseFloat(r.total_debit) || 0,
+      'إجمالي الدائن': parseFloat(r.total_credit) || 0,
+      'الرصيد': parseFloat(r.balance) || 0
+    }))
+    exportData.push({
+      'كود الحساب': 'المجموع',
+      'اسم الحساب': '',
+      'النوع': '',
+      'إجمالي المدين': totalDebit,
+      'إجمالي الدائن': totalCredit,
+      'الرصيد': totalDebit - totalCredit
+    })
+    exportToExcel(exportData, `ميزان_المراجعة_${date}`)
+  }
+
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -27,6 +48,9 @@ export function TrialBalancePage() {
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <input type="date" value={date} onChange={e => setDate(e.target.value)} className="form-input" style={{ width: 160, height: 36 }}/>
           <button className="btn btn-primary btn-sm" onClick={() => refetch()}>تحديث</button>
+          <button className="btn btn-secondary btn-sm" onClick={handleExport} disabled={!data?.length}>
+            <Download size={14}/> تصدير Excel
+          </button>
         </div>
       </div>
 
@@ -95,11 +119,29 @@ export function LedgerPage() {
     },
   })
 
+  const handleExport = () => {
+    const exportData = (data ?? []).map((r: any) => ({
+      'التاريخ': r.entry_date,
+      'رقم القيد': r.entry_number,
+      'البيان': r.description,
+      'الحساب': r.account_code + (r.account_name ? ` — ${r.account_name}` : ''),
+      'مدين': Number(r.debit_amount) || 0,
+      'دائن': Number(r.credit_amount) || 0,
+      'الرصيد': r.running_balance
+    }))
+    exportToExcel(exportData, `دفتر_الاستاذ_${code}`)
+  }
+
   return (
     <PageTransition>
-      <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700 }}>الأستاذ العام</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>General Ledger</p>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>الأستاذ العام</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>General Ledger</p>
+        </div>
+        <button className="btn btn-secondary btn-sm" onClick={handleExport} disabled={!data?.length}>
+          <Download size={14}/> تصدير Excel
+        </button>
       </div>
 
       <div className="card" style={{ padding: '16px 20px', marginBottom: 20, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>

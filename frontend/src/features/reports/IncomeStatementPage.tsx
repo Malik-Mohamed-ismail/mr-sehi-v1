@@ -5,6 +5,7 @@ import { FileText, Download } from 'lucide-react'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { formatSAR, formatDate } from '../../lib/utils'
+import { exportToExcel } from '../../lib/export'
 
 function now() {
   const d = new Date()
@@ -21,6 +22,24 @@ export default function IncomeStatementPage() {
     queryFn:  () => api.get(`/reports/income-statement?from=${from}&to=${to}`).then(r => r.data.data),
     enabled:  !!from && !!to,
   })
+
+  const handleExport = () => {
+    if (!data) return
+    const exportData = [
+      { 'البند': 'إيرادات التوصيل', 'المبلغ (ريال)': data.revenue.delivery },
+      { 'البند': 'إيرادات المطعم', 'المبلغ (ريال)': data.revenue.restaurant },
+      { 'البند': 'إيرادات الاشتراكات', 'المبلغ (ريال)': data.revenue.subscriptions },
+      { 'البند': 'إجمالي الإيرادات', 'المبلغ (ريال)': data.revenue.total },
+      { 'البند': '', 'المبلغ (ريال)': '' },
+      { 'البند': 'تكلفة البضاعة المباعة (المشتريات)', 'المبلغ (ريال)': data.cogs },
+      { 'البند': 'مجمل الربح', 'المبلغ (ريال)': data.gross_profit },
+      { 'البند': '', 'المبلغ (ريال)': '' },
+      { 'البند': 'المصروفات التشغيلية', 'المبلغ (ريال)': data.total_expenses },
+      { 'البند': '', 'المبلغ (ريال)': '' },
+      { 'البند': 'صافي الربح', 'المبلغ (ريال)': data.net_profit }
+    ]
+    exportToExcel(exportData, `قائمة_الدخل_${from}_${to}`)
+  }
 
   const renderRow = (label: string, value: number, style?: React.CSSProperties, indent = false) => (
     <tr>
@@ -39,7 +58,9 @@ export default function IncomeStatementPage() {
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>قائمة الدخل</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>Income Statement</p>
         </div>
-        <button className="btn btn-secondary btn-sm"><Download size={14}/> تصدير PDF</button>
+        <button className="btn btn-secondary btn-sm" onClick={handleExport} disabled={!data}>
+          <Download size={14}/> تصدير Excel
+        </button>
       </div>
 
       {/* Date range filter */}

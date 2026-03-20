@@ -20,6 +20,8 @@ const PettyCashPage            = lazy(() => import('./features/petty-cash/PettyC
 const ProductionPage           = lazy(() => import('./features/production/ProductionPage'))
 const AccountsPage             = lazy(() => import('./features/accounts/AccountsPage'))
 const IncomeStatementPage      = lazy(() => import('./features/reports/IncomeStatementPage'))
+const PerformancePage          = lazy(() => import('./features/reports/PerformancePage'))
+const SettingsPage             = lazy(() => import('./features/settings/SettingsPage'))
 const TrialBalancePage         = lazy(() =>
   import('./features/reports/TrialBalancePage').then(m => ({ default: m.TrialBalancePage }))
 )
@@ -87,9 +89,9 @@ export default function App() {
             <Route path="ledger"                element={<PageSuspense><LedgerPage /></PageSuspense>} />
             <Route path="trial-balance"         element={<PageSuspense><TrialBalancePage /></PageSuspense>} />
             <Route path="income-statement"      element={<PageSuspense><IncomeStatementPage /></PageSuspense>} />
-            <Route path="performance"           element={<ComingSoon title="تقييم الأداء المالي" />} />
+            <Route path="performance"           element={<PageSuspense><PerformancePage /></PageSuspense>} />
             <Route path="reports"               element={<ComingSoon title="التقارير والتحليلات" />} />
-            <Route path="settings"              element={<ComingSoon title="الإعدادات" />} />
+            <Route path="settings"              element={<PageSuspense><SettingsPage /></PageSuspense>} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

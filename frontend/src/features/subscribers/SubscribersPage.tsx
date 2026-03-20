@@ -3,13 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { Plus, RefreshCw, AlertTriangle, Users } from 'lucide-react'
+import { Plus, RefreshCw, AlertTriangle, Users, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
+import { exportToExcel } from '../../lib/export'
 
 const schema = z.object({
   name:           z.string().min(1, 'الاسم مطلوب'),
@@ -78,6 +79,19 @@ export default function SubscribersPage() {
     filter === 'all' ? true : s.status === filter
   )
 
+  const handleExport = () => {
+    const exportData = (filtered ?? []).map((s: any) => ({
+      'المشترك': s.name,
+      'رقم الجوال': s.phone || '-',
+      'الباقة': s.plan_name || '-',
+      'تاريخ الانتهاء': formatDate(s.end_date),
+      'القيمة': Number(s.plan_amount),
+      'طريقة الدفع': s.payment_method,
+      'الحالة': STATUS_STYLES[s.status]?.label ?? s.status,
+    }))
+    exportToExcel(exportData, 'الاشتراكات')
+  }
+
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -85,9 +99,14 @@ export default function SubscribersPage() {
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>متابعة الاشتراكات</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>إدارة المشتركين وتجديد الاشتراكات</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
-          <Plus size={16}/> مشترك جديد
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button className="btn btn-secondary" onClick={handleExport} disabled={!filtered?.length}>
+            <Download size={16}/> تصدير Excel
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
+            <Plus size={16}/> مشترك جديد
+          </button>
+        </div>
       </div>
 
       {/* Expiring alert */}

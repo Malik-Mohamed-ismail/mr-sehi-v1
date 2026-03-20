@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus } from 'lucide-react'
+import { Plus, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
+import { exportToExcel } from '../../lib/export'
 
 export default function SubscriptionsRevenuePage() {
   const qc = useQueryClient()
@@ -34,6 +35,16 @@ export default function SubscriptionsRevenuePage() {
 
   const total = (revenues ?? []).reduce((s: number, r: any) => s + Number(r.amount), 0)
 
+  const handleExport = () => {
+    const exportData = (revenues ?? []).map((r: any) => ({
+      'التاريخ': formatDate(r.revenue_date),
+      'المبلغ': r.amount,
+      'طريقة الدفع': r.payment_method,
+      'ملاحظات': r.notes || '-'
+    }))
+    exportToExcel(exportData, 'إيرادات_الاشتراكات')
+  }
+
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -41,7 +52,12 @@ export default function SubscriptionsRevenuePage() {
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>إيرادات الاشتراكات</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>مدفوعات المشتركين الشهرية</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> إضافة إيراد</button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button className="btn btn-secondary" onClick={handleExport} disabled={!revenues?.length}>
+            <Download size={16}/> تصدير Excel
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> إضافة إيراد</button>
+        </div>
       </div>
 
       <div className="card" style={{ padding: '16px 20px', marginBottom: 24 }}>

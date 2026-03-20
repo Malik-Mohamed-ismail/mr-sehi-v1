@@ -11,6 +11,7 @@ import { PageTransition } from '../../components/ui/PageTransition'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
+import { exportToExcel } from '../../lib/export'
 
 const schema = z.object({
   invoice_number: z.string().min(1),
@@ -86,6 +87,26 @@ export default function PurchasesPage() {
       vat_amount:   vatAmt,
       total_amount: parseFloat(total.toFixed(4)),
     })
+  }
+
+  const handleExport = () => {
+    const exportData = (purchases ?? []).map((p: any) => {
+      const supplier = suppliers?.find((s: any) => s.id === p.supplier_id)
+      return {
+        'رقم الفاتورة': p.invoice_number,
+        'التاريخ': formatDate(p.invoice_date),
+        'المورد': supplier?.name_ar || p.supplier_id,
+        'الصنف': p.item_name,
+        'التصنيف': p.category,
+        'الكمية': p.quantity,
+        'السعر': p.unit_price,
+        'طريقة الدفع': p.payment_method,
+        'المجموع': p.subtotal,
+        'الضريبة': p.vat_amount,
+        'الإجمالي': p.total_amount
+      }
+    })
+    exportToExcel(exportData, 'مشتريات')
   }
 
   return (
@@ -220,7 +241,9 @@ export default function PurchasesPage() {
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 600 }}>سجل الفواتير</span>
-          <button className="btn btn-secondary btn-sm"><Download size={14}/> تصدير Excel</button>
+          <button className="btn btn-secondary btn-sm" onClick={handleExport} disabled={!purchases?.length}>
+            <Download size={14}/> تصدير Excel
+          </button>
         </div>
         {isLoading ? (
           <div style={{ padding: 24 }}>

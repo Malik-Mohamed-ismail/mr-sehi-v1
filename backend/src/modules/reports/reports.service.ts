@@ -137,3 +137,47 @@ export async function getVATSummary(from: string, to: string) {
     net_vat_payable:  parseFloat((totalVATOutput - Number((purchases as any).rows?.[0]?.total_vat_input ?? 0)).toFixed(4)),
   }
 }
+
+// ── Performance Trends ────────────────────────────────────────────────────
+export async function getPerformanceTrends(from: string, to: string) {
+  const expenseRows = await db.execute(sql.raw(`
+    SELECT TO_CHAR(expense_date, 'YYYY-MM-DD') as date, SUM(total_amount) as amount
+    FROM expenses
+    WHERE is_deleted = false AND expense_date >= '${from}' AND expense_date <= '${to}'
+    GROUP BY TO_CHAR(expense_date, 'YYYY-MM-DD')
+  `))
+
+  const purchaseRows = await db.execute(sql.raw(`
+    SELECT TO_CHAR(invoice_date, 'YYYY-MM-DD') as date, SUM(subtotal) as amount
+    FROM purchase_invoices
+    WHERE is_deleted = false AND invoice_date >= '${from}' AND invoice_date <= '${to}' AND is_asset = false
+    GROUP BY TO_CHAR(invoice_date, 'YYYY-MM-DD')
+  `))
+
+  const revenueRows = await db.execute(sql.raw(`
+    SELECT TO_CHAR(je.entry_date, 'YYYY-MM-DD') as date, SUM(jel.credit_amount) - SUM(jel.debit_amount) as amount
+    FROM journal_entry_lines jel
+    JOIN journal_entries je ON je.id = jel.entry_id
+    JOIN accounts a ON a.code = jel.account_code
+    WHERE a.type = 'revenue' AND je.entry_date >= '${from}' AND je.entry_date <= '${to}' AND je.is_balanced = true
+    GROUP BY TO_CHAR(je.entry_date, 'YYYY-MM-DD')
+  `))
+
+  const datesMap = new Map<string, { date: string, revenue: number, expenses: number, profit: number }>()
+
+  const addData = (rows: any[], type: 'revenue' | 'expenses') => {
+    for (const row of rows) {
+      if (!row.date) continue
+      if (!datesMap.has(row.date)) datesMap.set(row.date, { date: row.date, revenue: 0, expenses: 0, profit: 0 })
+      const obj = datesMap.get(row.date)!
+      obj[type] += Number(row.amount ?? 0)
+      obj.profit = obj.revenue - obj.expenses
+    }
+  }
+
+  addData(revenueRows.rows, 'revenue')
+  addData(expenseRows.rows, 'expenses')
+  addData(purchaseRows.rows, 'expenses')
+
+  return Array.from(datesMap.values()).sort((a, b) => a.date.localeCompare(b.date))
+}

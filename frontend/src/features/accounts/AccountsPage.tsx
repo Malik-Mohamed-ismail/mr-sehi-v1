@@ -1,7 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Plus, Download } from 'lucide-react'
+import { toast } from 'sonner'
 import { api } from '../../lib/api'
+import { exportToExcel } from '../../lib/export'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 
@@ -14,9 +18,34 @@ const TYPE_LABELS: Record<string, { label: string; badge: string }> = {
 }
 
 export default function AccountsPage() {
+  const qc = useQueryClient()
+  const [showForm, setShowForm] = useState(false)
+
   const { data: accounts, isLoading } = useQuery({
     queryKey: ['accounts'],
     queryFn: () => api.get('/accounts').then(r => r.data.data),
+  })
+
+  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm({
+    defaultValues: {
+      code: '',
+      name_ar: '',
+      name_en: '',
+      type: 'revenue',
+      parent_code: '',
+      level: 1,
+    }
+  })
+
+  const createMutation = useMutation({
+    mutationFn: (data: any) => api.post('/accounts', { ...data, level: Number(data.level) }),
+    onSuccess: () => {
+      toast.success('تمت إضافة الحساب بنجاح')
+      qc.invalidateQueries({ queryKey: ['accounts'] })
+      reset()
+      setShowForm(false)
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ')
   })
 
   const grouped = (accounts ?? []).reduce((acc: any, a: any) => {
@@ -26,12 +55,86 @@ export default function AccountsPage() {
     return acc
   }, {})
 
+  const handleExport = () => {
+    const exportData = (accounts ?? []).map((a: any) => ({
+      'الكود': a.code,
+      'اسم الحساب': a.name_ar,
+      'الاسم الإنجليزي': a.name_en || '-',
+      'النوع': TYPE_LABELS[a.type]?.label ?? a.type,
+      'المستوى': a.level,
+      'حساب رئيسي': a.parent_code || '-',
+      'نظام': a.is_system ? 'نعم' : 'لا',
+    }))
+    exportToExcel(exportData, 'دليل_الحسابات')
+  }
+
   return (
     <PageTransition>
-      <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700 }}>دليل الحسابات</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>Chart of Accounts — {accounts?.length ?? 0} حساب</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>دليل الحسابات</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>Chart of Accounts — {accounts?.length ?? 0} حساب</p>
+        </div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button className="btn btn-secondary" onClick={handleExport} disabled={!accounts?.length}>
+            <Download size={16}/> تصدير Excel
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
+            <Plus size={16}/> حساب جديد
+          </button>
+        </div>
       </div>
+
+      {showForm && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }} dir="rtl">
+          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))}>
+            <div className="form-section-header">
+              <div className="form-section-number">١</div>
+              <div className="form-section-title">بيانات الحساب الجديد</div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)', gap: 16, marginBottom: 20 }}>
+              <div className="form-field has-value">
+                <label>الكود</label>
+                <input {...register('code', { required: true })} className="form-input"/>
+              </div>
+              <div className="form-field has-value">
+                <label>الاسم (عربي)</label>
+                <input {...register('name_ar', { required: true })} className="form-input"/>
+              </div>
+              <div className="form-field has-value">
+                <label>الاسم (إنجليزي)</label>
+                <input {...register('name_en')} className="form-input"/>
+              </div>
+              <div className="form-field has-value">
+                <label>نوع الحساب</label>
+                <select {...register('type')} className="form-select">
+                  <option value="asset">أصول</option>
+                  <option value="liability">التزامات</option>
+                  <option value="equity">حقوق ملكية</option>
+                  <option value="revenue">إيرادات</option>
+                  <option value="expense">مصروفات</option>
+                </select>
+              </div>
+              <div className="form-field has-value">
+                <label>كود الحساب الرئيسي</label>
+                <input {...register('parent_code')} className="form-input" placeholder="اختياري"/>
+              </div>
+              <div className="form-field has-value">
+                <label>المستوى</label>
+                <input {...register('level')} type="number" min="1" max="5" className="form-input"/>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>إلغاء</button>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                {isSubmitting ? 'جارٍ الحفظ...' : '💾 حفظ الحساب'}
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      )}
 
       {isLoading ? (
         <div>{[...Array(6)].map((_, i) => <div key={i} className="skeleton" style={{ height: 40, marginBottom: 8 }}/>)}</div>

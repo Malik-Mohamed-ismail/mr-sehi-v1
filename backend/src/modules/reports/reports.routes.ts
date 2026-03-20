@@ -46,13 +46,21 @@ async function vatSummary(req: Request, res: Response, next: NextFunction) {
   } catch (e) { next(e) }
 }
 
+async function performanceTrends(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { from, to } = getDateRange(req.query)
+    res.json({ success: true, data: await svc.getPerformanceTrends(from, to) })
+  } catch (e) { next(e) }
+}
+
 const router = Router()
 router.use(authenticate)
 
-router.get('/dashboard',        authorize(...ALL_ROLES),       dashboard)
-router.get('/income-statement', authorize(...ACCOUNTANT_PLUS), reportLimiter, incomeStatement)
-router.get('/balance-sheet',    authorize(...ACCOUNTANT_PLUS), reportLimiter, balanceSheet)
-router.get('/breakeven',        authorize(...ACCOUNTANT_PLUS), breakeven)
-router.get('/vat-summary',      authorize(...ACCOUNTANT_PLUS), vatSummary)
+router.get('/dashboard',          authorize(...ALL_ROLES),       dashboard)
+router.get('/performance-trends', authorize(...ALL_ROLES),       reportLimiter, performanceTrends)
+router.get('/income-statement',   authorize(...ACCOUNTANT_PLUS), reportLimiter, incomeStatement)
+router.get('/balance-sheet',      authorize(...ACCOUNTANT_PLUS), reportLimiter, balanceSheet)
+router.get('/breakeven',          authorize(...ACCOUNTANT_PLUS), breakeven)
+router.get('/vat-summary',        authorize(...ACCOUNTANT_PLUS), vatSummary)
 
 export default router

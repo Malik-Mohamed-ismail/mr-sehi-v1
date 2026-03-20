@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus } from 'lucide-react'
+import { Plus, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
+import { exportToExcel } from '../../lib/export'
 
 export default function ProductionPage() {
   const qc = useQueryClient()
@@ -38,6 +39,17 @@ export default function ProductionPage() {
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ'),
   })
 
+  const handleExport = () => {
+    const exportData = (records ?? []).map((r: any) => ({
+      'التاريخ': formatDate(r.production_date),
+      'المنتج': r.product_name,
+      'الإنتاج (كجم)': r.produced_kg,
+      'التالف (جم)': r.waste_grams,
+      'قيمة التالف': r.waste_value
+    }))
+    exportToExcel(exportData, 'سجل_الإنتاج')
+  }
+
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -45,7 +57,12 @@ export default function ProductionPage() {
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>الإنتاج والتالف</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>متابعة الإنتاج اليومي ونسبة الهدر</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> تسجيل إنتاج</button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button className="btn btn-secondary" onClick={handleExport} disabled={!records?.length}>
+            <Download size={16}/> تصدير Excel
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> تسجيل إنتاج</button>
+        </div>
       </div>
 
       {/* Summary */}

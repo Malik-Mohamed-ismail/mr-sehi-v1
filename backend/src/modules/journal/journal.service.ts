@@ -87,7 +87,22 @@ export async function listEntries(query: any) {
   const offset= (page - 1) * limit
 
   const [rows, [{ count }]] = await Promise.all([
-    db.select().from(journalEntries)
+    db.select({
+      id: journalEntries.id,
+      entry_number: journalEntries.entry_number,
+      entry_date: journalEntries.entry_date,
+      description: journalEntries.description,
+      reference: journalEntries.reference,
+      source_type: journalEntries.source_type,
+      source_id: journalEntries.source_id,
+      is_balanced: journalEntries.is_balanced,
+      is_reversed: journalEntries.is_reversed,
+      reversed_by: journalEntries.reversed_by,
+      created_by: journalEntries.created_by,
+      created_at: journalEntries.created_at,
+      updated_at: journalEntries.updated_at,
+      amount: sql<number>`(SELECT COALESCE(SUM(debit_amount), 0) FROM journal_entry_lines WHERE entry_id = journal_entries.id)::numeric`
+    }).from(journalEntries)
       .where(conditions.length ? and(...conditions) : undefined)
       .orderBy(desc(journalEntries.entry_date))
       .limit(limit).offset(offset),

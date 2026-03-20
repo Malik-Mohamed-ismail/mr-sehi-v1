@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus, CheckCircle, XCircle } from 'lucide-react'
+import { Plus, CheckCircle, XCircle, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
+import { exportToExcel } from '../../lib/export'
 
 export default function PettyCashPage() {
   const qc = useQueryClient()
@@ -45,6 +46,19 @@ export default function PettyCashPage() {
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ'),
   })
 
+  const handleExport = () => {
+    const exportData = (records ?? []).map((r: any) => ({
+      'التاريخ': formatDate(r.transaction_date),
+      'رصيد الافتتاح': r.opening_balance,
+      'العهدة': r.cashier_replenishment,
+      'المشتريات': Number(r.cash_purchases) + Number(r.card_purchases),
+      'الرصيد الختامي': r.closing_balance,
+      'الفارق': r.variance,
+      'المطابقة': r.is_balanced ? 'متطابق' : 'يوجد عجز/زيادة'
+    }))
+    exportToExcel(exportData, 'صندوق_النثرية')
+  }
+
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -52,7 +66,12 @@ export default function PettyCashPage() {
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>العهدة والصندوق</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>متابعة النقدية اليومية والمطابقة</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> تسجيل يومي</button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button className="btn btn-secondary" onClick={handleExport} disabled={!records?.length}>
+            <Download size={16}/> تصدير Excel
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> تسجيل يومي</button>
+        </div>
       </div>
 
       {/* Today reconciliation */}
@@ -75,7 +94,7 @@ export default function PettyCashPage() {
               { label: 'رصيد متوقع', value: reconciliation.expected },
               { label: 'فارق', value: reconciliation.variance, highlight: true },
             ].map(item => (
-              <div key={item.label}>
+              <div key={item.label} style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>{item.label}</div>
                 <div className="number" style={{ fontWeight: 700, color: item.highlight ? (Math.abs(reconciliation.variance) < 0.01 ? 'var(--color-success)' : 'var(--color-danger)') : 'var(--text-primary)' }}>
                   {formatSAR(item.value ?? 0)}

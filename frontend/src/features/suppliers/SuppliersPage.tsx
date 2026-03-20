@@ -3,12 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { Plus, CheckCircle, XCircle } from 'lucide-react'
+import { Plus, CheckCircle, XCircle, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
+import { exportToExcel } from '../../lib/export'
 
 const schema = z.object({
   name_ar:    z.string().min(1, 'الاسم العربي مطلوب'),
@@ -44,6 +45,19 @@ export default function SuppliersPage() {
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ'),
   })
 
+  const handleExport = () => {
+    const exportData = (suppliers ?? []).map((s: any) => ({
+      'اسم المورد (عربي)': s.name_ar,
+      'اسم المورد (إنجليزي)': s.name_en || '-',
+      'التصنيف': s.category || '-',
+      'رقم الضريبة': s.vat_number || 'معفى',
+      'الجوال': s.phone || '-',
+      'البريد الإلكتروني': s.email || '-',
+      'الحالة': s.is_active ? 'نشط' : 'معطّل'
+    }))
+    exportToExcel(exportData, 'الموردين')
+  }
+
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -51,9 +65,14 @@ export default function SuppliersPage() {
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>الموردين</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>إدارة بيانات الموردين وأرقام ضريبة القيمة المضافة</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
-          <Plus size={16}/> مورد جديد
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button className="btn btn-secondary" onClick={handleExport} disabled={!suppliers?.length}>
+            <Download size={16}/> تصدير Excel
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
+            <Plus size={16}/> مورد جديد
+          </button>
+        </div>
       </div>
 
       {showForm && (

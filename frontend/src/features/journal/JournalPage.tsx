@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus, Minus, RotateCcw, CheckCircle, XCircle } from 'lucide-react'
+import { Plus, Minus, RotateCcw, CheckCircle, XCircle, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
+import { exportToExcel } from '../../lib/export'
 import { useAuthStore } from '../../store/authStore'
 
 interface JournalLine { account_code: string; debit_amount: number; credit_amount: number; description?: string }
@@ -74,6 +75,20 @@ export default function JournalPage() {
     reversal: 'عكس', manual: 'يدوي',
   }
 
+  const handleExport = () => {
+    const exportData = (entries ?? []).map((e: any) => ({
+      'رقم القيد': e.entry_number,
+      'التاريخ': formatDate(e.entry_date),
+      'البيان': e.description,
+      'المصدر': SOURCE_LABELS[e.source_type] ?? e.source_type,
+      'المرجع': e.reference || '-',
+      'المبلغ': Number(e.amount) || 0,
+      'متوازن': e.is_balanced ? 'نعم' : 'لا',
+      'الحالة': e.is_reversed ? 'مُعكوس' : 'فعّال'
+    }))
+    exportToExcel(exportData, 'قيود_اليومية')
+  }
+
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -81,9 +96,14 @@ export default function JournalPage() {
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>قيود اليومية</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>القيود المحاسبية مزدوجة القيد</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
-          <Plus size={16}/> قيد جديد
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button className="btn btn-secondary" onClick={handleExport} disabled={!entries?.length}>
+            <Download size={16}/> تصدير Excel
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
+            <Plus size={16}/> قيد جديد
+          </button>
+        </div>
       </div>
 
       {/* Manual entry form */}
@@ -190,6 +210,8 @@ export default function JournalPage() {
                 <th>التاريخ</th>
                 <th>البيان</th>
                 <th>المصدر</th>
+                <th>المرجع</th>
+                <th>المبلغ</th>
                 <th>متوازن</th>
                 <th>الحالة</th>
                 {user?.role === 'admin' && <th>عكس</th>}
@@ -200,9 +222,11 @@ export default function JournalPage() {
                 <motion.tr key={e.id} variants={staggerItem}
                   style={{ opacity: e.is_reversed ? 0.5 : 1 }}>
                   <td style={{ fontFamily: 'var(--font-latin)', fontWeight: 600, color: 'var(--color-primary)' }}>{e.entry_number}</td>
-                  <td className="amount">{formatDate(e.entry_date)}</td>
+                  <td>{formatDate(e.entry_date)}</td>
                   <td style={{ maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.description}</td>
                   <td><span className="badge badge-info">{SOURCE_LABELS[e.source_type] ?? e.source_type}</span></td>
+                  <td style={{ fontFamily: 'var(--font-latin)' }}>{e.reference || '-'}</td>
+                  <td className="amount" style={{ fontWeight: 600 }}>{formatSAR(Number(e.amount) || 0)}</td>
                   <td>
                     {e.is_balanced
                       ? <CheckCircle size={15} color="var(--color-success)"/>
