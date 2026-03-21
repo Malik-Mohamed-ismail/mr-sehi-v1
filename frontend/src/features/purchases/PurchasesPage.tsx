@@ -70,6 +70,7 @@ export default function PurchasesPage() {
       toast.success(t('purchases.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['purchases'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
       reset(); setShowForm(false)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('purchases.messages.error')),
@@ -80,6 +81,8 @@ export default function PurchasesPage() {
     onSuccess: () => {
       toast.success(t('purchases.messages.deleteSuccess'))
       qc.invalidateQueries({ queryKey: ['purchases'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
       setDeleteId(null)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('purchases.messages.error')),

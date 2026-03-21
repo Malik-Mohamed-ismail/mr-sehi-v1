@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Plus, CheckCircle, XCircle, Download, Trash2 } from 'lucide-react'
+import { Plus, CheckCircle, XCircle, Download, Trash2, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api } from '../../lib/api'
@@ -175,16 +176,26 @@ export default function SuppliersPage() {
                     </span>
                   </td>
                   <td>
-                    {user?.role === 'admin' && (
-                      <button
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      <Link
+                        to={`/suppliers/${s.id}/ledger`}
                         className="btn btn-ghost btn-sm"
-                        style={{ color: 'var(--color-danger)' }}
-                        onClick={() => setDeleteId(s.id)}
-                        title={t("purchases.delete.aria") || 'حذف'}
+                        style={{ color: 'var(--color-primary)' }}
+                        title="كشف الحساب"
                       >
-                        <Trash2 size={14}/>
-                      </button>
-                    )}
+                        <FileText size={14}/>
+                      </Link>
+                      {user?.role === 'admin' && (
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          style={{ color: 'var(--color-danger)' }}
+                          onClick={() => setDeleteId(s.id)}
+                          title={t("purchases.delete.aria") || 'حذف'}
+                        >
+                          <Trash2 size={14}/>
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </motion.tr>
               ))}

@@ -14,6 +14,7 @@ const RestaurantRevenuePage    = lazy(() => import('./features/revenue/Restauran
 const SubscriptionsRevenuePage = lazy(() => import('./features/revenue/SubscriptionsRevenuePage'))
 const SubscribersPage          = lazy(() => import('./features/subscribers/SubscribersPage'))
 const SuppliersPage            = lazy(() => import('./features/suppliers/SuppliersPage'))
+const SupplierLedgerPage       = lazy(() => import('./features/suppliers/SupplierLedgerPage'))
 const JournalPage              = lazy(() => import('./features/journal/JournalPage'))
 const ExpensesPage             = lazy(() => import('./features/expenses/ExpensesPage'))
 const PettyCashPage            = lazy(() => import('./features/petty-cash/PettyCashPage'))
@@ -21,6 +22,14 @@ const ProductionPage           = lazy(() => import('./features/production/Produc
 const AccountsPage             = lazy(() => import('./features/accounts/AccountsPage'))
 const IncomeStatementPage      = lazy(() => import('./features/reports/IncomeStatementPage'))
 const PerformancePage          = lazy(() => import('./features/reports/PerformancePage'))
+const BalanceSheetPage         = lazy(() => import('./features/reports/BalanceSheetPage'))
+const CashFlowPage             = lazy(() => import('./features/reports/CashFlowPage'))
+const ChannelAnalysisPage      = lazy(() => import('./features/reports/ChannelAnalysisPage'))
+const WasteAnalysisPage        = lazy(() => import('./features/reports/WasteAnalysisPage'))
+const BreakEvenPage            = lazy(() => import('./features/reports/BreakEvenPage'))
+const VATSummaryPage           = lazy(() => import('./features/reports/VATSummaryPage'))
+const AuditLogPage             = lazy(() => import('./features/settings/AuditLogPage'))
+const UsersPage                = lazy(() => import('./features/settings/UsersPage'))
 const SettingsPage             = lazy(() => import('./features/settings/SettingsPage'))
 const TrialBalancePage         = lazy(() =>
   import('./features/reports/TrialBalancePage').then(m => ({ default: m.TrialBalancePage }))
@@ -44,7 +53,7 @@ function ComingSoon({ title }: { title: string }) {
 }
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, staleTime: 2 * 60 * 1000, refetchOnWindowFocus: false } },
+  defaultOptions: { queries: { retry: 1, staleTime: 0, refetchOnWindowFocus: true } },
 })
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -82,6 +91,7 @@ export default function App() {
             <Route path="expenses"              element={<PageSuspense><ExpensesPage /></PageSuspense>} />
             <Route path="petty-cash"            element={<PageSuspense><PettyCashPage /></PageSuspense>} />
             <Route path="suppliers"             element={<PageSuspense><SuppliersPage /></PageSuspense>} />
+            <Route path="suppliers/:id/ledger"  element={<PageSuspense><SupplierLedgerPage /></PageSuspense>} />
             <Route path="subscribers"           element={<PageSuspense><SubscribersPage /></PageSuspense>} />
             <Route path="production"            element={<PageSuspense><ProductionPage /></PageSuspense>} />
             <Route path="accounts"              element={<PageSuspense><AccountsPage /></PageSuspense>} />
@@ -90,6 +100,14 @@ export default function App() {
             <Route path="trial-balance"         element={<PageSuspense><TrialBalancePage /></PageSuspense>} />
             <Route path="income-statement"      element={<PageSuspense><IncomeStatementPage /></PageSuspense>} />
             <Route path="performance"           element={<PageSuspense><PerformancePage /></PageSuspense>} />
+            <Route path="balance-sheet"         element={<PageSuspense><BalanceSheetPage /></PageSuspense>} />
+            <Route path="cash-flow"             element={<PageSuspense><CashFlowPage /></PageSuspense>} />
+            <Route path="channel-analysis"      element={<PageSuspense><ChannelAnalysisPage /></PageSuspense>} />
+            <Route path="waste-analysis"        element={<PageSuspense><WasteAnalysisPage /></PageSuspense>} />
+            <Route path="breakeven"             element={<PageSuspense><BreakEvenPage /></PageSuspense>} />
+            <Route path="vat-summary"           element={<PageSuspense><VATSummaryPage /></PageSuspense>} />
+            <Route path="audit-log"             element={<PageSuspense><AuditLogPage /></PageSuspense>} />
+            <Route path="users"                 element={<PageSuspense><UsersPage /></PageSuspense>} />
             <Route path="reports"               element={<ComingSoon title="التقارير والتحليلات" />} />
             <Route path="settings"              element={<PageSuspense><SettingsPage /></PageSuspense>} />
           </Route>

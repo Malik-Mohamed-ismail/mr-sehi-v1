@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
+import { BottomNav } from './BottomNav'
 import { useTranslation } from 'react-i18next'
 
 export function AppShell() {
@@ -20,6 +21,8 @@ export function AppShell() {
       }}>
         <Outlet/>
       </main>
+      <BottomNav/>
     </div>
   )
 }
+

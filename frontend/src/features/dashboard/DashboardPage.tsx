@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { api } from '../../lib/api'
 import { useAuthStore } from '../../store/authStore'
 import { formatSAR } from '../../lib/utils'
+import { Sparkline } from '../../components/ui/Sparkline'
 
 function SkeletonBlock({ h = 120, r = 16 }: { h?: number; r?: number }) {
   return <div className="skeleton" style={{ height: h, borderRadius: r }} />
@@ -65,6 +66,10 @@ export default function DashboardPage() {
     }))
   }, [totalExpenses, t])
 
+  const revTrend = useMemo(() => chartData.map((d: any) => d[t('dashboard.revenue') || 'Revenue'] || 0), [chartData, t])
+  const expTrend = useMemo(() => chartData.map((d: any) => d[t('dashboard.expenses') || 'Expenses'] || 0), [chartData, t])
+  const profTrend = useMemo(() => chartData.map((d: any) => (d[t('dashboard.revenue') || 'Revenue'] || 0) - (d[t('dashboard.expenses') || 'Expenses'] || 0)), [chartData, t])
+
   // Channel Bars
   const maxChan = Math.max(delivery, restaurant, subscriptions, 1)
   const channels = [
@@ -92,21 +97,24 @@ export default function DashboardPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 40 }}>
       {/* ── KPI Header Row ──────────────────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-        <div className="card" style={{ padding: '24px 28px', borderTop: '2px solid var(--color-success)' }}>
+        <div className="card" style={{ padding: '24px 28px', borderTop: '2px solid var(--color-success)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('dashboard.totalRevenue')}</div>
-          <div className="number" style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{formatSAR(totalRevenue)}</div>
+          <div className="number" style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1, flex: 1 }}>{formatSAR(totalRevenue)}</div>
+          {revTrend.length > 0 && <div style={{ marginTop: 16, marginInline: -8 }}><Sparkline data={revTrend} color="var(--color-success)" height={35} /></div>}
         </div>
-        <div className="card" style={{ padding: '24px 28px', borderTop: '2px solid var(--color-danger)' }}>
+        <div className="card" style={{ padding: '24px 28px', borderTop: '2px solid var(--color-danger)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('dashboard.totalExpenses')}</div>
-          <div className="number" style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{formatSAR(totalExpenses)}</div>
+          <div className="number" style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1, flex: 1 }}>{formatSAR(totalExpenses)}</div>
+          {expTrend.length > 0 && <div style={{ marginTop: 16, marginInline: -8 }}><Sparkline data={expTrend} color="var(--color-danger)" height={35} /></div>}
         </div>
-        <div className="card" style={{ padding: '24px 28px', borderTop: '2px solid var(--color-info)' }}>
+        <div className="card" style={{ padding: '24px 28px', borderTop: '2px solid var(--color-info)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('dashboard.netProfit')}</div>
-          <div className="number" style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{formatSAR(netProfit)}</div>
+          <div className="number" style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1, flex: 1 }}>{formatSAR(netProfit)}</div>
+          {profTrend.length > 0 && <div style={{ marginTop: 16, marginInline: -8 }}><Sparkline data={profTrend} color="var(--color-info)" height={35} /></div>}
         </div>
-        <div className="card" style={{ padding: '24px 28px', borderTop: '2px solid var(--color-warning)' }}>
+        <div className="card" style={{ padding: '24px 28px', borderTop: '2px solid var(--color-warning)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('dashboard.vat')}</div>
-          <div className="number" style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{formatSAR(vatPayable)}</div>
+          <div className="number" style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1, flex: 1 }}>{formatSAR(vatPayable)}</div>
         </div>
       </div>
 

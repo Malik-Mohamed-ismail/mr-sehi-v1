@@ -59,6 +59,7 @@ export default function DeliveryRevenuePage() {
       toast.success(t('delivery.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['revenue-delivery'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
       reset(); setShowForm(false)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('delivery.messages.error')),
@@ -70,6 +71,7 @@ export default function DeliveryRevenuePage() {
       toast.success(t('purchases.messages.deleteSuccess') || 'تم الحذف')
       qc.invalidateQueries({ queryKey: ['revenue-delivery'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
       setDeleteId(null)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('delivery.messages.error')),

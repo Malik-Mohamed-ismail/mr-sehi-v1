@@ -53,6 +53,8 @@ export default function ExpensesPage() {
     onSuccess: () => {
       toast.success(t('expenses.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['expenses'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
       reset(); setShowForm(false)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('expenses.messages.error')),
@@ -63,6 +65,8 @@ export default function ExpensesPage() {
     onSuccess: () => {
       toast.success(t('purchases.messages.deleteSuccess') || 'تم الحذف')
       qc.invalidateQueries({ queryKey: ['expenses'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
       setDeleteId(null)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('expenses.messages.error')),

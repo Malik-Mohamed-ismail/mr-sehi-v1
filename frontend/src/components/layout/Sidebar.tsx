@@ -7,7 +7,8 @@ import {
   ShoppingCart, Briefcase, Wallet,
   Users, UserCheck, Factory,
   BookOpen, BookMarked, Scale, DollarSign,
-  ChevronLeft, ChevronRight, Sparkles
+  ChevronLeft, ChevronRight, Sparkles,
+  BarChart2, PieChart, Leaf, Target, Receipt, Shield, UserCog
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../../store/authStore'
@@ -60,11 +61,29 @@ const navSections: NavSection[] = [
   {
     title: 'sidebar.accounting',
     items: [
-      { to: '/accounts',       icon: <BookOpen size={18}/>,   label: 'pages.accounts',  roles: ['admin','accountant'] },
-      { to: '/journal',        icon: <BookMarked size={18}/>, label: 'pages.journal',   roles: ['admin','accountant'] },
-      { to: '/ledger',         icon: <Scale size={18}/>,      label: 'pages.ledger',    roles: ['admin','accountant'] },
-      { to: '/trial-balance',  icon: <Scale size={18}/>,      label: 'pages.trialBalance', roles: ['admin','accountant'] },
-      { to: '/income-statement',icon: <DollarSign size={18}/>,label: 'pages.incomeStatement', roles: ['admin','accountant'] },
+      { to: '/accounts',       icon: <BookOpen size={18}/>,   label: 'pages.accounts',      roles: ['admin','accountant'] },
+      { to: '/journal',        icon: <BookMarked size={18}/>, label: 'pages.journal',       roles: ['admin','accountant'] },
+      { to: '/ledger',         icon: <Scale size={18}/>,      label: 'pages.ledger',        roles: ['admin','accountant'] },
+      { to: '/trial-balance',  icon: <Scale size={18}/>,      label: 'pages.trialBalance',  roles: ['admin','accountant'] },
+      { to: '/income-statement',icon: <DollarSign size={18}/>,label: 'pages.incomeStatement',roles: ['admin','accountant'] },
+    ],
+  },
+  {
+    title: 'sidebar.analysis',
+    items: [
+      { to: '/balance-sheet',    icon: <FileText size={18}/>,   label: 'pages.balanceSheet',    roles: ['admin','accountant'] },
+      { to: '/cash-flow',        icon: <TrendingUp size={18}/>, label: 'pages.cashFlow',        roles: ['admin','accountant'] },
+      { to: '/channel-analysis', icon: <BarChart2 size={18}/>,  label: 'pages.channelAnalysis', roles: ['admin','accountant'] },
+      { to: '/waste-analysis',   icon: <Leaf size={18}/>,       label: 'pages.wasteAnalysis',   roles: ['admin','accountant'] },
+      { to: '/breakeven',        icon: <Target size={18}/>,     label: 'pages.breakeven',       roles: ['admin','accountant'] },
+      { to: '/vat-summary',      icon: <Receipt size={18}/>,    label: 'pages.vatSummary',      roles: ['admin','accountant'] },
+    ],
+  },
+  {
+    title: 'sidebar.administration',
+    items: [
+      { to: '/users',     icon: <UserCog size={18}/>, label: 'pages.users',    roles: ['admin'] },
+      { to: '/audit-log', icon: <Shield size={18}/>,  label: 'pages.auditLog', roles: ['admin'] },
     ],
   },
 ]

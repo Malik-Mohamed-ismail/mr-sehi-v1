@@ -53,6 +53,27 @@ async function performanceTrends(req: Request, res: Response, next: NextFunction
   } catch (e) { next(e) }
 }
 
+async function channelAnalysis(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { from, to } = getDateRange(req.query)
+    res.json({ success: true, data: await svc.getChannelAnalysis(from, to) })
+  } catch (e) { next(e) }
+}
+
+async function wasteAnalysis(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { from, to } = getDateRange(req.query)
+    res.json({ success: true, data: await svc.getWasteAnalysis(from, to) })
+  } catch (e) { next(e) }
+}
+
+async function cashFlow(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { from, to } = getDateRange(req.query)
+    res.json({ success: true, data: await svc.getCashFlow(from, to) })
+  } catch (e) { next(e) }
+}
+
 const router = Router()
 router.use(authenticate)
 
@@ -62,5 +83,8 @@ router.get('/income-statement',   authorize(...ACCOUNTANT_PLUS), reportLimiter, 
 router.get('/balance-sheet',      authorize(...ACCOUNTANT_PLUS), reportLimiter, balanceSheet)
 router.get('/breakeven',          authorize(...ACCOUNTANT_PLUS), breakeven)
 router.get('/vat-summary',        authorize(...ACCOUNTANT_PLUS), vatSummary)
+router.get('/channel-analysis',   authorize(...ACCOUNTANT_PLUS), channelAnalysis)
+router.get('/waste-analysis',     authorize(...ACCOUNTANT_PLUS), wasteAnalysis)
+router.get('/cash-flow',          authorize(...ACCOUNTANT_PLUS), cashFlow)
 
 export default router

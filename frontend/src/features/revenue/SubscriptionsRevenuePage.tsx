@@ -36,6 +36,8 @@ export default function SubscriptionsRevenuePage() {
     onSuccess: () => {
       toast.success(t('subscriptions.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['revenue-subscriptions'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
       reset(); setShowForm(false)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('subscriptions.messages.error')),
@@ -47,6 +49,7 @@ export default function SubscriptionsRevenuePage() {
       toast.success(t('purchases.messages.deleteSuccess') || 'تم الحذف')
       qc.invalidateQueries({ queryKey: ['revenue-subscriptions'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
       setDeleteId(null)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('subscriptions.messages.error')),

@@ -376,9 +376,46 @@ body[dir="ltr"] { direction: ltr; }
 ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
+/* ── heroPulse animation (DashboardHero) ─────────────────────────────────── */
+@keyframes heroPulse {
+  from { opacity: 0.6; transform: scale(1); }
+  to   { opacity: 1;   transform: scale(1.05); }
+}
+
+/* ── Spin animation (loading icons) ─────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.7s linear infinite; }
+
+/* ── Gradient utilities (BreakEven progress bar) ────────────────────────── */
+.gradient-success { background: linear-gradient(90deg, #1DB87B, #22c55e); }
+.gradient-danger  { background: linear-gradient(90deg, #E8384D, #ef4444); }
+:root {
+  --gradient-success: linear-gradient(90deg, #1DB87B, #22c55e);
+  --gradient-danger:  linear-gradient(90deg, #E8384D, #ef4444);
+}
+
+/* ── Mobile bottom nav ───────────────────────────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 64px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-top: 1px solid var(--border-color);
+  z-index: 300;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (max-width: 768px) {
+  .bottom-nav { display: flex !important; align-items: center; justify-content: space-around; }
+  .sidebar { display: none !important; }
+  main { margin-inline-start: 0 !important; padding-bottom: 80px; }
+}
+
 /* ── Print ────────────────────────────────────────────────────────────────── */
 @media print {
   .sidebar, .topbar, .btn, .no-print { display: none !important; }
   body { background: white; color: black; }
   .card { box-shadow: none; border: 1px solid #ddd; }
 }
+

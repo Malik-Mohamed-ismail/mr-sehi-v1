@@ -37,6 +37,7 @@ export default function RestaurantRevenuePage() {
       toast.success(t('restaurant.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['revenue-restaurant'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
       reset(); setShowForm(false)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('restaurant.messages.error')),
@@ -48,6 +49,7 @@ export default function RestaurantRevenuePage() {
       toast.success(t('purchases.messages.deleteSuccess') || 'تم الحذف')
       qc.invalidateQueries({ queryKey: ['revenue-restaurant'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
       setDeleteId(null)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('restaurant.messages.error')),
