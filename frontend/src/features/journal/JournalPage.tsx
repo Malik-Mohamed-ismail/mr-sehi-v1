@@ -11,12 +11,15 @@ import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
 import { exportToExcel } from '../../lib/export'
 import { useAuthStore } from '../../store/authStore'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../lib/i18n'
 
 interface JournalLine { account_code: string; debit_amount: number; credit_amount: number; description?: string }
 interface FormData { entry_date: string; description: string; reference?: string; lines: JournalLine[] }
 
 export default function JournalPage() {
   const qc = useQueryClient()
+  const { t } = useTranslation()
   const { user } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
   const [reverseId, setReverseId] = useState<number | null>(null)
@@ -52,49 +55,53 @@ export default function JournalPage() {
   const createMutation = useMutation({
     mutationFn: (data: any) => api.post('/journal', data),
     onSuccess: () => {
-      toast.success('تم حفظ القيد المحاسبي')
+      toast.success(t('journal.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['journal'] })
       reset(); setShowForm(false)
     },
-    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ'),
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('journal.messages.error')),
   })
 
   const reverseMutation = useMutation({
     mutationFn: ({ id, reason }: { id: number; reason: string }) =>
       api.post(`/journal/${id}/reverse`, { reason }),
     onSuccess: () => {
-      toast.success('تم عكس القيد بنجاح')
+      toast.success(t('journal.messages.reverseSuccess'))
       qc.invalidateQueries({ queryKey: ['journal'] })
       setReverseId(null); setReverseReason('')
     },
-    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ'),
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('journal.messages.error')),
   })
 
   const SOURCE_LABELS: Record<string, string> = {
+    purchase: t('journal.sourceTypes.purchase'), revenue: t('journal.sourceTypes.revenue'), expense: t('journal.sourceTypes.expense'),
+    reversal: t('journal.sourceTypes.reversal'), manual: t('journal.sourceTypes.manual'),
+  };
+  /*
     purchase: 'مشتريات', revenue: 'إيرادات', expense: 'مصروفات',
     reversal: 'عكس', manual: 'يدوي',
-  }
+  } */
 
   const handleExport = () => {
     const exportData = (entries ?? []).map((e: any) => ({
-      'رقم القيد': e.entry_number,
-      'التاريخ': formatDate(e.entry_date),
-      'البيان': e.description,
-      'المصدر': SOURCE_LABELS[e.source_type] ?? e.source_type,
-      'المرجع': e.reference || '-',
-      'المبلغ': Number(e.amount) || 0,
-      'متوازن': e.is_balanced ? 'نعم' : 'لا',
-      'الحالة': e.is_reversed ? 'مُعكوس' : 'فعّال'
+      [i18n.t('journal.table.entryNumber')]: e.entry_number,
+      [i18n.t('journal.table.date')]: formatDate(e.entry_date),
+      [i18n.t('journal.table.description')]: e.description,
+      [i18n.t('journal.table.source')]: SOURCE_LABELS[e.source_type] ?? e.source_type,
+      [i18n.t('journal.table.reference')]: e.reference || '-',
+      [i18n.t('journal.table.amount')]: Number(e.amount) || 0,
+      [i18n.t('journal.table.isBalanced')]: e.is_balanced ? i18n.t('journal.table.yes') : i18n.t('journal.table.no'),
+      [i18n.t('journal.table.status')]: e.is_reversed ? i18n.t('journal.table.reversed') : i18n.t('journal.table.active')
     }))
-    exportToExcel(exportData, 'قيود_اليومية')
+    exportToExcel(exportData, i18n.t('journal.exportTitle'))
   }
 
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>قيود اليومية</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>القيود المحاسبية مزدوجة القيد</p>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t('journal.pageTitle')}</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>{t('journal.pageSubtitle')}</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
           <button className="btn btn-secondary" onClick={handleExport} disabled={!entries?.length}>
@@ -109,10 +116,10 @@ export default function JournalPage() {
       {/* Manual entry form */}
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
-          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir="rtl">
+          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir={i18n.dir()}>
             <div className="form-section-header">
               <div className="form-section-number">١</div>
-              <div className="form-section-title">بيانات القيد</div>
+              <div className="form-section-title">{t('journal.section1')}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 20 }}>
               <div className="form-field has-value">
@@ -132,20 +139,20 @@ export default function JournalPage() {
             {/* Lines */}
             <div className="form-section-header">
               <div className="form-section-number">٢</div>
-              <div className="form-section-title">أسطر القيد</div>
+              <div className="form-section-title">{t('journal.section2')}</div>
             </div>
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 2fr auto', gap: 10, marginBottom: 8, fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', padding: '0 4px' }}>
-                <span>الحساب</span>
-                <span>مدين</span>
-                <span>دائن</span>
-                <span>البيان</span>
+                <span>{t('journal.fields.account')}</span>
+                <span>{t('journal.fields.debit')}</span>
+                <span>{t('journal.fields.credit')}</span>
+                <span>{t('journal.fields.description')}</span>
                 <span/>
               </div>
               {fields.map((field, idx) => (
                 <div key={field.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 2fr auto', gap: 10, marginBottom: 8, alignItems: 'center' }}>
                   <select {...register(`lines.${idx}.account_code`)} className="form-select" style={{ height: 42 }}>
-                    <option value="">اختر الحساب</option>
+                    <option value="">{t('journal.fields.selectAccount')}</option>
                     {(accounts ?? []).map((a: any) => (
                       <option key={a.code} value={a.code}>{a.code} — {a.name_ar}</option>
                     ))}
@@ -176,19 +183,19 @@ export default function JournalPage() {
                 : <XCircle size={16} color="var(--color-danger)"/>}
               <span style={{ fontSize: 13, fontFamily: 'var(--font-arabic)' }}>
                 {isBalanced
-                  ? 'القيد متوازن ✓'
-                  : `القيد غير متوازن — الفرق: ${diff.toFixed(4)} ريال`}
+                  ? t('journal.balance.balanced')
+                  : `${t('journal.balance.unbalanced')} ${diff.toFixed(4)} ${t('journal.balance.currency')}`}
               </span>
               <div style={{ marginRight: 'auto', display: 'flex', gap: 16, fontFamily: 'var(--font-latin)', fontSize: 13 }}>
-                <span>مدين: {totalDebit.toFixed(2)}</span>
-                <span>دائن: {totalCredit.toFixed(2)}</span>
+                <span>{t('journal.balance.totalDebit')} {totalDebit.toFixed(2)}</span>
+                <span>{t('journal.balance.totalCredit')} {totalCredit.toFixed(2)}</span>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>إلغاء</button>
+              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>{t('journal.buttons.cancel')}</button>
               <button type="submit" className="btn btn-primary" disabled={isSubmitting || !isBalanced}>
-                {isSubmitting ? 'جارٍ الحفظ...' : '💾 حفظ القيد'}
+                {isSubmitting ? t('journal.buttons.saving') : t('journal.buttons.save')}
               </button>
             </div>
           </form>
@@ -198,7 +205,7 @@ export default function JournalPage() {
       {/* Entries table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
-          <span style={{ fontWeight: 600 }}>قيود اليومية</span>
+          <span style={{ fontWeight: 600 }}>{t('journal.pageTitle')}</span>
         </div>
         {isLoading ? (
           <div style={{ padding: 24 }}>{[...Array(5)].map((_, i) => <div key={i} className="skeleton" style={{ height: 40, marginBottom: 8 }}/>)}</div>
@@ -206,15 +213,15 @@ export default function JournalPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>رقم القيد</th>
-                <th>التاريخ</th>
-                <th>البيان</th>
-                <th>المصدر</th>
-                <th>المرجع</th>
-                <th>المبلغ</th>
-                <th>متوازن</th>
-                <th>الحالة</th>
-                {user?.role === 'admin' && <th>عكس</th>}
+                <th>{t('journal.table.entryNumber')}</th>
+                <th>{t('journal.table.date')}</th>
+                <th>{t('journal.table.description')}</th>
+                <th>{t('journal.table.source')}</th>
+                <th>{t('journal.table.reference')}</th>
+                <th>{t('journal.table.amount')}</th>
+                <th>{t('journal.table.isBalanced')}</th>
+                <th>{t('journal.table.status')}</th>
+                {user?.role === 'admin' && <th>{t('journal.table.reverse')}</th>}
               </tr>
             </thead>
             <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
@@ -234,8 +241,8 @@ export default function JournalPage() {
                   </td>
                   <td>
                     {e.is_reversed
-                      ? <span className="badge badge-danger">مُعكوس</span>
-                      : <span className="badge badge-success">فعّال</span>}
+                      ? <span className="badge badge-danger">{t('journal.table.reversed')}</span>
+                      : <span className="badge badge-success">{t('journal.table.active')}</span>}
                   </td>
                   {user?.role === 'admin' && (
                     <td>
@@ -253,7 +260,7 @@ export default function JournalPage() {
                 </motion.tr>
               ))}
               {!entries?.length && (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>لا توجد قيود</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('journal.table.empty')}</td></tr>
               )}
             </motion.tbody>
           </table>
@@ -263,9 +270,9 @@ export default function JournalPage() {
       {/* Reverse dialog */}
       <ConfirmDialog
         open={reverseId !== null}
-        title="عكس القيد"
-        message="سيتم إنشاء قيد عكسي يُلغي أثر هذا القيد. هذا الإجراء لا يمكن التراجع عنه."
-        onConfirm={() => reverseId && reverseMutation.mutate({ id: reverseId, reason: reverseReason || 'عكس يدوي' })}
+        title={t('journal.dialogs.reverseTitle')}
+        message={t('journal.dialogs.reverseMessage')}
+        onConfirm={() => reverseId && reverseMutation.mutate({ id: reverseId, reason: reverseReason || t('journal.dialogs.manualReverseReason') })}
         onCancel={() => setReverseId(null)}
         loading={reverseMutation.isPending}
       />

@@ -11,12 +11,14 @@ import { PageTransition } from '../../components/ui/PageTransition'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../lib/i18n'
 import { exportToExcel } from '../../lib/export'
 
 const schema = z.object({
   invoice_number: z.string().min(1),
   invoice_date:   z.string().min(1),
-  supplier_id:    z.coerce.number().positive('يجب اختيار مورد'),
+  supplier_id:    z.coerce.number().positive(i18n.t('purchases.validation.supplierRequired')),
   category:       z.enum(['مواد غذائية', 'خضار', 'بلاستيكيات', 'مشروبات', 'خبز', 'معدات مطبخ', 'مياه']),
   item_name:      z.string().min(1),
   quantity:       z.coerce.number().positive(),
@@ -30,6 +32,7 @@ type FormData = z.infer<typeof schema>
 
 export default function PurchasesPage() {
   const qc = useQueryClient()
+  const { t } = useTranslation()
   const [showForm, setShowForm] = useState(false)
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
@@ -62,22 +65,22 @@ export default function PurchasesPage() {
   const createMutation = useMutation({
     mutationFn: (data: any) => api.post('/purchases', data),
     onSuccess: () => {
-      toast.success('تم حفظ الفاتورة وإنشاء القيد المحاسبي تلقائياً')
+      toast.success(t('purchases.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['purchases'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       reset(); setShowForm(false)
     },
-    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ'),
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('purchases.messages.error')),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.delete(`/purchases/${id}`),
     onSuccess: () => {
-      toast.success('تم حذف الفاتورة وعكس القيد المحاسبي')
+      toast.success(t('purchases.messages.deleteSuccess'))
       qc.invalidateQueries({ queryKey: ['purchases'] })
       setDeleteId(null)
     },
-    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ'),
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('purchases.messages.error')),
   })
 
   const onSubmit = (data: FormData) => {
@@ -93,20 +96,20 @@ export default function PurchasesPage() {
     const exportData = (purchases ?? []).map((p: any) => {
       const supplier = suppliers?.find((s: any) => s.id === p.supplier_id)
       return {
-        'رقم الفاتورة': p.invoice_number,
-        'التاريخ': formatDate(p.invoice_date),
-        'المورد': supplier?.name_ar || p.supplier_id,
-        'الصنف': p.item_name,
-        'التصنيف': p.category,
-        'الكمية': p.quantity,
-        'السعر': p.unit_price,
-        'طريقة الدفع': p.payment_method,
-        'المجموع': p.subtotal,
-        'الضريبة': p.vat_amount,
-        'الإجمالي': p.total_amount
+        [i18n.t('purchases.exportCols.invoiceNumber')]: p.invoice_number,
+        [i18n.t('purchases.exportCols.date')]: formatDate(p.invoice_date),
+        [i18n.t('purchases.exportCols.supplier')]: supplier?.name_ar || p.supplier_id,
+        [i18n.t('purchases.exportCols.item')]: p.item_name,
+        [i18n.t('purchases.exportCols.category')]: i18n.t(`purchases.categories.${p.category}`),
+        [i18n.t('purchases.exportCols.qty')]: p.quantity,
+        [i18n.t('purchases.exportCols.price')]: p.unit_price,
+        [i18n.t('purchases.exportCols.paymentMethod')]: i18n.t(`purchases.paymentMethods.${p.payment_method === 'كاش' ? 'cash' : p.payment_method === 'بنك' ? 'bank' : 'credit'}`),
+        [i18n.t('purchases.exportCols.subtotal')]: p.subtotal,
+        [i18n.t('purchases.exportCols.vat')]: p.vat_amount,
+        [i18n.t('purchases.exportCols.total')]: p.total_amount
       }
     })
-    exportToExcel(exportData, 'مشتريات')
+    exportToExcel(exportData, i18n.t('purchases.exportTitle'))
   }
 
   return (
@@ -114,8 +117,8 @@ export default function PurchasesPage() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>إدخال المشتريات</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>تسجيل فواتير الموردين مع القيد المحاسبي التلقائي</p>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t('purchases.pageTitle')}</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>{t('purchases.pageSubtitle')}</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
           <Plus size={16}/> فاتورة جديدة
@@ -132,28 +135,28 @@ export default function PurchasesPage() {
             {/* Section 1 */}
             <div className="form-section-header">
               <div className="form-section-number">١</div>
-              <div className="form-section-title">بيانات الفاتورة</div>
+              <div className="form-section-title">{t('purchases.section1')}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
               <div className="form-field has-value">
-                <label>رقم الفاتورة</label>
+                <label>{t('purchases.fields.invoiceNumber')}</label>
                 <input {...register('invoice_number')} className={`form-input ${errors.invoice_number ? 'is-error' : ''}`}/>
               </div>
               <div className="form-field has-value">
-                <label>تاريخ الفاتورة</label>
+                <label>{t('purchases.fields.date')}</label>
                 <input {...register('invoice_date')} type="date" className={`form-input ${errors.invoice_date ? 'is-error' : ''}`}/>
               </div>
               <div className="form-field has-value">
-                <label>المورد</label>
+                <label>{t('purchases.fields.supplier')}</label>
                 <select {...register('supplier_id')} className={`form-select ${errors.supplier_id ? 'is-error' : ''}`}>
-                  <option value="">اختر المورد</option>
+                  <option value="">{t('purchases.fields.selectSupplier')}</option>
                   {suppliers?.map((s: any) => (
                     <option key={s.id} value={s.id}>{s.name_ar}</option>
                   ))}
                 </select>
               </div>
               <div className="form-field has-value">
-                <label>التصنيف</label>
+                <label>{t('purchases.fields.category')}</label>
                 <select {...register('category')} className={`form-select ${errors.category ? 'is-error' : ''}`}>
                   {['مواد غذائية','خضار','بلاستيكيات','مشروبات','خبز','معدات مطبخ','مياه'].map(c => (
                     <option key={c} value={c}>{c}</option>
@@ -161,7 +164,7 @@ export default function PurchasesPage() {
                 </select>
               </div>
               <div className="form-field has-value" style={{ gridColumn: '1 / -1' }}>
-                <label>اسم الصنف</label>
+                <label>{t('purchases.fields.item')}</label>
                 <input {...register('item_name')} className={`form-input ${errors.item_name ? 'is-error' : ''}`}/>
               </div>
             </div>
@@ -169,19 +172,19 @@ export default function PurchasesPage() {
             {/* Section 2 */}
             <div className="form-section-header">
               <div className="form-section-number">٢</div>
-              <div className="form-section-title">الكميات والأسعار</div>
+              <div className="form-section-title">{t('purchases.section2')}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div className="form-field has-value">
-                <label>الكمية</label>
+                <label>{t('purchases.fields.qty')}</label>
                 <input {...register('quantity')} type="number" step="0.001" className="form-input"/>
               </div>
               <div className="form-field has-value">
-                <label>سعر الوحدة</label>
+                <label>{t('purchases.fields.price')}</label>
                 <input {...register('unit_price')} type="number" step="0.01" className="form-input"/>
               </div>
               <div className="form-field has-value">
-                <label>الخصم</label>
+                <label>{t('purchases.fields.discount')}</label>
                 <input {...register('discount')} type="number" step="0.01" className="form-input"/>
               </div>
             </div>
@@ -189,18 +192,18 @@ export default function PurchasesPage() {
             {/* Computed readonly fields */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 24 }}>
               <div className="form-field has-value">
-                <label style={{ color: 'var(--color-success)' }}>المجموع قبل الضريبة</label>
+                <label style={{ color: 'var(--color-success)' }}>{t('purchases.fields.subtotal')}</label>
                 <input readOnly value={subtotal.toFixed(2)} className="form-input amount-field"/>
               </div>
               <div className="form-field has-value">
                 <label style={{ color: 'var(--color-success)' }}>
-                  ضريبة القيمة المضافة 15%
-                  {!hasVAT && <span style={{ fontSize: 10, color: 'var(--color-warning)', marginRight: 4 }}>(معفى)</span>}
+                  {t('purchases.fields.vat')}
+                  {!hasVAT && <span style={{ fontSize: 10, color: 'var(--color-warning)', marginRight: 4 }}>{t('purchases.fields.exempt')}</span>}
                 </label>
                 <input readOnly value={vatAmt.toFixed(2)} className="form-input amount-field"/>
               </div>
               <div className="form-field has-value">
-                <label style={{ color: 'var(--color-success)' }}>الإجمالي</label>
+                <label style={{ color: 'var(--color-success)' }}>{t('purchases.fields.total')}</label>
                 <input readOnly value={total.toFixed(2)} className="form-input amount-field" style={{ fontSize: 16, fontWeight: 700 }}/>
               </div>
             </div>
@@ -208,15 +211,15 @@ export default function PurchasesPage() {
             {/* Section 3 */}
             <div className="form-section-header">
               <div className="form-section-number">٣</div>
-              <div className="form-section-title">طريقة الدفع</div>
+              <div className="form-section-title">{t('purchases.section3')}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
               <div className="form-field has-value">
-                <label>طريقة الدفع</label>
+                <label>{t('purchases.section3')}</label>
                 <select {...register('payment_method')} className={`form-select ${errors.payment_method ? 'is-error' : ''}`}>
-                  <option value="كاش">كاش</option>
-                  <option value="بنك">بنك</option>
-                  <option value="آجل">آجل</option>
+                  <option value="كاش">{t("purchases.paymentMethods.cash")}</option>
+                  <option value="بنك">{t("purchases.paymentMethods.bank")}</option>
+                  <option value="آجل">{t("purchases.paymentMethods.credit")}</option>
                 </select>
               </div>
               <div className="form-field has-value" style={{ display: 'flex', alignItems: 'center', paddingTop: 12 }}>
@@ -228,9 +231,9 @@ export default function PurchasesPage() {
             </div>
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>إلغاء</button>
+              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>{t("purchases.buttons.cancel")}</button>
               <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? 'جارٍ الحفظ...' : '💾 حفظ الفاتورة'}
+                {isSubmitting ? t('purchases.buttons.saving') : t('purchases.buttons.save')}
               </button>
             </div>
           </form>
@@ -240,7 +243,7 @@ export default function PurchasesPage() {
       {/* Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: 600 }}>سجل الفواتير</span>
+          <span style={{ fontWeight: 600 }}>{t('purchases.table.title')}</span>
           <button className="btn btn-secondary btn-sm" onClick={handleExport} disabled={!purchases?.length}>
             <Download size={14}/> تصدير Excel
           </button>
@@ -253,14 +256,14 @@ export default function PurchasesPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>رقم الفاتورة</th>
-                <th>التاريخ</th>
-                <th>المورد</th>
-                <th>الصنف</th>
-                <th>طريقة الدفع</th>
-                <th>المجموع</th>
-                <th>الضريبة</th>
-                <th>الإجمالي</th>
+                <th>{t('purchases.fields.invoiceNumber')}</th>
+                <th>{t('purchases.fields.date')}</th>
+                <th>{t('purchases.fields.supplier')}</th>
+                <th>{t('purchases.fields.item')}</th>
+                <th>{t('purchases.section3')}</th>
+                <th>{t('purchases.fields.subtotal')}</th>
+                <th>{t('purchases.exportCols.vat')}</th>
+                <th>{t('purchases.fields.total')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -273,7 +276,7 @@ export default function PurchasesPage() {
                   <td>{p.item_name}</td>
                   <td>
                     <span className={`badge ${p.payment_method === 'آجل' ? 'badge-warning' : p.payment_method === 'بنك' ? 'badge-info' : 'badge-success'}`}>
-                      {p.payment_method}
+                      {t(`purchases.paymentMethods.${p.payment_method === 'كاش' ? 'cash' : p.payment_method === 'بنك' ? 'bank' : 'credit'}`)}
                     </span>
                   </td>
                   <td className="amount">{formatSAR(p.subtotal)}</td>
@@ -284,7 +287,7 @@ export default function PurchasesPage() {
                       className="btn btn-ghost btn-sm"
                       style={{ color: 'var(--color-danger)' }}
                       onClick={() => setDeleteId(p.id)}
-                      aria-label="حذف الفاتورة"
+                      aria-label={t("purchases.delete.aria")}
                     >
                       <Trash2 size={14}/>
                     </button>
@@ -292,7 +295,7 @@ export default function PurchasesPage() {
                 </motion.tr>
               ))}
               {!purchases?.length && (
-                <tr><td colSpan={9} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>لا توجد فواتير</td></tr>
+                <tr><td colSpan={9} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('purchases.table.empty')}</td></tr>
               )}
             </motion.tbody>
           </table>
@@ -301,8 +304,8 @@ export default function PurchasesPage() {
 
       <ConfirmDialog
         open={deleteId !== null}
-        title="حذف الفاتورة"
-        message="سيتم حذف الفاتورة وعكس القيد المحاسبي تلقائياً. هذا الإجراء لا يمكن التراجع عنه."
+        title={t("purchases.delete.title")}
+        message={t("purchases.delete.message")}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
         onCancel={() => setDeleteId(null)}
         loading={deleteMutation.isPending}

@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useMemo } from 'react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts'
+import { useTranslation } from 'react-i18next'
 import { api } from '../../lib/api'
 import { useAuthStore } from '../../store/authStore'
 
@@ -88,11 +89,11 @@ function SkeletonBlock({ h = 120, r = 16 }: { h?: number; r?: number }) {
 
 // ─── Channel card ────────────────────────────────────────────────────────────
 const CHANNELS = [
-  { key: 'keeta',   label: 'كيتا',         emoji: '🛵', bar: 'linear-gradient(90deg,#FF6B35,#FF8F5A)' },
-  { key: 'hunger',  label: 'هنقرستيشن',   emoji: '🍔', bar: 'linear-gradient(90deg,#EE2A26,#F77C7B)' },
-  { key: 'ninja',   label: 'نينجا',         emoji: '🥷', bar: 'linear-gradient(90deg,#00C9A7,#00E6BF)' },
-  { key: 'resto',   label: 'المطعم',        emoji: '🍽️', bar: 'linear-gradient(90deg,#D4A853,#F0C96A)' },
-  { key: 'subs',    label: 'الاشتراكات',   emoji: '📋', bar: 'linear-gradient(90deg,#4A90E2,#7AB8F5)' },
+  { key: 'keeta',   label: 'dashboard.channels.keeta',         emoji: '🛵', bar: 'linear-gradient(90deg,#FF6B35,#FF8F5A)' },
+  { key: 'hunger',  label: 'dashboard.channels.hunger',   emoji: '🍔', bar: 'linear-gradient(90deg,#EE2A26,#F77C7B)' },
+  { key: 'ninja',   label: 'dashboard.channels.ninja',         emoji: '🥷', bar: 'linear-gradient(90deg,#00C9A7,#00E6BF)' },
+  { key: 'resto',   label: 'dashboard.channels.resto',        emoji: '🍽️', bar: 'linear-gradient(90deg,#D4A853,#F0C96A)' },
+  { key: 'subs',    label: 'dashboard.channels.subs',   emoji: '📋', bar: 'linear-gradient(90deg,#4A90E2,#7AB8F5)' },
 ]
 
 function ChannelCard({
@@ -216,6 +217,7 @@ function ProgressRing({ pct, color, label }: { pct: number; color: string; label
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const user = useAuthStore(s => s.user)
+  const { t } = useTranslation()
 
   const { data: dashboard, isLoading } = useQuery({
     queryKey: ['dashboard'],
@@ -263,32 +265,33 @@ export default function DashboardPage() {
 
   // Channel breakdown — delivery=keeta+hunger+ninja, restaurant, subscriptions
   const maxChan = Math.max(delivery, restaurant, subscriptions, 1)
-  const channels = [
+  const channels = useMemo(() => [
     { ...CHANNELS[0], amount: delivery * 0.42,     pct: (delivery * 0.42 / maxChan) * 100 },
     { ...CHANNELS[1], amount: delivery * 0.38,     pct: (delivery * 0.38 / maxChan) * 100 },
     { ...CHANNELS[2], amount: delivery * 0.20,     pct: (delivery * 0.20 / maxChan) * 100 },
     { ...CHANNELS[3], amount: restaurant,           pct: (restaurant / maxChan) * 100 },
     { ...CHANNELS[4], amount: subscriptions,        pct: (subscriptions / maxChan) * 100 },
-  ]
+  ], [delivery, restaurant, subscriptions, maxChan])
 
   // Pie data - expenses breakdown
   const expColors = ['#D4A853', '#1DB87B', '#4A90E2', '#F5A623', '#E8384D']
   const expLabels = expenseSummary
     ? Object.keys(expenseSummary).slice(0, 5)
-    : ['مواد خام', 'رواتب', 'إيجار', 'تشغيل', 'أخرى']
+    : t('dashboard.expensesLabels', { returnObjects: true }) as string[]
   const expValues = expenseSummary
     ? Object.values(expenseSummary).slice(0, 5).map(Number)
     : [38200, 28400, 14000, 10820, 6000]
-  const donutData = expLabels.map((label, i) => ({
+  
+  const donutData = useMemo(() => expLabels.map((label, i) => ({
     name: label, value: expValues[i], color: expColors[i],
-  }))
+  })), [expLabels, expValues])
 
   // Revenue vs expenses daily chart
-  const chartData = (dailySeries ?? []).slice(-6).map((d: any) => ({
+  const chartData = useMemo(() => (dailySeries ?? []).slice(-6).map((d: any) => ({
     date: d.date?.slice(5),
     إيرادات: Number(d.total ?? 0),
     مصروفات: Number(d.total ?? 0) * 0.6, // approximation until expense series is ready
-  }))
+  })), [dailySeries])
 
   // Today summary
   const today = new Date().toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -329,7 +332,7 @@ export default function DashboardPage() {
 
         {/* ── HERO KPI SECTION ───────────────────────────────────────────── */}
         <section style={{ marginBottom: 40 }}>
-          <SectionPill label={`القصة المالية — ${today}`} />
+          <SectionPill label={`${t('dashboard.financialStory')} — ${today}`} />
 
           {/* Row 1: hero + 2 small */}
           <div style={{ ...gridRow, gridTemplateColumns: '2fr 1fr 1fr', marginBottom: 16 }}>
@@ -366,12 +369,12 @@ export default function DashboardPage() {
               }} />
               <div style={{ position: 'relative' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <div style={{ fontSize: 13, color: 'var(--text-secondary, #8B92A9)', fontWeight: 500 }}>إجمالي الإيرادات</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary, #8B92A9)', fontWeight: 500 }}>{t('dashboard.totalRevenue')}</div>
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px',
                     borderRadius: 6, fontSize: 12, fontWeight: 600, fontFamily: 'IBM Plex Sans, sans-serif',
                     background: 'rgba(29,184,123,0.15)', color: '#1DB87B',
-                  }}>↑ هذا الشهر</div>
+                  }}>{t('dashboard.thisMonthUp')}</div>
                 </div>
                 <div style={{ marginBottom: 16 }}>
                   <div style={{
@@ -383,7 +386,7 @@ export default function DashboardPage() {
                     <span ref={heroRef}>0</span>
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted, #4A5168)', marginTop: 4 }}>
-                    توصيل + مطعم + اشتراكات
+                    {t('dashboard.revenueSources')}
                   </div>
                 </div>
                 {/* Mini sparkline using recharts */}
@@ -405,11 +408,11 @@ export default function DashboardPage() {
             </div>
 
             {/* Net Profit */}
-            <KpiCard icon="💰" iconBg="rgba(29,184,123,0.15)" label="صافي الربح"
+            <KpiCard icon="💰" iconBg="rgba(29,184,123,0.15)" label={t('dashboard.netProfit')}
               value={netProfit} badge="↑ 8.1%" badgeDir="up" />
 
             {/* Total Expenses */}
-            <KpiCard icon="📉" iconBg="rgba(232,56,77,0.15)" label="إجمالي المصروفات"
+            <KpiCard icon="📉" iconBg="rgba(232,56,77,0.15)" label={t('dashboard.totalExpenses')}
               value={totalExpenses} badge="↑ 3.2%" badgeDir="down" />
           </div>
 
@@ -420,12 +423,12 @@ export default function DashboardPage() {
               border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 22,
             }}>
               <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(74,144,226,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 14 }}>👥</div>
-              <div style={{ fontSize: 13, color: 'var(--text-secondary,#8B92A9)', fontWeight: 500, marginBottom: 8 }}>المشتركون النشطون</div>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary,#8B92A9)', fontWeight: 500, marginBottom: 8 }}>{t('dashboard.activeSubscribers')}</div>
               <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'IBM Plex Sans,sans-serif', color: 'var(--text-primary,#F1F3F9)', lineHeight: 1 }}>
                 <AnimCounter value={activeSubs} duration={1200} />
               </div>
               <div style={{ fontSize: 11, color: 'var(--text-muted,#4A5168)', marginTop: 6 }}>
-                {expiringSubs > 0 ? `${expiringSubs} تنتهي قريباً` : 'لا تنتهي قريباً'}
+                {expiringSubs > 0 ? `${expiringSubs} ${t('dashboard.expiringSoon')}` : t('dashboard.notExpiringSoon')}
               </div>
             </div>
 
@@ -434,7 +437,7 @@ export default function DashboardPage() {
               border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 22,
             }}>
               <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(212,168,83,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 14 }}>🧾</div>
-              <div style={{ fontSize: 13, color: 'var(--text-secondary,#8B92A9)', fontWeight: 500, marginBottom: 8 }}>ضريبة القيمة المضافة</div>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary,#8B92A9)', fontWeight: 500, marginBottom: 8 }}>{t('dashboard.vat')}</div>
               <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'IBM Plex Sans,sans-serif', color: 'var(--text-primary,#F1F3F9)', lineHeight: 1, direction: 'ltr', unicodeBidi: 'isolate' }}>
                 <span style={{ fontSize: 13, color: '#D4A853', fontFamily: 'IBM Plex Sans,sans-serif' }}>ر.س </span>
                 <AnimCounter value={Number(dashboard?.vat_payable ?? totalRevenue * 0.15)} />
@@ -447,22 +450,22 @@ export default function DashboardPage() {
               border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 22,
             }}>
               <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(29,184,123,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 14 }}>💵</div>
-              <div style={{ fontSize: 13, color: 'var(--text-secondary,#8B92A9)', fontWeight: 500, marginBottom: 8 }}>الخزينة الصغيرة</div>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary,#8B92A9)', fontWeight: 500, marginBottom: 8 }}>{t('dashboard.pettyCash')}</div>
               <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'IBM Plex Sans,sans-serif', color: 'var(--text-primary,#F1F3F9)', lineHeight: 1, direction: 'ltr', unicodeBidi: 'isolate' }}>
                 <span style={{ fontSize: 13, color: '#D4A853', fontFamily: 'IBM Plex Sans,sans-serif' }}>ر.س </span>
                 <AnimCounter value={Number(dashboard?.petty_cash_balance ?? 0)} duration={1000} />
               </div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted,#4A5168)', marginTop: 6 }}>رصيد اليوم</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted,#4A5168)', marginTop: 6 }}>{t('dashboard.todayBalance')}</div>
             </div>
           </div>
         </section>
 
         {/* ── REVENUE CHANNELS ───────────────────────────────────────────── */}
         <section style={{ marginBottom: 40 }}>
-          <SectionPill label="قنوات الإيراد" color="#4A90E2" />
+          <SectionPill label={t("dashboard.revenueChannels")} color="#4A90E2" />
           <div style={{ ...gridRow, gridTemplateColumns: 'repeat(5,1fr)' }}>
             {channels.map((ch, i) => (
-              <ChannelCard key={ch.key} emoji={ch.emoji} label={ch.label}
+              <ChannelCard key={ch.key} emoji={ch.emoji} label={t(ch.label)}
                 amount={ch.amount} pct={ch.pct} barGrad={ch.bar} delay={i * 80} />
             ))}
           </div>
@@ -470,7 +473,7 @@ export default function DashboardPage() {
 
         {/* ── CHARTS ─────────────────────────────────────────────────────── */}
         <section style={{ marginBottom: 40 }}>
-          <SectionPill label="تحليل الأداء" color="#1DB87B" />
+          <SectionPill label={t("dashboard.performanceAnalysis")} color="#1DB87B" />
           <div style={{ ...gridRow, gridTemplateColumns: '1.6fr 1fr' }}>
             {/* Area chart */}
             <div style={{
@@ -479,15 +482,15 @@ export default function DashboardPage() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary,#F1F3F9)' }}>الإيرادات والمصروفات</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted,#4A5168)', marginTop: 2 }}>آخر 6 أيام</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary,#F1F3F9)' }}>{t("dashboard.revenueVsExpenses")}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted,#4A5168)', marginTop: 2 }}>{t("dashboard.last6Days")}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary,#8B92A9)' }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#D4A853' }} />إيرادات
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#D4A853' }} />{t("dashboard.revenue")}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary,#8B92A9)' }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#E8384D' }} />مصروفات
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#E8384D' }} />{t("dashboard.expenses")}
                   </div>
                 </div>
               </div>
@@ -524,8 +527,8 @@ export default function DashboardPage() {
               borderRadius: 20, padding: 24,
             }}>
               <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary,#F1F3F9)' }}>توزيع المصروفات</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted,#4A5168)', marginTop: 2 }}>هذا الشهر</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary,#F1F3F9)' }}>{t("dashboard.expensesDistribution")}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted,#4A5168)', marginTop: 2 }}>{t("dashboard.thisMonth")}</div>
               </div>
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
@@ -548,7 +551,7 @@ export default function DashboardPage() {
 
         {/* ── RECENT PURCHASES TABLE ─────────────────────────────────────── */}
         <section style={{ marginBottom: 40 }}>
-          <SectionPill label="أحدث العمليات" color="#F5A623" />
+          <SectionPill label={t("dashboard.recentTransactions")} color="#F5A623" />
           <div style={{
             background: 'var(--bg-surface,#141720)', border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: 20, overflow: 'hidden',
@@ -558,8 +561,8 @@ export default function DashboardPage() {
               padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)',
             }}>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary,#F1F3F9)' }}>فواتير المشتريات</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted,#4A5168)', marginTop: 2 }}>آخر 8 فواتير مسجلة</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary,#F1F3F9)' }}>{t("dashboard.purchaseInvoices")}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted,#4A5168)', marginTop: 2 }}>{t("dashboard.last8Invoices")}</div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button style={{
@@ -567,20 +570,20 @@ export default function DashboardPage() {
                   background: 'var(--bg-raised,#1C2030)', border: '1px solid rgba(255,255,255,0.06)',
                   color: 'var(--text-secondary,#8B92A9)', fontFamily: 'IBM Plex Sans Arabic, sans-serif',
                   fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                }}>⬇️ تصدير Excel</button>
+                }}>⬇️ {t("common.exportExcel")}</button>
                 <button style={{
                   height: 36, padding: '0 14px', borderRadius: 8,
                   background: '#D4A853', border: '1px solid #D4A853',
                   color: '#0A0B10', fontFamily: 'IBM Plex Sans Arabic, sans-serif',
                   fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                }}>+ فاتورة جديدة</button>
+                }}>+ {t("dashboard.newInvoice")}</button>
               </div>
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    {['رقم الفاتورة', 'المورد', 'التاريخ', 'قبل الضريبة', 'ضريبة 15%', 'الإجمالي', 'الدفع', 'إجراءات'].map(h => (
+                    {(t('dashboard.tableHeaders', { returnObjects: true }) as string[]).map((h: string) => (
                       <th key={h} style={{
                         padding: '12px 20px', fontSize: 11, fontWeight: 600,
                         color: 'var(--text-muted,#4A5168)', letterSpacing: '0.5px',
@@ -659,7 +662,7 @@ export default function DashboardPage() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary,#F1F3F9)' }}>ملخص ضريبة القيمة المضافة</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary,#F1F3F9)' }}>{t("dashboard.vatSummary")}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted,#4A5168)', marginTop: 2 }}>Q1 2026 — ZATCA</div>
               </div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 6, fontSize: 12, fontWeight: 600, fontFamily: 'IBM Plex Sans,sans-serif', background: 'rgba(29,184,123,0.15)', color: '#1DB87B' }}>
@@ -668,10 +671,10 @@ export default function DashboardPage() {
             </div>
             <div style={{ background: 'linear-gradient(135deg,rgba(29,184,123,0.08),rgba(29,184,123,0.03))', border: '1px solid rgba(29,184,123,0.2)', borderRadius: 12, padding: '16px 20px' }}>
               {[
-                { label: 'إجمالي المبيعات الخاضعة', val: fmtSAR(totalRevenue) },
-                { label: 'ضريبة المبيعات (15%)', val: fmtSAR(totalRevenue * 0.15) },
-                { label: 'ضريبة المشتريات المدفوعة', val: fmtSAR(totalExpenses * 0.12) },
-                { label: 'صافي الضريبة المستحقة', val: fmtSAR(totalRevenue * 0.15 - totalExpenses * 0.12), highlight: true },
+                { label: t('dashboard.totalTaxableSales'), val: fmtSAR(totalRevenue) },
+                { label: t('dashboard.salesVat'), val: fmtSAR(totalRevenue * 0.15) },
+                { label: t('dashboard.purchasesVat'), val: fmtSAR(totalExpenses * 0.12) },
+                { label: t('dashboard.netVatPayable'), val: fmtSAR(totalRevenue * 0.15 - totalExpenses * 0.12), highlight: true },
               ].map(row => (
                 <div key={row.label} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -689,11 +692,11 @@ export default function DashboardPage() {
             </div>
 
             <div style={{ marginTop: 20 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary,#F1F3F9)', marginBottom: 12 }}>نسب هوامش الربح</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary,#F1F3F9)', marginBottom: 12 }}>{t("dashboard.profitMargins")}</div>
               <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <ProgressRing pct={totalRevenue > 0 ? Math.min(Math.round((netProfit / totalRevenue) * 100 * 2), 99) : 70} color="#D4A853" label="هامش<br/>الإجمالي" />
-                <ProgressRing pct={totalRevenue > 0 ? Math.min(Math.round((netProfit / totalRevenue) * 100 * 1.3), 99) : 45} color="#1DB87B" label="هامش<br/>التشغيل" />
-                <ProgressRing pct={totalRevenue > 0 ? Math.min(Math.round((netProfit / totalRevenue) * 100), 99) : 35} color="#4A90E2" label="هامش<br/>الصافي" />
+                <ProgressRing pct={totalRevenue > 0 ? Math.min(Math.round((netProfit / totalRevenue) * 100 * 2), 99) : 70} color="#D4A853" label={t("dashboard.grossMargin")} />
+                <ProgressRing pct={totalRevenue > 0 ? Math.min(Math.round((netProfit / totalRevenue) * 100 * 1.3), 99) : 45} color="#1DB87B" label={t("dashboard.operatingMargin")} />
+                <ProgressRing pct={totalRevenue > 0 ? Math.min(Math.round((netProfit / totalRevenue) * 100), 99) : 35} color="#4A90E2" label={t("dashboard.netMargin")} />
               </div>
             </div>
           </div>
@@ -703,16 +706,16 @@ export default function DashboardPage() {
             background: 'var(--bg-surface,#141720)', border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: 20, padding: 24,
           }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary,#F1F3F9)', marginBottom: 20 }}>رؤى سريعة</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary,#F1F3F9)', marginBottom: 20 }}>{t("dashboard.quickInsights")}</div>
             {[
-              { dot: '#D4A853', label: 'أعلى قناة إيراد',      val: delivery >= restaurant && delivery >= subscriptions ? 'التوصيل 🛵' : restaurant >= subscriptions ? 'المطعم 🍽️' : 'الاشتراكات 📋', color: '#1DB87B' },
-              { dot: '#1DB87B', label: 'إجمالي الإيرادات',     val: fmtSAR(totalRevenue) },
-              { dot: '#4A90E2', label: 'إيرادات التوصيل',     val: fmtSAR(delivery) },
-              { dot: '#F5A623', label: 'اشتراكات تنتهي قريباً', val: `${expiringSubs} مشتركين`, color: expiringSubs > 0 ? '#F5A623' : undefined },
-              { dot: '#E8384D', label: 'إجمالي المصروفات',    val: fmtSAR(totalExpenses) },
-              { dot: '#D4A853', label: 'المشتركون النشطون',    val: `${activeSubs} مشترك` },
-              { dot: '#1DB87B', label: 'الربع الضريبي القادم', val: '30 Jun 2026', mono: true },
-              { dot: '#4A90E2', label: 'ضريبة مستحقة',        val: fmtSAR(totalRevenue * 0.15 - totalExpenses * 0.12) },
+              { dot: '#D4A853', label: t('dashboard.topRevenueChannel'),      val: delivery >= restaurant && delivery >= subscriptions ? `${t('dashboard.delivery')} 🛵` : restaurant >= subscriptions ? `${t('dashboard.restaurant')} 🍽️` : `${t('dashboard.subscriptions')} 📋`, color: '#1DB87B' },
+              { dot: '#1DB87B', label: t('dashboard.totalRevenue'),     val: fmtSAR(totalRevenue) },
+              { dot: '#4A90E2', label: t('dashboard.deliveryRevenue'),     val: fmtSAR(delivery) },
+              { dot: '#F5A623', label: t('dashboard.expiringSubscriptions'), val: `${expiringSubs} ${t('dashboard.subscribers')}`, color: expiringSubs > 0 ? '#F5A623' : undefined },
+              { dot: '#E8384D', label: t('dashboard.totalExpenses'),    val: fmtSAR(totalExpenses) },
+              { dot: '#D4A853', label: t('dashboard.activeSubscribers'),    val: `${activeSubs} ${t('dashboard.subscriber')}` },
+              { dot: '#1DB87B', label: t('dashboard.nextTaxQuarter'), val: '30 Jun 2026', mono: true },
+              { dot: '#4A90E2', label: t('dashboard.vatPayable'),        val: fmtSAR(totalRevenue * 0.15 - totalExpenses * 0.12) },
             ].map(row => (
               <div key={row.label} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',

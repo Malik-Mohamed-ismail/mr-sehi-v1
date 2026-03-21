@@ -5,8 +5,11 @@ import { exportToExcel } from '../../lib/export'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { formatSAR } from '../../lib/utils'
 import { Download } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../lib/i18n'
 
 export function TrialBalancePage() {
+  const { t } = useTranslation()
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
 
   const { data, isLoading, refetch } = useQuery({
@@ -20,34 +23,34 @@ export function TrialBalancePage() {
 
   const handleExport = () => {
     const exportData = (data ?? []).map((r: any) => ({
-      'كود الحساب': r.account_code,
-      'اسم الحساب': r.name_ar,
-      'النوع': r.type,
-      'إجمالي المدين': parseFloat(r.total_debit) || 0,
-      'إجمالي الدائن': parseFloat(r.total_credit) || 0,
-      'الرصيد': parseFloat(r.balance) || 0
+      [i18n.t('trialBalance.table.accountCode')]: r.account_code,
+      [i18n.t('trialBalance.table.accountName')]: r.name_ar,
+      [i18n.t('trialBalance.table.type')]: r.type,
+      [i18n.t('trialBalance.table.totalDebit')]: parseFloat(r.total_debit) || 0,
+      [i18n.t('trialBalance.table.totalCredit')]: parseFloat(r.total_credit) || 0,
+      [i18n.t('trialBalance.table.balance')]: parseFloat(r.balance) || 0
     }))
     exportData.push({
-      'كود الحساب': 'المجموع',
-      'اسم الحساب': '',
-      'النوع': '',
-      'إجمالي المدين': totalDebit,
-      'إجمالي الدائن': totalCredit,
-      'الرصيد': totalDebit - totalCredit
+      [i18n.t('trialBalance.table.accountCode')]: i18n.t('trialBalance.table.total'),
+      [i18n.t('trialBalance.table.accountName')]: '',
+      [i18n.t('trialBalance.table.type')]: '',
+      [i18n.t('trialBalance.table.totalDebit')]: totalDebit,
+      [i18n.t('trialBalance.table.totalCredit')]: totalCredit,
+      [i18n.t('trialBalance.table.balance')]: totalDebit - totalCredit
     })
-    exportToExcel(exportData, `ميزان_المراجعة_${date}`)
+    exportToExcel(exportData, `${i18n.t('trialBalance.exportTitle')}_${date}`)
   }
 
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>ميزان المراجعة</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>Trial Balance</p>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t('trialBalance.pageTitle')}</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}> {t('trialBalance.pageSubtitle')}</p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <input type="date" value={date} onChange={e => setDate(e.target.value)} className="form-input" style={{ width: 160, height: 36 }}/>
-          <button className="btn btn-primary btn-sm" onClick={() => refetch()}>تحديث</button>
+          <button className="btn btn-primary btn-sm" onClick={() => refetch()}>{t('trialBalance.filter.update')}</button>
           <button className="btn btn-secondary btn-sm" onClick={handleExport} disabled={!data?.length}>
             <Download size={14}/> تصدير Excel
           </button>
@@ -61,12 +64,12 @@ export function TrialBalancePage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>كود الحساب</th>
-                <th>اسم الحساب</th>
-                <th>النوع</th>
-                <th>إجمالي المدين</th>
-                <th>إجمالي الدائن</th>
-                <th>الرصيد</th>
+                <th>{t('trialBalance.table.accountCode')}</th>
+                <th>{t('trialBalance.table.accountName')}</th>
+                <th>{t('trialBalance.table.type')}</th>
+                <th>{t('trialBalance.table.totalDebit')}</th>
+                <th>{t('trialBalance.table.totalCredit')}</th>
+                <th>{t('trialBalance.table.balance')}</th>
               </tr>
             </thead>
             <tbody>
@@ -86,8 +89,8 @@ export function TrialBalancePage() {
               <tr style={{ background: 'var(--bg-surface-2)', fontWeight: 700 }}>
                 <td colSpan={3} style={{ textAlign: 'left', padding: '12px 16px' }}>
                   {isBalanced
-                    ? <span style={{ color: 'var(--color-success)' }}>✓ الميزان متوازن</span>
-                    : <span style={{ color: 'var(--color-danger)' }}>✗ الميزان غير متوازن</span>}
+                    ? <span style={{ color: 'var(--color-success)' }}>{t('trialBalance.status.balanced')}</span>
+                    : <span style={{ color: 'var(--color-danger)' }}>{t('trialBalance.status.unbalanced')}</span>}
                 </td>
                 <td className="amount" style={{ fontWeight: 800 }}>{formatSAR(totalDebit)}</td>
                 <td className="amount" style={{ fontWeight: 800 }}>{formatSAR(totalCredit)}</td>
@@ -104,6 +107,7 @@ export function TrialBalancePage() {
 }
 
 export function LedgerPage() {
+  const { t } = useTranslation()
   const [from, setFrom] = useState('')
   const [to, setTo]     = useState('')
   const [code, setCode] = useState('')
@@ -121,23 +125,23 @@ export function LedgerPage() {
 
   const handleExport = () => {
     const exportData = (data ?? []).map((r: any) => ({
-      'التاريخ': r.entry_date,
-      'رقم القيد': r.entry_number,
-      'البيان': r.description,
-      'الحساب': r.account_code + (r.account_name ? ` — ${r.account_name}` : ''),
-      'مدين': Number(r.debit_amount) || 0,
-      'دائن': Number(r.credit_amount) || 0,
-      'الرصيد': r.running_balance
+      [i18n.t('ledger.table.date')]: r.entry_date,
+      [i18n.t('ledger.table.entryNumber')]: r.entry_number,
+      [i18n.t('ledger.table.description')]: r.description,
+      [i18n.t('ledger.table.account')]: r.account_code + (r.account_name ? ` — ${r.account_name}` : ''),
+      [i18n.t('ledger.table.debit')]: Number(r.debit_amount) || 0,
+      [i18n.t('ledger.table.credit')]: Number(r.credit_amount) || 0,
+      [i18n.t('ledger.table.balance')]: r.running_balance
     }))
-    exportToExcel(exportData, `دفتر_الاستاذ_${code}`)
+    exportToExcel(exportData, `${i18n.t('ledger.exportTitle')}_${code}`)
   }
 
   return (
     <PageTransition>
       <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>الأستاذ العام</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>General Ledger</p>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t('ledger.pageTitle')}</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}> {t('ledger.pageSubtitle')}</p>
         </div>
         <button className="btn btn-secondary btn-sm" onClick={handleExport} disabled={!data?.length}>
           <Download size={14}/> تصدير Excel
@@ -147,7 +151,7 @@ export function LedgerPage() {
       <div className="card" style={{ padding: '16px 20px', marginBottom: 20, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
         <div className="form-field has-value" style={{ marginBottom: 0 }}>
           <label>كود الحساب (اختياري)</label>
-          <input value={code} onChange={e => setCode(e.target.value)} className="form-input" style={{ width: 120 }} placeholder="مثال: 1101"/>
+          <input value={code} onChange={e => setCode(e.target.value)} className="form-input" style={{ width: 120 }} placeholder={t('ledger.filter.codePlaceholder')}/>
         </div>
         <div className="form-field has-value" style={{ marginBottom: 0 }}>
           <label>من</label>
@@ -157,7 +161,7 @@ export function LedgerPage() {
           <label>إلى</label>
           <input type="date" value={to} onChange={e => setTo(e.target.value)} className="form-input" style={{ width: 160 }}/>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => refetch()}>بحث</button>
+        <button className="btn btn-primary btn-sm" onClick={() => refetch()}>{t('ledger.filter.search')}</button>
       </div>
 
       {isLoading ? (
@@ -166,7 +170,7 @@ export function LedgerPage() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <table className="data-table">
             <thead>
-              <tr><th>التاريخ</th><th>رقم القيد</th><th>البيان</th><th>الحساب</th><th>مدين</th><th>دائن</th><th>الرصيد</th></tr>
+              <tr><th>{t('ledger.table.date')}</th><th>{t('ledger.table.entryNumber')}</th><th>{t('ledger.table.description')}</th><th>{t('ledger.table.account')}</th><th>{t('ledger.table.debit')}</th><th>{t('ledger.table.credit')}</th><th>{t('trialBalance.table.balance')}</th></tr>
             </thead>
             <tbody>
               {(data ?? []).map((r: any, i: number) => (
@@ -182,7 +186,7 @@ export function LedgerPage() {
                   </td>
                 </tr>
               ))}
-              {!data?.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>لا توجد بيانات</td></tr>}
+              {!data?.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('ledger.table.empty')}</td></tr>}
             </tbody>
           </table>
         </div>

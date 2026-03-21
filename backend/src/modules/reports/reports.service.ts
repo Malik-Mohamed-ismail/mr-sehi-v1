@@ -5,20 +5,20 @@ import { calculateBreakEven } from '../../utils/accounting.js'
 
 // ── Income Statement ───────────────────────────────────────────────────────
 export async function getIncomeStatement(from: string, to: string) {
-  const revenue = await getRevenueSummary(from, to)
-
-  const expenseRows = await db.execute(sql.raw(`
-    SELECT account_code, SUM(total_amount) AS total
-    FROM expenses
-    WHERE is_deleted = false AND expense_date >= '${from}' AND expense_date <= '${to}'
-    GROUP BY account_code
-  `))
-
-  const purchaseRows = await db.execute(sql.raw(`
-    SELECT SUM(subtotal) AS cogs FROM purchase_invoices
-    WHERE is_deleted = false AND invoice_date >= '${from}' AND invoice_date <= '${to}'
-      AND is_asset = false
-  `))
+  const [revenue, expenseRows, purchaseRows] = await Promise.all([
+    getRevenueSummary(from, to),
+    db.execute(sql.raw(`
+      SELECT account_code, SUM(total_amount) AS total
+      FROM expenses
+      WHERE is_deleted = false AND expense_date >= '${from}' AND expense_date <= '${to}'
+      GROUP BY account_code
+    `)),
+    db.execute(sql.raw(`
+      SELECT SUM(subtotal) AS cogs FROM purchase_invoices
+      WHERE is_deleted = false AND invoice_date >= '${from}' AND invoice_date <= '${to}'
+        AND is_asset = false
+    `))
+  ])
 
   const totalRevenue  = revenue.grand_total
   const totalCOGS     = Number((purchaseRows.rows[0] as any)?.cogs ?? 0)
@@ -82,14 +82,15 @@ export async function getDashboard(from?: string, to?: string) {
   const now    = new Date()
   const f      = from ?? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
   const t      = to   ?? now.toISOString().split('T')[0]
-  const income = await getIncomeStatement(f, t)
-
-  const subStats = await db.execute(sql`
-    SELECT
-      COUNT(*) FILTER (WHERE status = 'active' AND is_deleted = false) AS active_subscribers,
-      COUNT(*) FILTER (WHERE status = 'expired' AND is_deleted = false) AS expired_subscribers
-    FROM subscribers
-  `)
+  const [income, subStats] = await Promise.all([
+    getIncomeStatement(f, t),
+    db.execute(sql`
+      SELECT
+        COUNT(*) FILTER (WHERE status = 'active' AND is_deleted = false) AS active_subscribers,
+        COUNT(*) FILTER (WHERE status = 'expired' AND is_deleted = false) AS expired_subscribers
+      FROM subscribers
+    `)
+  ])
 
   return {
     period: { from: f, to: t },
@@ -105,15 +106,15 @@ export async function getDashboard(from?: string, to?: string) {
 
 // ── Break-Even ────────────────────────────────────────────────────────────
 export async function getBreakevenAnalysis(from: string, to: string) {
-  const income = await getIncomeStatement(from, to)
-
-  // Fixed costs = ثابت expenses
-  const fixedExpenses = await db.execute(sql.raw(`
-    SELECT COALESCE(SUM(total_amount), 0) AS total
-    FROM expenses
-    WHERE is_deleted = false AND expense_date >= '${from}' AND expense_date <= '${to}'
-      AND expense_type = 'ثابت'
-  `))
+  const [income, fixedExpenses] = await Promise.all([
+    getIncomeStatement(from, to),
+    db.execute(sql.raw(`
+      SELECT COALESCE(SUM(total_amount), 0) AS total
+      FROM expenses
+      WHERE is_deleted = false AND expense_date >= '${from}' AND expense_date <= '${to}'
+        AND expense_type = 'ثابت'
+    `))
+  ])
   const fixedCosts = Number((fixedExpenses.rows[0] as any)?.total ?? 0)
   const breakeven  = calculateBreakEven(income.revenue.total, income.cogs, fixedCosts)
 
@@ -122,12 +123,14 @@ export async function getBreakevenAnalysis(from: string, to: string) {
 
 // ── VAT Summary ───────────────────────────────────────────────────────────
 export async function getVATSummary(from: string, to: string) {
-  const purchases = await db.execute(sql.raw(`
-    SELECT COALESCE(SUM(vat_amount), 0) AS total_vat_input
-    FROM purchase_invoices
-    WHERE is_deleted = false AND invoice_date >= '${from}' AND invoice_date <= '${to}'
-  `))
-  const totalRevenue   = await getRevenueSummary(from, to)
+  const [purchases, totalRevenue] = await Promise.all([
+    db.execute(sql.raw(`
+      SELECT COALESCE(SUM(vat_amount), 0) AS total_vat_input
+      FROM purchase_invoices
+      WHERE is_deleted = false AND invoice_date >= '${from}' AND invoice_date <= '${to}'
+    `)),
+    getRevenueSummary(from, to)
+  ])
   const totalVATOutput = totalRevenue.grand_total * 0.15  // 15% on all revenue
 
   return {
@@ -140,28 +143,28 @@ export async function getVATSummary(from: string, to: string) {
 
 // ── Performance Trends ────────────────────────────────────────────────────
 export async function getPerformanceTrends(from: string, to: string) {
-  const expenseRows = await db.execute(sql.raw(`
-    SELECT TO_CHAR(expense_date, 'YYYY-MM-DD') as date, SUM(total_amount) as amount
-    FROM expenses
-    WHERE is_deleted = false AND expense_date >= '${from}' AND expense_date <= '${to}'
-    GROUP BY TO_CHAR(expense_date, 'YYYY-MM-DD')
-  `))
-
-  const purchaseRows = await db.execute(sql.raw(`
-    SELECT TO_CHAR(invoice_date, 'YYYY-MM-DD') as date, SUM(subtotal) as amount
-    FROM purchase_invoices
-    WHERE is_deleted = false AND invoice_date >= '${from}' AND invoice_date <= '${to}' AND is_asset = false
-    GROUP BY TO_CHAR(invoice_date, 'YYYY-MM-DD')
-  `))
-
-  const revenueRows = await db.execute(sql.raw(`
-    SELECT TO_CHAR(je.entry_date, 'YYYY-MM-DD') as date, SUM(jel.credit_amount) - SUM(jel.debit_amount) as amount
-    FROM journal_entry_lines jel
-    JOIN journal_entries je ON je.id = jel.entry_id
-    JOIN accounts a ON a.code = jel.account_code
-    WHERE a.type = 'revenue' AND je.entry_date >= '${from}' AND je.entry_date <= '${to}' AND je.is_balanced = true
-    GROUP BY TO_CHAR(je.entry_date, 'YYYY-MM-DD')
-  `))
+  const [expenseRows, purchaseRows, revenueRows] = await Promise.all([
+    db.execute(sql.raw(`
+      SELECT TO_CHAR(expense_date, 'YYYY-MM-DD') as date, SUM(total_amount) as amount
+      FROM expenses
+      WHERE is_deleted = false AND expense_date >= '${from}' AND expense_date <= '${to}'
+      GROUP BY TO_CHAR(expense_date, 'YYYY-MM-DD')
+    `)),
+    db.execute(sql.raw(`
+      SELECT TO_CHAR(invoice_date, 'YYYY-MM-DD') as date, SUM(subtotal) as amount
+      FROM purchase_invoices
+      WHERE is_deleted = false AND invoice_date >= '${from}' AND invoice_date <= '${to}' AND is_asset = false
+      GROUP BY TO_CHAR(invoice_date, 'YYYY-MM-DD')
+    `)),
+    db.execute(sql.raw(`
+      SELECT TO_CHAR(je.entry_date, 'YYYY-MM-DD') as date, SUM(jel.credit_amount) - SUM(jel.debit_amount) as amount
+      FROM journal_entry_lines jel
+      JOIN journal_entries je ON je.id = jel.entry_id
+      JOIN accounts a ON a.code = jel.account_code
+      WHERE a.type = 'revenue' AND je.entry_date >= '${from}' AND je.entry_date <= '${to}' AND je.is_balanced = true
+      GROUP BY TO_CHAR(je.entry_date, 'YYYY-MM-DD')
+    `))
+  ])
 
   const datesMap = new Map<string, { date: string, revenue: number, expenses: number, profit: number }>()
 

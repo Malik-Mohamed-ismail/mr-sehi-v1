@@ -8,10 +8,13 @@ import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../lib/i18n'
 import { exportToExcel } from '../../lib/export'
 
 export default function SubscriptionsRevenuePage() {
   const qc = useQueryClient()
+  const { t } = useTranslation()
   const [showForm, setShowForm] = useState(false)
 
   const { data: revenues } = useQuery({
@@ -26,42 +29,42 @@ export default function SubscriptionsRevenuePage() {
   const createMutation = useMutation({
     mutationFn: (data: any) => api.post('/revenue/subscriptions', data),
     onSuccess: () => {
-      toast.success('تم حفظ إيراد الاشتراكات')
+      toast.success(t('subscriptions.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['revenue-subscriptions'] })
       reset(); setShowForm(false)
     },
-    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ'),
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('subscriptions.messages.error')),
   })
 
   const total = (revenues ?? []).reduce((s: number, r: any) => s + Number(r.amount), 0)
 
   const handleExport = () => {
     const exportData = (revenues ?? []).map((r: any) => ({
-      'التاريخ': formatDate(r.revenue_date),
-      'المبلغ': r.amount,
-      'طريقة الدفع': r.payment_method,
-      'ملاحظات': r.notes || '-'
+      [i18n.t('subscriptions.table.date')]: formatDate(r.revenue_date),
+      [i18n.t('subscriptions.table.amount')]: r.amount,
+      [i18n.t('subscriptions.fields.paymentMethod')]: i18n.t(`purchases.paymentMethods.${r.payment_method === 'كاش' ? 'cash' : r.payment_method === 'بنك' ? 'bank' : 'credit'}`),
+      [i18n.t('subscriptions.fields.notes')]: r.notes || '-'
     }))
-    exportToExcel(exportData, 'إيرادات_الاشتراكات')
+    exportToExcel(exportData, i18n.t('subscriptions.exportTitle'))
   }
 
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>إيرادات الاشتراكات</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>مدفوعات المشتركين الشهرية</p>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t('subscriptions.pageTitle')}</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{t('subscriptions.pageSubtitle')}</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
           <button className="btn btn-secondary" onClick={handleExport} disabled={!revenues?.length}>
             <Download size={16}/> تصدير Excel
           </button>
-          <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> إضافة إيراد</button>
+          <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> {t('subscriptions.newRevenue')}</button>
         </div>
       </div>
 
       <div className="card" style={{ padding: '16px 20px', marginBottom: 24 }}>
-        <div className="kpi-label">إجمالي إيرادات الاشتراكات</div>
+        <div className="kpi-label">{t('subscriptions.kpi.totalRevenue')}</div>
         <div className="kpi-value" style={{ color: 'var(--color-success)', fontSize: 28 }}>{formatSAR(total)}</div>
       </div>
 
@@ -72,20 +75,20 @@ export default function SubscriptionsRevenuePage() {
               ...d,
               amount: d.amount === '' ? 0 : Number(d.amount)
             })
-          })} dir="rtl">
+          })} dir={i18n.dir()}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 20 }}>
-              <div className="form-field has-value"><label>التاريخ</label><input {...register('revenue_date')} type="date" className="form-input"/></div>
-              <div className="form-field has-value"><label>المبلغ (ريال)</label><input {...register('amount')} type="number" step="0.01" className="form-input"/></div>
+              <div className="form-field has-value"><label>{t('subscriptions.table.date')}</label><input {...register('revenue_date')} type="date" className="form-input"/></div>
+              <div className="form-field has-value"><label>{t('subscriptions.fields.amount')}</label><input {...register('amount')} type="number" step="0.01" className="form-input"/></div>
               <div className="form-field has-value">
-                <label>طريقة الدفع</label>
+                <label>{t('subscriptions.fields.paymentMethod')}</label>
                 <select {...register('payment_method')} className="form-select">
-                  <option value="كاش">كاش</option><option value="بنك">بنك</option><option value="آجل">آجل</option>
+                  <option value="كاش">{t("purchases.paymentMethods.cash")}</option><option value="بنك">{t("purchases.paymentMethods.bank")}</option><option value="آجل">{t("purchases.paymentMethods.credit")}</option>
                 </select>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>إلغاء</button>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? 'جارٍ الحفظ...' : '💾 حفظ'}</button>
+              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>{t('subscriptions.buttons.cancel')}</button>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? t('subscriptions.buttons.saving') : t('subscriptions.buttons.save')}</button>
             </div>
           </form>
         </motion.div>
@@ -93,7 +96,7 @@ export default function SubscriptionsRevenuePage() {
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <table className="data-table">
-          <thead><tr><th>التاريخ</th><th>المبلغ</th><th>طريقة الدفع</th><th>ملاحظات</th></tr></thead>
+          <thead><tr><th>{t('subscriptions.table.date')}</th><th>{t('subscriptions.table.amount')}</th><th>{t('subscriptions.fields.paymentMethod')}</th><th>{t('subscriptions.fields.notes')}</th></tr></thead>
           <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
             {(revenues ?? []).map((r: any) => (
               <motion.tr key={r.id} variants={staggerItem}>
@@ -103,7 +106,7 @@ export default function SubscriptionsRevenuePage() {
                 <td style={{ color: 'var(--text-secondary)' }}>{r.notes ?? '—'}</td>
               </motion.tr>
             ))}
-            {!revenues?.length && <tr><td colSpan={4} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>لا توجد بيانات</td></tr>}
+            {!revenues?.length && <tr><td colSpan={4} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('subscriptions.table.empty')}</td></tr>}
           </motion.tbody>
         </table>
       </div>

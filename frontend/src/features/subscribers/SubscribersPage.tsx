@@ -11,27 +11,30 @@ import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
 import { exportToExcel } from '../../lib/export'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../lib/i18n'
 
 const schema = z.object({
-  name:           z.string().min(1, 'الاسم مطلوب'),
+  name:           z.string().min(1, i18n.t('subscribers.validation.nameRequired')),
   phone:          z.string().optional(),
   plan_name:      z.string().optional(),
-  plan_amount:    z.coerce.number().positive('المبلغ مطلوب'),
-  start_date:     z.string().min(1, 'تاريخ البداية مطلوب'),
-  end_date:       z.string().min(1, 'تاريخ النهاية مطلوب'),
+  plan_amount:    z.coerce.number().positive(i18n.t('subscribers.validation.amountRequired')),
+  start_date:     z.string().min(1, i18n.t('subscribers.validation.startDateRequired')),
+  end_date:       z.string().min(1, i18n.t('subscribers.validation.endDateRequired')),
   payment_method: z.enum(['كاش', 'بنك', 'آجل']),
   notes:          z.string().optional(),
 })
 type FormData = z.infer<typeof schema>
 
 const STATUS_STYLES: Record<string, { label: string; badge: string }> = {
-  active:    { label: 'نشط',    badge: 'badge-success' },
-  expired:   { label: 'منتهي', badge: 'badge-danger' },
-  cancelled: { label: 'ملغي',  badge: 'badge-neutral' },
+  active:    { label: i18n.t('subscribers.status.active'),    badge: 'badge-success' },
+  expired:   { label: i18n.t('subscribers.status.expired'), badge: 'badge-danger' },
+  cancelled: { label: i18n.t('subscribers.status.cancelled'),  badge: 'badge-neutral' },
 }
 
 export default function SubscribersPage() {
   const qc = useQueryClient()
+  const { t } = useTranslation()
   const [showForm, setShowForm] = useState(false)
   const [filter, setFilter] = useState<string>('all')
 
@@ -58,21 +61,21 @@ export default function SubscribersPage() {
   const createMutation = useMutation({
     mutationFn: (data: any) => api.post('/subscribers', data),
     onSuccess: () => {
-      toast.success('تم إضافة المشترك')
+      toast.success(t('subscribers.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['subscribers'] })
       reset(); setShowForm(false)
     },
-    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ'),
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('subscribers.messages.error')),
   })
 
   const renewMutation = useMutation({
     mutationFn: (id: number) => api.post(`/subscribers/${id}/renew`),
     onSuccess: () => {
-      toast.success('تم تجديد الاشتراك وإنشاء قيد الإيراد تلقائياً')
+      toast.success(t('subscribers.messages.renewSuccess'))
       qc.invalidateQueries({ queryKey: ['subscribers'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
     },
-    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ'),
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('subscribers.messages.error')),
   })
 
   const filtered = (subscribers ?? []).filter((s: any) =>
@@ -81,30 +84,30 @@ export default function SubscribersPage() {
 
   const handleExport = () => {
     const exportData = (filtered ?? []).map((s: any) => ({
-      'المشترك': s.name,
-      'رقم الجوال': s.phone || '-',
-      'الباقة': s.plan_name || '-',
-      'تاريخ الانتهاء': formatDate(s.end_date),
-      'القيمة': Number(s.plan_amount),
-      'طريقة الدفع': s.payment_method,
-      'الحالة': STATUS_STYLES[s.status]?.label ?? s.status,
+      [i18n.t('subscribers.table.subscriber')]: s.name,
+      [i18n.t('subscribers.fields.phone')]: s.phone || '-',
+      [i18n.t('subscribers.table.plan')]: s.plan_name || '-',
+      [i18n.t('subscribers.table.endDate')]: formatDate(s.end_date),
+      [i18n.t('subscribers.table.amount')]: Number(s.plan_amount),
+      [i18n.t('subscribers.fields.paymentMethod')]: i18n.t(`purchases.paymentMethods.${s.payment_method === 'كاش' ? 'cash' : s.payment_method === 'بنك' ? 'bank' : 'credit'}`),
+      [i18n.t('subscribers.table.status')]: i18n.t(`subscribers.status.${s.status}`),
     }))
-    exportToExcel(exportData, 'الاشتراكات')
+    exportToExcel(exportData, i18n.t('subscribers.exportTitle'))
   }
 
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>متابعة الاشتراكات</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>إدارة المشتركين وتجديد الاشتراكات</p>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t('subscribers.pageTitle')}</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>{t('subscribers.pageSubtitle')}</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
           <button className="btn btn-secondary" onClick={handleExport} disabled={!filtered?.length}>
-            <Download size={16}/> تصدير Excel
+            <Download size={16}/> {t('subscribers.table.export')}
           </button>
           <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
-            <Plus size={16}/> مشترك جديد
+            <Plus size={16}/> {t('subscribers.newSubscriber')}
           </button>
         </div>
       </div>
@@ -115,7 +118,7 @@ export default function SubscribersPage() {
           className="alert alert-warning" style={{ marginBottom: 20, gap: 12 }}>
           <AlertTriangle size={16}/>
           <span>
-            <strong>{expiring.length} مشتركين</strong> تنتهي اشتراكاتهم خلال 7 أيام
+            <strong>{expiring.length} {t('subscribers.alerts.expiringSubscribers')}</strong> {t('subscribers.alerts.expiringSoon')}
           </span>
         </motion.div>
       )}
@@ -123,15 +126,15 @@ export default function SubscribersPage() {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
         <div className="card" style={{ padding: '16px 20px' }}>
-          <div className="kpi-label">المشتركون النشطون</div>
+          <div className="kpi-label">{t('subscribers.kpi.active')}</div>
           <div className="kpi-value" style={{ color: 'var(--color-success)', fontSize: 28 }}>{stats?.active ?? 0}</div>
         </div>
         <div className="card" style={{ padding: '16px 20px' }}>
-          <div className="kpi-label">المنتهية اشتراكاتهم</div>
+          <div className="kpi-label">{t('subscribers.kpi.expired')}</div>
           <div className="kpi-value" style={{ color: 'var(--color-danger)', fontSize: 28 }}>{stats?.expired ?? 0}</div>
         </div>
         <div className="card" style={{ padding: '16px 20px' }}>
-          <div className="kpi-label">الدخل الشهري (MRR)</div>
+          <div className="kpi-label">{t('subscribers.kpi.mrr')}</div>
           <div className="kpi-value" style={{ fontSize: 22 }}>{formatSAR(stats?.active_mrr ?? 0)}</div>
         </div>
       </div>
@@ -139,53 +142,53 @@ export default function SubscribersPage() {
       {/* New subscriber form */}
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
-          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir="rtl">
+          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir={i18n.dir()}>
             <div className="form-section-header">
               <div className="form-section-number">١</div>
-              <div className="form-section-title">بيانات المشترك</div>
+              <div className="form-section-title">{t('subscribers.section1')}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div className="form-field has-value">
-                <label>اسم المشترك</label>
+                <label>{t('subscribers.fields.name')}</label>
                 <input {...register('name')} className={`form-input ${errors.name ? 'is-error' : ''}`}/>
               </div>
               <div className="form-field has-value">
-                <label>رقم الجوال</label>
+                <label>{t('subscribers.fields.phone')}</label>
                 <input {...register('phone')} className="form-input" dir="ltr"/>
               </div>
               <div className="form-field has-value">
-                <label>اسم الباقة</label>
+                <label>{t('subscribers.fields.planName')}</label>
                 <input {...register('plan_name')} className="form-input"/>
               </div>
               <div className="form-field has-value">
-                <label>قيمة الاشتراك (ريال)</label>
+                <label>{t('subscribers.fields.planAmount')}</label>
                 <input {...register('plan_amount')} type="number" step="0.01" className={`form-input ${errors.plan_amount ? 'is-error' : ''}`}/>
               </div>
               <div className="form-field has-value">
-                <label>تاريخ البداية</label>
+                <label>{t('subscribers.fields.startDate')}</label>
                 <input {...register('start_date')} type="date" className={`form-input ${errors.start_date ? 'is-error' : ''}`}/>
               </div>
               <div className="form-field has-value">
-                <label>تاريخ النهاية</label>
+                <label>{t('subscribers.fields.endDate')}</label>
                 <input {...register('end_date')} type="date" className={`form-input ${errors.end_date ? 'is-error' : ''}`}/>
               </div>
               <div className="form-field has-value">
-                <label>طريقة الدفع</label>
+                <label>{t('subscribers.fields.paymentMethod')}</label>
                 <select {...register('payment_method')} className="form-select">
-                  <option value="كاش">كاش</option>
-                  <option value="بنك">بنك</option>
-                  <option value="آجل">آجل</option>
+                  <option value="كاش">{t("purchases.paymentMethods.cash")}</option>
+                  <option value="بنك">{t("purchases.paymentMethods.bank")}</option>
+                  <option value="آجل">{t("purchases.paymentMethods.credit")}</option>
                 </select>
               </div>
               <div className="form-field has-value">
-                <label>ملاحظات</label>
+                <label>{t('subscribers.fields.notes')}</label>
                 <input {...register('notes')} className="form-input"/>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>إلغاء</button>
+              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>{t('subscribers.buttons.cancel')}</button>
               <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? 'جارٍ الحفظ...' : '💾 حفظ المشترك'}
+                {isSubmitting ? t('subscribers.buttons.saving') : t('subscribers.buttons.save')}
               </button>
             </div>
           </form>
@@ -195,10 +198,10 @@ export default function SubscribersPage() {
       {/* Filter tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {[
-          { key: 'all', label: 'الكل' },
-          { key: 'active', label: 'نشط' },
-          { key: 'expired', label: 'منتهي' },
-          { key: 'cancelled', label: 'ملغي' },
+          { key: 'all', label: i18n.t('subscribers.tabs.all') },
+          { key: 'active', label: i18n.t('subscribers.status.active') },
+          { key: 'expired', label: i18n.t('subscribers.status.expired') },
+          { key: 'cancelled', label: i18n.t('subscribers.status.cancelled') },
         ].map(tab => (
           <button
             key={tab.key}
@@ -215,13 +218,13 @@ export default function SubscribersPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>المشترك</th>
-              <th>الجوال</th>
-              <th>الباقة</th>
-              <th>تاريخ الانتهاء</th>
-              <th>القيمة</th>
-              <th>الحالة</th>
-              <th>الإجراء</th>
+              <th>{t('subscribers.table.subscriber')}</th>
+              <th>{t('subscribers.table.phone')}</th>
+              <th>{t('subscribers.table.plan')}</th>
+              <th>{t('subscribers.table.endDate')}</th>
+              <th>{t('subscribers.table.amount')}</th>
+              <th>{t('subscribers.table.status')}</th>
+              <th>{t('subscribers.table.action')}</th>
             </tr>
           </thead>
           <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
@@ -234,7 +237,7 @@ export default function SubscribersPage() {
                 <td className="amount">{formatSAR(s.plan_amount)}</td>
                 <td>
                   <span className={`badge ${STATUS_STYLES[s.status]?.badge ?? 'badge-neutral'}`}>
-                    {STATUS_STYLES[s.status]?.label ?? s.status}
+                    {t(`subscribers.status.${s.status}`) ?? s.status}
                   </span>
                 </td>
                 <td>
@@ -244,16 +247,16 @@ export default function SubscribersPage() {
                       style={{ color: 'var(--color-primary)', gap: 4 }}
                       onClick={() => renewMutation.mutate(s.id)}
                       disabled={renewMutation.isPending}
-                      title="تجديد الاشتراك"
+                      title={t("subscribers.buttons.renewTitle")}
                     >
-                      <RefreshCw size={13}/> تجديد
+                      <RefreshCw size={13}/> {t('subscribers.buttons.renew')}
                     </button>
                   )}
                 </td>
               </motion.tr>
             ))}
             {!filtered?.length && (
-              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>لا توجد بيانات</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('subscribers.table.empty')}</td></tr>
             )}
           </motion.tbody>
         </table>

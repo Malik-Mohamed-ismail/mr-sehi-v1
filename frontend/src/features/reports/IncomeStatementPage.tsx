@@ -6,6 +6,8 @@ import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { formatSAR, formatDate } from '../../lib/utils'
 import { exportToExcel } from '../../lib/export'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../lib/i18n'
 
 function now() {
   const d = new Date()
@@ -14,6 +16,7 @@ function now() {
 function today() { return new Date().toISOString().split('T')[0] }
 
 export default function IncomeStatementPage() {
+  const { t } = useTranslation()
   const [from, setFrom] = useState(now())
   const [to, setTo]     = useState(today())
 
@@ -26,19 +29,19 @@ export default function IncomeStatementPage() {
   const handleExport = () => {
     if (!data) return
     const exportData = [
-      { 'البند': 'إيرادات التوصيل', 'المبلغ (ريال)': data.revenue.delivery },
-      { 'البند': 'إيرادات المطعم', 'المبلغ (ريال)': data.revenue.restaurant },
-      { 'البند': 'إيرادات الاشتراكات', 'المبلغ (ريال)': data.revenue.subscriptions },
-      { 'البند': 'إجمالي الإيرادات', 'المبلغ (ريال)': data.revenue.total },
-      { 'البند': '', 'المبلغ (ريال)': '' },
-      { 'البند': 'تكلفة البضاعة المباعة (المشتريات)', 'المبلغ (ريال)': data.cogs },
-      { 'البند': 'مجمل الربح', 'المبلغ (ريال)': data.gross_profit },
-      { 'البند': '', 'المبلغ (ريال)': '' },
-      { 'البند': 'المصروفات التشغيلية', 'المبلغ (ريال)': data.total_expenses },
-      { 'البند': '', 'المبلغ (ريال)': '' },
-      { 'البند': 'صافي الربح', 'المبلغ (ريال)': data.net_profit }
+      { [i18n.t('incomeStatement.table.item')]: i18n.t('incomeStatement.items.deliveryRevenue'), [i18n.t('incomeStatement.table.amount')]: data.revenue.delivery },
+      { [i18n.t('incomeStatement.table.item')]: i18n.t('incomeStatement.items.restaurantRevenue'), [i18n.t('incomeStatement.table.amount')]: data.revenue.restaurant },
+      { [i18n.t('incomeStatement.table.item')]: i18n.t('incomeStatement.items.subscriptionsRevenue'), [i18n.t('incomeStatement.table.amount')]: data.revenue.subscriptions },
+      { [i18n.t('incomeStatement.table.item')]: i18n.t('incomeStatement.items.totalRevenue'), [i18n.t('incomeStatement.table.amount')]: data.revenue.total },
+      { [i18n.t('incomeStatement.table.item')]: '', [i18n.t('incomeStatement.table.amount')]: '' },
+      { [i18n.t('incomeStatement.table.item')]: i18n.t('incomeStatement.items.cogsFull'), [i18n.t('incomeStatement.table.amount')]: data.cogs },
+      { [i18n.t('incomeStatement.table.item')]: i18n.t('incomeStatement.items.grossProfit'), [i18n.t('incomeStatement.table.amount')]: data.gross_profit },
+      { [i18n.t('incomeStatement.table.item')]: '', [i18n.t('incomeStatement.table.amount')]: '' },
+      { [i18n.t('incomeStatement.table.item')]: i18n.t('incomeStatement.items.expensesHeader'), [i18n.t('incomeStatement.table.amount')]: data.total_expenses },
+      { [i18n.t('incomeStatement.table.item')]: '', [i18n.t('incomeStatement.table.amount')]: '' },
+      { [i18n.t('incomeStatement.table.item')]: i18n.t('incomeStatement.items.netProfit'), [i18n.t('incomeStatement.table.amount')]: data.net_profit }
     ]
-    exportToExcel(exportData, `قائمة_الدخل_${from}_${to}`)
+    exportToExcel(exportData, `${i18n.t('incomeStatement.exportTitle')}_${from}_${to}`)
   }
 
   const renderRow = (label: string, value: number, style?: React.CSSProperties, indent = false) => (
@@ -55,8 +58,8 @@ export default function IncomeStatementPage() {
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>قائمة الدخل</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>Income Statement</p>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t('incomeStatement.pageTitle')}</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}> {t('incomeStatement.pageSubtitle')}</p>
         </div>
         <button className="btn btn-secondary btn-sm" onClick={handleExport} disabled={!data}>
           <Download size={14}/> تصدير Excel
@@ -73,7 +76,7 @@ export default function IncomeStatementPage() {
           <label>إلى</label>
           <input type="date" value={to} onChange={e => setTo(e.target.value)} className="form-input" style={{ width: 160 }}/>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => refetch()}>تحديث</button>
+        <button className="btn btn-primary btn-sm" onClick={() => refetch()}>{t('incomeStatement.filter.update')}</button>
       </div>
 
       {isLoading ? (
@@ -87,7 +90,7 @@ export default function IncomeStatementPage() {
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <div>
-              <h3 style={{ color: '#EDE9E0', fontWeight: 700, fontSize: 18 }}>قائمة الدخل</h3>
+              <h3 style={{ color: '#EDE9E0', fontWeight: 700, fontSize: 18 }}>{t('incomeStatement.pageTitle')}</h3>
               <p style={{ color: 'rgba(255,255,255,0.40)', fontSize: 12, marginTop: 4 }}>
                 {formatDate(from)} — {formatDate(to)}
               </p>
@@ -97,26 +100,26 @@ export default function IncomeStatementPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>البند</th>
-                <th style={{ textAlign: 'left' }}>المبلغ (ريال)</th>
-                <th style={{ textAlign: 'left' }}>%</th>
+                <th>{t('incomeStatement.table.item')}</th>
+                <th style={{ textAlign: 'left' }}>{t('incomeStatement.table.amount')}</th>
+                <th style={{ textAlign: 'left' }}>{t('incomeStatement.table.percentage')}</th>
               </tr>
             </thead>
             <tbody>
               <tr style={{ background: 'var(--bg-surface-2)' }}>
-                <td colSpan={3} style={{ fontWeight: 700, padding: '10px 16px', fontSize: 13 }}>الإيرادات</td>
+                <td colSpan={3} style={{ fontWeight: 700, padding: '10px 16px', fontSize: 13 }}>{t('incomeStatement.items.revenuesHeader')}</td>
               </tr>
-              {renderRow('إيرادات التوصيل',      data.revenue.delivery,      {}, true)}
-              {renderRow('إيرادات المطعم',       data.revenue.restaurant,     {}, true)}
-              {renderRow('إيرادات الاشتراكات',  data.revenue.subscriptions,  {}, true)}
-              {renderRow('إجمالي الإيرادات',     data.revenue.total, { fontWeight: 700, borderTop: '2px solid var(--border-color)' })}
+              {renderRow(t('incomeStatement.items.deliveryRevenue'),      data.revenue.delivery,      {}, true)}
+              {renderRow(t('incomeStatement.items.restaurantRevenue'),       data.revenue.restaurant,     {}, true)}
+              {renderRow(t('incomeStatement.items.subscriptionsRevenue'),  data.revenue.subscriptions,  {}, true)}
+              {renderRow(t('incomeStatement.items.totalRevenue'),     data.revenue.total, { fontWeight: 700, borderTop: '2px solid var(--border-color)' })}
 
               <tr><td colSpan={3} style={{ height: 8 }}/></tr>
               <tr style={{ background: 'var(--bg-surface-2)' }}>
-                <td colSpan={3} style={{ fontWeight: 700, padding: '10px 16px', fontSize: 13 }}>تكلفة البضاعة المباعة</td>
+                <td colSpan={3} style={{ fontWeight: 700, padding: '10px 16px', fontSize: 13 }}>{t('incomeStatement.items.cogsHeader')}</td>
               </tr>
-              {renderRow('المشتريات', data.cogs, {}, true)}
-              {renderRow('مجمل الربح', data.gross_profit, {
+              {renderRow(t('incomeStatement.items.purchases'), data.cogs, {}, true)}
+              {renderRow(t('incomeStatement.items.grossProfit'), data.gross_profit, {
                 fontWeight: 700,
                 color: data.gross_profit >= 0 ? 'var(--color-success)' : 'var(--color-danger)',
                 borderTop: '2px solid var(--border-color)',
@@ -124,12 +127,12 @@ export default function IncomeStatementPage() {
 
               <tr><td colSpan={3} style={{ height: 8 }}/></tr>
               <tr style={{ background: 'var(--bg-surface-2)' }}>
-                <td colSpan={3} style={{ fontWeight: 700, padding: '10px 16px', fontSize: 13 }}>المصروفات التشغيلية</td>
+                <td colSpan={3} style={{ fontWeight: 700, padding: '10px 16px', fontSize: 13 }}>{t('incomeStatement.items.expensesHeader')}</td>
               </tr>
-              {renderRow('إجمالي المصروفات', data.total_expenses, {}, true)}
+              {renderRow(t('incomeStatement.items.totalExpenses'), data.total_expenses, {}, true)}
 
               <tr><td colSpan={3} style={{ height: 8 }}/></tr>
-              {renderRow('صافي الربح', data.net_profit, {
+              {renderRow(t('incomeStatement.items.netProfit'), data.net_profit, {
                 fontWeight: 800,
                 fontSize: 15,
                 color: data.net_profit >= 0 ? 'var(--color-success)' : 'var(--color-danger)',

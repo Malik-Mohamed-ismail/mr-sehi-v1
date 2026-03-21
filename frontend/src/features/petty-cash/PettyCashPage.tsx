@@ -8,10 +8,13 @@ import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../lib/i18n'
 import { exportToExcel } from '../../lib/export'
 
 export default function PettyCashPage() {
   const qc = useQueryClient()
+  const { t } = useTranslation()
   const [showForm, setShowForm] = useState(false)
   const today = new Date().toISOString().split('T')[0]
 
@@ -38,39 +41,39 @@ export default function PettyCashPage() {
   const createMutation = useMutation({
     mutationFn: (data: any) => api.post('/petty-cash', data),
     onSuccess: () => {
-      toast.success('تم حفظ العهدة')
+      toast.success(t('pettyCash.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['petty-cash'] })
       qc.invalidateQueries({ queryKey: ['petty-cash-reconciliation'] })
       reset(); setShowForm(false)
     },
-    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ'),
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('pettyCash.messages.error')),
   })
 
   const handleExport = () => {
     const exportData = (records ?? []).map((r: any) => ({
-      'التاريخ': formatDate(r.transaction_date),
-      'رصيد الافتتاح': r.opening_balance,
-      'العهدة': r.cashier_replenishment,
-      'المشتريات': Number(r.cash_purchases) + Number(r.card_purchases),
-      'الرصيد الختامي': r.closing_balance,
-      'الفارق': r.variance,
-      'المطابقة': r.is_balanced ? 'متطابق' : 'يوجد عجز/زيادة'
+      [i18n.t('pettyCash.table.date')]: formatDate(r.transaction_date),
+      [i18n.t('pettyCash.table.opening')]: r.opening_balance,
+      [i18n.t('pettyCash.table.replenishment')]: r.cashier_replenishment,
+      [i18n.t('pettyCash.table.purchases')]: Number(r.cash_purchases) + Number(r.card_purchases),
+      [i18n.t('pettyCash.table.closing')]: r.closing_balance,
+      [i18n.t('pettyCash.table.variance')]: r.variance,
+      [i18n.t('pettyCash.table.status')]: r.is_balanced ? i18n.t('pettyCash.table.balanced') : i18n.t('pettyCash.table.unbalanced')
     }))
-    exportToExcel(exportData, 'صندوق_النثرية')
+    exportToExcel(exportData, i18n.t('pettyCash.exportTitle'))
   }
 
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>العهدة والصندوق</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>متابعة النقدية اليومية والمطابقة</p>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t('pettyCash.pageTitle')}</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{t('pettyCash.pageSubtitle')}</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
           <button className="btn btn-secondary" onClick={handleExport} disabled={!records?.length}>
             <Download size={16}/> تصدير Excel
           </button>
-          <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> تسجيل يومي</button>
+          <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> {t('pettyCash.newEntry')}</button>
         </div>
       </div>
 
@@ -85,14 +88,14 @@ export default function PettyCashPage() {
             {reconciliation.is_balanced
               ? <CheckCircle size={18} color="var(--color-success)"/>
               : <XCircle size={18} color="var(--color-danger)"/>}
-            <span style={{ fontWeight: 700 }}>مطابقة اليوم — {formatDate(today)}</span>
+            <span style={{ fontWeight: 700 }}>{t('pettyCash.reconciliation.today')}{formatDate(today)}</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
             {[
-              { label: 'رصيد أول المدة', value: reconciliation.opening_balance },
-              { label: 'عهدة الكاشير', value: reconciliation.cashier_replenishment },
-              { label: 'رصيد متوقع', value: reconciliation.expected },
-              { label: 'فارق', value: reconciliation.variance, highlight: true },
+              { label: t('pettyCash.reconciliation.openingBalance'), value: reconciliation.opening_balance },
+              { label: t('pettyCash.reconciliation.replenishment'), value: reconciliation.cashier_replenishment },
+              { label: t('pettyCash.reconciliation.expected'), value: reconciliation.expected },
+              { label: t('pettyCash.reconciliation.variance'), value: reconciliation.variance, highlight: true },
             ].map(item => (
               <div key={item.label} style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>{item.label}</div>
@@ -107,26 +110,26 @@ export default function PettyCashPage() {
 
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
-          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir="rtl">
+          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir={i18n.dir()}>
             <div className="form-section-header">
               <div className="form-section-number">١</div>
-              <div className="form-section-title">بيانات الصندوق اليومي</div>
+              <div className="form-section-title">{t('pettyCash.section1')}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
-              <div className="form-field has-value"><label>التاريخ</label><input {...register('transaction_date')} type="date" className="form-input"/></div>
-              <div className="form-field has-value"><label>رصيد أول المدة</label><input {...register('opening_balance')} type="number" step="0.01" className="form-input"/></div>
-              <div className="form-field has-value"><label>عهدة الكاشير</label><input {...register('cashier_replenishment')} type="number" step="0.01" className="form-input"/></div>
-              <div className="form-field has-value"><label>مشتريات كاش</label><input {...register('cash_purchases')} type="number" step="0.01" className="form-input"/></div>
-              <div className="form-field has-value"><label>مشتريات بطاقة</label><input {...register('card_purchases')} type="number" step="0.01" className="form-input"/></div>
+              <div className="form-field has-value"><label>{t('pettyCash.fields.date')}</label><input {...register('transaction_date')} type="date" className="form-input"/></div>
+              <div className="form-field has-value"><label>{t('pettyCash.fields.openingBalance')}</label><input {...register('opening_balance')} type="number" step="0.01" className="form-input"/></div>
+              <div className="form-field has-value"><label>{t('pettyCash.fields.replenishment')}</label><input {...register('cashier_replenishment')} type="number" step="0.01" className="form-input"/></div>
+              <div className="form-field has-value"><label>{t('pettyCash.fields.cashPurchases')}</label><input {...register('cash_purchases')} type="number" step="0.01" className="form-input"/></div>
+              <div className="form-field has-value"><label>{t('pettyCash.fields.cardPurchases')}</label><input {...register('card_purchases')} type="number" step="0.01" className="form-input"/></div>
               <div className="form-field has-value">
                 <label style={{ color: 'var(--color-success)' }}>الرصيد المتوقع</label>
                 <input readOnly value={expected.toFixed(2)} className="form-input amount-field"/>
               </div>
-              <div className="form-field has-value"><label>رصيد آخر المدة الفعلي</label><input {...register('closing_balance')} type="number" step="0.01" className="form-input"/></div>
+              <div className="form-field has-value"><label>{t('pettyCash.fields.closingBalance')}</label><input {...register('closing_balance')} type="number" step="0.01" className="form-input"/></div>
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>إلغاء</button>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? 'جارٍ الحفظ...' : '💾 حفظ'}</button>
+              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>{t('pettyCash.buttons.cancel')}</button>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? t('pettyCash.buttons.saving') : t('pettyCash.buttons.save')}</button>
             </div>
           </form>
         </motion.div>
@@ -134,7 +137,7 @@ export default function PettyCashPage() {
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <table className="data-table">
-          <thead><tr><th>التاريخ</th><th>رصيد الافتتاح</th><th>العهدة</th><th>المشتريات</th><th>الرصيد الختامي</th><th>الفارق</th><th>المطابقة</th></tr></thead>
+          <thead><tr><th>{t('pettyCash.table.date')}</th><th>{t('pettyCash.table.opening')}</th><th>{t('pettyCash.table.replenishment')}</th><th>{t('pettyCash.table.purchases')}</th><th>{t('pettyCash.table.closing')}</th><th>{t('pettyCash.table.variance')}</th><th>{t('pettyCash.table.status')}</th></tr></thead>
           <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
             {(records ?? []).map((r: any) => (
               <motion.tr key={r.id} variants={staggerItem}>
@@ -147,7 +150,7 @@ export default function PettyCashPage() {
                 <td>{r.is_balanced ? <CheckCircle size={15} color="var(--color-success)"/> : <XCircle size={15} color="var(--color-danger)"/>}</td>
               </motion.tr>
             ))}
-            {!records?.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>لا توجد بيانات</td></tr>}
+            {!records?.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('pettyCash.table.empty')}</td></tr>}
           </motion.tbody>
         </table>
       </div>

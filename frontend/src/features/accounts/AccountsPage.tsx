@@ -6,19 +6,22 @@ import { BookOpen, Plus, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { exportToExcel } from '../../lib/export'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../lib/i18n'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 
 const TYPE_LABELS: Record<string, { label: string; badge: string }> = {
-  asset:     { label: 'أصول',     badge: 'badge-info' },
-  liability: { label: 'التزامات', badge: 'badge-danger' },
-  equity:    { label: 'حقوق ملكية', badge: 'badge-warning' },
-  revenue:   { label: 'إيرادات',  badge: 'badge-success' },
-  expense:   { label: 'مصروفات',  badge: 'badge-neutral' },
+  asset:     { label: i18n.t('accounts.types.asset'),     badge: 'badge-info' },
+  liability: { label: i18n.t('accounts.types.liability'), badge: 'badge-danger' },
+  equity:    { label: i18n.t('accounts.types.equity'), badge: 'badge-warning' },
+  revenue:   { label: i18n.t('accounts.types.revenue'),  badge: 'badge-success' },
+  expense:   { label: i18n.t('accounts.types.expense'),  badge: 'badge-neutral' },
 }
 
 export default function AccountsPage() {
   const qc = useQueryClient()
+  const { t } = useTranslation()
   const [showForm, setShowForm] = useState(false)
 
   const { data: accounts, isLoading } = useQuery({
@@ -40,12 +43,12 @@ export default function AccountsPage() {
   const createMutation = useMutation({
     mutationFn: (data: any) => api.post('/accounts', { ...data, level: Number(data.level) }),
     onSuccess: () => {
-      toast.success('تمت إضافة الحساب بنجاح')
+      toast.success(t('accounts.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['accounts'] })
       reset()
       setShowForm(false)
     },
-    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ')
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('accounts.messages.error'))
   })
 
   const grouped = (accounts ?? []).reduce((acc: any, a: any) => {
@@ -57,22 +60,22 @@ export default function AccountsPage() {
 
   const handleExport = () => {
     const exportData = (accounts ?? []).map((a: any) => ({
-      'الكود': a.code,
-      'اسم الحساب': a.name_ar,
-      'الاسم الإنجليزي': a.name_en || '-',
-      'النوع': TYPE_LABELS[a.type]?.label ?? a.type,
-      'المستوى': a.level,
-      'حساب رئيسي': a.parent_code || '-',
-      'نظام': a.is_system ? 'نعم' : 'لا',
+      [i18n.t('accounts.table.code')]: a.code,
+      [i18n.t('accounts.table.nameAr')]: a.name_ar,
+      [i18n.t('accounts.table.nameEn')]: a.name_en || '-',
+      [i18n.t('accounts.fields.accountType')]: TYPE_LABELS[a.type]?.label ?? a.type,
+      [i18n.t('accounts.table.level')]: a.level,
+      [i18n.t('accounts.fields.parentCode')]: a.parent_code || '-',
+      [i18n.t('accounts.table.isSystem')]: a.is_system ? i18n.t('accounts.table.yes') : i18n.t('accounts.table.no'),
     }))
-    exportToExcel(exportData, 'دليل_الحسابات')
+    exportToExcel(exportData, i18n.t('accounts.exportTitle'))
   }
 
   return (
     <PageTransition>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>دليل الحسابات</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t('accounts.pageTitle')}</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>Chart of Accounts — {accounts?.length ?? 0} حساب</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
@@ -86,11 +89,11 @@ export default function AccountsPage() {
       </div>
 
       {showForm && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }} dir="rtl">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }} dir={i18n.dir()}>
           <form onSubmit={handleSubmit((d) => createMutation.mutate(d))}>
             <div className="form-section-header">
               <div className="form-section-number">١</div>
-              <div className="form-section-title">بيانات الحساب الجديد</div>
+              <div className="form-section-title">{t('accounts.section1')}</div>
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)', gap: 16, marginBottom: 20 }}>
@@ -109,16 +112,16 @@ export default function AccountsPage() {
               <div className="form-field has-value">
                 <label>نوع الحساب</label>
                 <select {...register('type')} className="form-select">
-                  <option value="asset">أصول</option>
-                  <option value="liability">التزامات</option>
-                  <option value="equity">حقوق ملكية</option>
-                  <option value="revenue">إيرادات</option>
-                  <option value="expense">مصروفات</option>
+                  <option value="asset">{t('accounts.types.asset')}</option>
+                  <option value="liability">{t('accounts.types.liability')}</option>
+                  <option value="equity">{t('accounts.types.equity')}</option>
+                  <option value="revenue">{t('accounts.types.revenue')}</option>
+                  <option value="expense">{t('accounts.types.expense')}</option>
                 </select>
               </div>
               <div className="form-field has-value">
                 <label>كود الحساب الرئيسي</label>
-                <input {...register('parent_code')} className="form-input" placeholder="اختياري"/>
+                <input {...register('parent_code')} className="form-input" placeholder={t("accounts.fields.parentCodePlaceholder")}/>
               </div>
               <div className="form-field has-value">
                 <label>المستوى</label>
@@ -127,9 +130,9 @@ export default function AccountsPage() {
             </div>
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>إلغاء</button>
+              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>{t('accounts.buttons.cancel')}</button>
               <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? 'جارٍ الحفظ...' : '💾 حفظ الحساب'}
+                {isSubmitting ? t('accounts.buttons.saving') : t('accounts.buttons.save')}
               </button>
             </div>
           </form>
@@ -151,10 +154,10 @@ export default function AccountsPage() {
               }}>
                 <BookOpen size={15} color="var(--color-primary)"/>
                 <span style={{ fontWeight: 700 }}>{meta.label}</span>
-                <span className={`badge ${meta.badge}`} style={{ marginRight: 'auto' }}>{items.length} حساب</span>
+                <span className={`badge ${meta.badge}`} style={{ marginLeft: 'auto' /* Wait, rtl is default, so if they used marginRight to push left... we can keep it as is or handle it based on dir */ }}>{items.length} {t('accounts.accountCount')}</span>
               </div>
               <table className="data-table">
-                <thead><tr><th>الكود</th><th>اسم الحساب</th><th>Account Name</th><th>المستوى</th><th>النظام</th></tr></thead>
+                <thead><tr><th>{t('accounts.table.code')}</th><th>{t('accounts.table.nameAr')}</th><th>{t('accounts.table.nameEn')}</th><th>{t('accounts.table.level')}</th><th>{t('accounts.table.isSystem')}</th></tr></thead>
                 <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
                   {items.map((a: any) => (
                     <motion.tr key={a.code} variants={staggerItem}
@@ -163,7 +166,7 @@ export default function AccountsPage() {
                       <td style={{ paddingRight: a.level > 1 ? (a.level - 1) * 16 + 16 : 16 }}>{a.name_ar}</td>
                       <td style={{ color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'var(--font-latin)' }}>{a.name_en ?? '—'}</td>
                       <td className="amount">{a.level}</td>
-                      <td>{a.is_system ? <span className="badge badge-warning">نظام</span> : '—'}</td>
+                      <td>{a.is_system ? <span className="badge badge-warning">{t('accounts.table.isSystem')}</span> : '—'}</td>
                     </motion.tr>
                   ))}
                 </motion.tbody>

@@ -2,38 +2,43 @@ import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Bell, Sun, Moon, Globe, LogOut, Settings, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../../store/authStore'
 import { useTheme } from '../../hooks/useTheme'
 import { api } from '../../lib/api'
 import { fadeIn } from '../../lib/animations'
-
-const PAGE_TITLES: Record<string, string> = {
-  '/dashboard':             'لوحة المتابعة الرئيسية',
-  '/revenue/delivery':      'إيرادات التوصيل',
-  '/revenue/restaurant':    'إيرادات المطعم',
-  '/revenue/subscriptions': 'إيرادات الاشتراكات',
-  '/purchases':             'إدخال المشتريات',
-  '/expenses':              'إدخال المصروفات',
-  '/petty-cash':            'العهدة والصندوق',
-  '/suppliers':             'الموردين',
-  '/subscribers':           'متابعة الاشتراكات',
-  '/production':            'الإنتاج والتالف',
-  '/accounts':              'دليل الحسابات',
-  '/journal':               'قيود اليومية',
-  '/ledger':                'الأستاذ العام',
-  '/trial-balance':         'ميزان المراجعة',
-  '/income-statement':      'قائمة الدخل',
-  '/reports':               'التقارير والتحليلات',
-}
+import { LanguageToggle } from './LanguageToggle'
 
 export function Topbar() {
   const location              = useLocation()
   const navigate              = useNavigate()
   const { user, logout }      = useAuthStore()
   const { theme, toggle }     = useTheme()
+  const { t, i18n }           = useTranslation()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
-  const pageTitle = PAGE_TITLES[location.pathname] ?? 'مستر صحي'
+  const PAGE_TITLES: Record<string, string> = {
+    '/dashboard':             t('pages.dashboard'),
+    '/revenue/delivery':      t('pages.delivery'),
+    '/revenue/restaurant':    t('pages.restaurant'),
+    '/revenue/subscriptions': t('pages.subscriptions'),
+    '/purchases':             t('pages.purchases'),
+    '/expenses':              t('pages.expenses'),
+    '/petty-cash':            t('pages.pettyCash'),
+    '/suppliers':             t('pages.suppliers'),
+    '/subscribers':           t('pages.subscribers'),
+    '/production':            t('pages.production'),
+    '/accounts':              t('pages.accounts'),
+    '/journal':               t('pages.journal'),
+    '/ledger':                t('pages.ledger'),
+    '/trial-balance':         t('pages.trialBalance'),
+    '/income-statement':      t('pages.incomeStatement'),
+    '/performance':           t('pages.performance'),
+    '/reports':               t('pages.reports'),
+    '/settings':              t('layout.settings'),
+  }
+
+  const pageTitle = PAGE_TITLES[location.pathname] ?? t('layout.title')
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout') } catch {}
@@ -44,7 +49,8 @@ export function Topbar() {
   return (
     <header style={{
       position: 'fixed',
-      top: 0, left: 0, right: 280,  // right = sidebar width
+      top: 0, 
+      ...(i18n.dir() === 'rtl' ? { left: 0, right: 280 } : { left: 280, right: 0 }),
       height: 56,
       zIndex: 99,
       background: 'var(--glass-bg)',
@@ -71,11 +77,13 @@ export function Topbar() {
 
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <LanguageToggle />
+
         {/* Theme toggle */}
         <button
           className="btn btn-ghost btn-sm"
           onClick={toggle}
-          aria-label="تبديل الوضع"
+          aria-label={t(theme === 'dark' ? 'layout.themeLight' : 'layout.themeDark')}
           style={{ width: 36, height: 36, padding: 0, justifyContent: 'center' }}
         >
           {theme === 'dark' ? <Sun size={16}/> : <Moon size={16}/>}
@@ -84,7 +92,7 @@ export function Topbar() {
         {/* Notifications */}
         <button
           className="btn btn-ghost btn-sm"
-          aria-label="الإشعارات"
+          aria-label={t('layout.notifications')}
           style={{ width: 36, height: 36, padding: 0, justifyContent: 'center', position: 'relative' }}
         >
           <Bell size={16}/>
@@ -109,7 +117,7 @@ export function Topbar() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: '#0D0F1A', fontWeight: 700, fontSize: 12,
             }}>
-              {user?.full_name?.[0] ?? 'م'}
+              {user?.full_name?.[0] ?? 'U'}
             </div>
             <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{user?.full_name}</span>
             <ChevronDown size={12} style={{ color: 'var(--text-secondary)' }}/>
@@ -134,7 +142,7 @@ export function Topbar() {
                   style={{ width: '100%', justifyContent: 'flex-start', borderRadius: 0, height: 40 }}
                   onClick={() => { setUserMenuOpen(false); navigate('/settings') }}
                 >
-                  <Settings size={14}/> الإعدادات
+                  <Settings size={14}/> {t('layout.settings')}
                 </button>
                 <div style={{ height: 1, background: 'var(--border-color)' }}/>
                 <button
@@ -142,7 +150,7 @@ export function Topbar() {
                   style={{ width: '100%', justifyContent: 'flex-start', borderRadius: 0, height: 40, color: 'var(--color-danger)' }}
                   onClick={handleLogout}
                 >
-                  <LogOut size={14}/> تسجيل الخروج
+                  <LogOut size={14}/> {t('layout.logout')}
                 </button>
               </motion.div>
             )}

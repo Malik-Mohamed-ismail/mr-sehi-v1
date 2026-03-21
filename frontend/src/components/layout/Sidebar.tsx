@@ -7,8 +7,9 @@ import {
   ShoppingCart, Briefcase, Wallet,
   Users, UserCheck, Factory,
   BookOpen, BookMarked, Scale, DollarSign,
-  ChevronLeft, ChevronRight, Sparkles,
+  ChevronLeft, ChevronRight, Sparkles
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../../store/authStore'
 
 interface NavItem {
@@ -27,43 +28,43 @@ const navSections: NavSection[] = [
   {
     title: '',
     items: [
-      { to: '/dashboard',    icon: <LayoutDashboard size={18}/>, label: 'لوحة المتابعة' },
-      { to: '/performance',  icon: <TrendingUp size={18}/>,      label: 'تقييم الأداء' },
-      { to: '/reports',      icon: <FileText size={18}/>,        label: 'التقارير' },
+      { to: '/dashboard',    icon: <LayoutDashboard size={18}/>, label: 'pages.dashboard' },
+      { to: '/performance',  icon: <TrendingUp size={18}/>,      label: 'pages.performance' },
+      { to: '/reports',      icon: <FileText size={18}/>,        label: 'pages.reports' },
     ],
   },
   {
-    title: 'الإيرادات',
+    title: 'sidebar.revenue',
     items: [
-      { to: '/revenue/delivery',      icon: <Truck size={18}/>,             label: 'إيرادات التوصيل' },
-      { to: '/revenue/restaurant',    icon: <UtensilsCrossed size={18}/>,   label: 'إيرادات المطعم' },
-      { to: '/revenue/subscriptions', icon: <Package size={18}/>,           label: 'إيرادات الاشتراكات' },
+      { to: '/revenue/delivery',      icon: <Truck size={18}/>,             label: 'pages.delivery' },
+      { to: '/revenue/restaurant',    icon: <UtensilsCrossed size={18}/>,   label: 'pages.restaurant' },
+      { to: '/revenue/subscriptions', icon: <Package size={18}/>,           label: 'pages.subscriptions' },
     ],
   },
   {
-    title: 'المصروفات',
+    title: 'sidebar.expenses',
     items: [
-      { to: '/purchases',  icon: <ShoppingCart size={18}/>, label: 'إدخال المشتريات' },
-      { to: '/expenses',   icon: <Briefcase size={18}/>,    label: 'إدخال المصروفات' },
-      { to: '/petty-cash', icon: <Wallet size={18}/>,       label: 'العهدة (الصندوق)' },
+      { to: '/purchases',  icon: <ShoppingCart size={18}/>, label: 'pages.purchases' },
+      { to: '/expenses',   icon: <Briefcase size={18}/>,    label: 'pages.expenses' },
+      { to: '/petty-cash', icon: <Wallet size={18}/>,       label: 'pages.pettyCash' },
     ],
   },
   {
-    title: 'الإدارة',
+    title: 'sidebar.management',
     items: [
-      { to: '/suppliers',    icon: <Users size={18}/>,    label: 'الموردين' },
-      { to: '/subscribers',  icon: <UserCheck size={18}/>,label: 'متابعة الاشتراكات' },
-      { to: '/production',   icon: <Factory size={18}/>,  label: 'الإنتاج والتالف' },
+      { to: '/suppliers',    icon: <Users size={18}/>,    label: 'pages.suppliers' },
+      { to: '/subscribers',  icon: <UserCheck size={18}/>,label: 'pages.subscribers' },
+      { to: '/production',   icon: <Factory size={18}/>,  label: 'pages.production' },
     ],
   },
   {
-    title: 'المحاسبة',
+    title: 'sidebar.accounting',
     items: [
-      { to: '/accounts',       icon: <BookOpen size={18}/>,   label: 'دليل الحسابات',  roles: ['admin','accountant'] },
-      { to: '/journal',        icon: <BookMarked size={18}/>, label: 'قيود اليومية',   roles: ['admin','accountant'] },
-      { to: '/ledger',         icon: <Scale size={18}/>,      label: 'الأستاذ العام',  roles: ['admin','accountant'] },
-      { to: '/trial-balance',  icon: <Scale size={18}/>,      label: 'ميزان المراجعة',roles: ['admin','accountant'] },
-      { to: '/income-statement',icon: <DollarSign size={18}/>,label: 'قائمة الدخل',   roles: ['admin','accountant'] },
+      { to: '/accounts',       icon: <BookOpen size={18}/>,   label: 'pages.accounts',  roles: ['admin','accountant'] },
+      { to: '/journal',        icon: <BookMarked size={18}/>, label: 'pages.journal',   roles: ['admin','accountant'] },
+      { to: '/ledger',         icon: <Scale size={18}/>,      label: 'pages.ledger',    roles: ['admin','accountant'] },
+      { to: '/trial-balance',  icon: <Scale size={18}/>,      label: 'pages.trialBalance', roles: ['admin','accountant'] },
+      { to: '/income-statement',icon: <DollarSign size={18}/>,label: 'pages.incomeStatement', roles: ['admin','accountant'] },
     ],
   },
 ]
@@ -72,6 +73,7 @@ export function Sidebar() {
   const [expanded, setExpanded]   = useState(true)
   const { user }                  = useAuthStore()
   const location                  = useLocation()
+  const { t, i18n }               = useTranslation()
 
   return (
     <motion.aside
@@ -80,11 +82,10 @@ export function Sidebar() {
       style={{
         position:   'fixed',
         top:        0,
-        right:      0,
         bottom:     0,
+        ...(i18n.dir() === 'rtl' ? { right: 0, borderLeft: '1px solid rgba(255,255,255,0.05)' } : { left: 0, borderRight: '1px solid rgba(255,255,255,0.05)' }),
         zIndex:     100,
         background: 'var(--bg-sidebar)',
-        borderLeft: '1px solid rgba(255,255,255,0.05)',
         display:    'flex',
         flexDirection: 'column',
         overflow:   'hidden',
@@ -114,8 +115,8 @@ export function Sidebar() {
                 <Sparkles size={16} color="#0D0F1A"/>
               </div>
               <div>
-                <div style={{ color: '#EDE9E0', fontWeight: 700, fontSize: 14, lineHeight: 1.2 }}>مستر صحي</div>
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>نظام إدارة المطعم</div>
+                <div style={{ color: '#EDE9E0', fontWeight: 700, fontSize: 14, lineHeight: 1.2 }}>{t('layout.title')}</div>
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>{t('sidebar.systemName')}</div>
               </div>
             </motion.div>
           )}
@@ -131,7 +132,7 @@ export function Sidebar() {
         )}
         <button
           onClick={() => setExpanded(e => !e)}
-          aria-label={expanded ? 'طي الشريط الجانبي' : 'توسيع الشريط الجانبي'}
+          aria-label={t(expanded ? 'sidebar.collapse' : 'sidebar.expand')}
           style={{
             background: 'rgba(255,255,255,0.06)',
             border: 'none', borderRadius: 6, cursor: 'pointer',
@@ -140,6 +141,7 @@ export function Sidebar() {
             color: 'rgba(255,255,255,0.5)',
             transition: 'background 0.2s',
             flexShrink: 0,
+            transform: i18n.language === 'en' ? 'scaleX(-1)' : 'none',
           }}
         >
           {expanded ? <ChevronRight size={14}/> : <ChevronLeft size={14}/>}
@@ -163,7 +165,7 @@ export function Sidebar() {
                   letterSpacing: '0.8px',
                   textTransform: 'uppercase',
                 }}>
-                  {section.title}
+                  {t(section.title)}
                 </div>
               )}
               {visibleItems.map((item) => {
@@ -200,7 +202,7 @@ export function Sidebar() {
                           transition={{ duration: 0.15 }}
                           style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}
                         >
-                          {item.label}
+                          {t(item.label)}
                         </motion.span>
                       )}
                     </AnimatePresence>
@@ -232,7 +234,7 @@ export function Sidebar() {
               {user.full_name}
             </div>
             <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>
-              {{ admin: 'مدير', accountant: 'محاسب', cashier: 'كاشير' }[user.role]}
+              {t(`sidebar.roles.${user.role}`)}
             </div>
           </div>
         </div>

@@ -7,17 +7,20 @@ import { useForm } from 'react-hook-form'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { staggerContainer, staggerItem } from '../../lib/animations'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../lib/i18n'
 
 type TabType = 'system' | 'users' | 'audit'
 
 export default function SettingsPage() {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabType>('system')
 
   return (
     <PageTransition>
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700 }}>الإعدادات</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>System Configuration & User Management</p>
+        <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t('settings.pageTitle')}</h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}> {t('settings.pageSubtitle')}</p>
       </div>
 
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
@@ -33,7 +36,7 @@ export default function SettingsPage() {
               border: 'none', cursor: 'pointer', textAlign: 'right', transition: 'all 0.2s',
             }}
           >
-            <Settings size={18}/> إعدادات النظام
+            <Settings size={18}/> {t('settings.tabs.system')}
           </button>
           <button
             onClick={() => setActiveTab('users')}
@@ -45,7 +48,7 @@ export default function SettingsPage() {
               border: 'none', cursor: 'pointer', textAlign: 'right', transition: 'all 0.2s', marginTop: 4,
             }}
           >
-            <Users size={18}/> المستخدمين والصلاحيات
+            <Users size={18}/> {t('settings.tabs.users')}
           </button>
           <button
             onClick={() => setActiveTab('audit')}
@@ -57,7 +60,7 @@ export default function SettingsPage() {
               border: 'none', cursor: 'pointer', textAlign: 'right', transition: 'all 0.2s', marginTop: 4,
             }}
           >
-            <Activity size={18}/> سجل النظام
+            <Activity size={18}/> {t('settings.tabs.audit')}
           </button>
         </div>
 
@@ -87,6 +90,7 @@ export default function SettingsPage() {
 }
 
 function SystemSettingsTab() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const { data: profile, isLoading } = useQuery({
     queryKey: ['settings', 'SYSTEM_PROFILE'],
@@ -105,10 +109,10 @@ function SystemSettingsTab() {
   const mutation = useMutation({
     mutationFn: (data: any) => api.put('/settings/SYSTEM_PROFILE', data),
     onSuccess: () => {
-      toast.success('تم الحفظ بنجاح')
+      toast.success(t('settings.system.messages.saveSuccess'))
       qc.invalidateQueries({ queryKey: ['settings'] })
     },
-    onError: () => toast.error('حدث خطأ أثناء الحفظ')
+    onError: () => toast.error(t('settings.system.messages.error'))
   })
 
   if (isLoading) return <div className="skeleton" style={{ height: 200, width: '100%' }} />
@@ -116,33 +120,33 @@ function SystemSettingsTab() {
   return (
     <div className="card">
       <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--border-color)' }}>
-        <h3 style={{ fontSize: 16, fontWeight: 700 }}>الملف التعريفي والضريبي</h3>
-        <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>هذه البيانات ستظهر في الفواتير المطبوعة والإقرارات الضريبية.</p>
+        <h3 style={{ fontSize: 16, fontWeight: 700 }}>{t('settings.system.title')}</h3>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{t('settings.system.description')}</p>
       </div>
 
-      <form onSubmit={handleSubmit((d) => mutation.mutate(d))} dir="rtl">
+      <form onSubmit={handleSubmit((d) => mutation.mutate(d))} dir={i18n.dir()}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 16, marginBottom: 24 }}>
           <div className="form-field has-value">
-            <label>اسم المطعم (الرسمي)</label>
+            <label>{t('settings.system.fields.restaurantName')}</label>
             <input {...register('restaurant_name', { required: true })} className="form-input"/>
           </div>
           <div className="form-field has-value">
-            <label>السجل التجاري (CR)</label>
+            <label>{t('settings.system.fields.crNumber')}</label>
             <input {...register('cr_number')} className="form-input"/>
           </div>
           <div className="form-field has-value">
-            <label>الرقم الضريبي (VAT No)</label>
+            <label>{t('settings.system.fields.taxNumber')}</label>
             <input {...register('tax_number')} className="form-input"/>
           </div>
           <div className="form-field has-value">
-            <label>نسبة ضريبة القيمة المضافة (%)</label>
+            <label>{t('settings.system.fields.vatRate')}</label>
             <input {...register('vat_rate', { valueAsNumber: true })} type="number" step="1" className="form-input" dir="ltr"/>
           </div>
         </div>
         
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-            {isSubmitting ? 'جارٍ الحفظ...' : <><Save size={16}/> حفظ الإعدادات</>}
+            {isSubmitting ? t('settings.system.buttons.saving') : <><Save size={16}/> {t('settings.system.buttons.save')}</>}
           </button>
         </div>
       </form>
@@ -151,6 +155,7 @@ function SystemSettingsTab() {
 }
 
 function UsersManagementTab() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [showForm, setShowForm] = useState(false)
 
@@ -166,12 +171,12 @@ function UsersManagementTab() {
   const createMutation = useMutation({
     mutationFn: (data: any) => api.post('/auth/users', data),
     onSuccess: () => {
-      toast.success('تمت إضافة المستخدم بنجاح')
+      toast.success(t('settings.users.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['users'] })
       reset()
       setShowForm(false)
     },
-    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'حدث خطأ')
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('settings.users.messages.error'))
   })
 
   const ROLE_BADGES: Record<string, string> = {
@@ -180,50 +185,50 @@ function UsersManagementTab() {
     cashier: 'badge-success',
   }
   const ROLE_NAMES: Record<string, string> = {
-    admin: 'مدير نظام',
-    accountant: 'محاسب',
-    cashier: 'كاشير',
+    admin: i18n.t('settings.users.roles.admin'),
+    accountant: i18n.t('settings.users.roles.accountant'),
+    cashier: i18n.t('settings.users.roles.cashier'),
   }
 
   return (
     <>
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 20 }}>
-          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir="rtl">
+          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir={i18n.dir()}>
             <div className="form-section-header">
               <div className="form-section-number">١</div>
-              <div className="form-section-title">بيانات المستخدم الجديد</div>
+              <div className="form-section-title">{t('settings.users.section1')}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 16, marginBottom: 20 }}>
               <div className="form-field has-value">
-                <label>الاسم الكامل</label>
+                <label>{t('settings.users.fields.fullName')}</label>
                 <input {...register('full_name', { required: true })} className="form-input"/>
               </div>
               <div className="form-field has-value">
-                <label>اسم المستخدم (للدخول)</label>
+                <label>{t('settings.users.fields.username')}</label>
                 <input {...register('username', { required: true })} className="form-input" dir="ltr"/>
               </div>
               <div className="form-field has-value">
-                <label>البريد الإلكتروني</label>
+                <label>{t('settings.users.fields.email')}</label>
                 <input {...register('email', { required: true })} type="email" className="form-input" dir="ltr"/>
               </div>
               <div className="form-field has-value">
-                <label>كلمة المرور</label>
+                <label>{t('settings.users.fields.password')}</label>
                 <input {...register('password', { required: true })} type="password" className="form-input" dir="ltr"/>
               </div>
               <div className="form-field has-value" style={{ gridColumn: '1 / -1' }}>
-                <label>الصلاحية</label>
+                <label>{t('settings.users.fields.role')}</label>
                 <select {...register('role', { required: true })} className="form-select">
-                  <option value="cashier">كاشير</option>
-                  <option value="accountant">محاسب</option>
-                  <option value="admin">مدير نظام</option>
+                  <option value="cashier">{t('settings.users.roles.cashier')}</option>
+                  <option value="accountant">{t('settings.users.roles.accountant')}</option>
+                  <option value="admin">{t('settings.users.roles.admin')}</option>
                 </select>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>إلغاء</button>
+              <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>{t('settings.users.buttons.cancel')}</button>
               <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? 'جارٍ الحفظ...' : '💾 إضافة المستخدم'}
+                {isSubmitting ? t('settings.users.buttons.saving') : t('settings.users.buttons.save')}
               </button>
             </div>
           </form>
@@ -232,9 +237,9 @@ function UsersManagementTab() {
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
-          <span style={{ fontWeight: 700 }}>قائمة المستخدمين</span>
+          <span style={{ fontWeight: 700 }}>{t('settings.users.table.title')}</span>
           <button className="btn btn-primary btn-sm" onClick={() => setShowForm(s => !s)} disabled={showForm}>
-            <Plus size={14}/> مستخدم جديد
+            <Plus size={14}/> {t('settings.users.buttons.newUser')}
           </button>
         </div>
         
@@ -244,11 +249,11 @@ function UsersManagementTab() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>الاسم الكامل</th>
-                <th>اسم الدخول</th>
-                <th style={{ fontFamily: 'var(--font-latin)' }}>البريد الإلكتروني</th>
-                <th>الصلاحية</th>
-                <th>الحالة</th>
+                <th>{t('settings.users.table.fullName')}</th>
+                <th>{t('settings.users.table.username')}</th>
+                <th style={{ fontFamily: 'var(--font-latin)' }}>{t('settings.users.table.email')}</th>
+                <th>{t('settings.users.table.role')}</th>
+                <th>{t('settings.users.table.status')}</th>
               </tr>
             </thead>
             <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
@@ -260,8 +265,8 @@ function UsersManagementTab() {
                   <td><span className={`badge ${ROLE_BADGES[u.role] ?? 'badge-neutral'}`}>{ROLE_NAMES[u.role] ?? u.role}</span></td>
                   <td>
                     {u.is_active 
-                      ? <span className="badge badge-success">مفعل</span> 
-                      : <span className="badge badge-danger">معطل</span>}
+                      ? <span className="badge badge-success">{t('settings.users.status.active')}</span> 
+                      : <span className="badge badge-danger">{t('settings.users.status.inactive')}</span>}
                   </td>
                 </motion.tr>
               ))}
@@ -274,6 +279,7 @@ function UsersManagementTab() {
 }
 
 function AuditLogsTab() {
+  const { t } = useTranslation()
   const { data: logs, isLoading } = useQuery({
     queryKey: ['audit-logs'],
     queryFn: () => api.get('/audit-log?limit=100').then(r => r.data.data),
@@ -289,7 +295,7 @@ function AuditLogsTab() {
   return (
     <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
-        <span style={{ fontWeight: 700 }}>سجل حركات النظام</span>
+        <span style={{ fontWeight: 700 }}>{t('settings.audit.title')}</span>
       </div>
       
       {isLoading ? (
@@ -299,11 +305,11 @@ function AuditLogsTab() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>التاريخ والوقت</th>
-                <th>المستخدم</th>
-                <th>العملية</th>
-                <th>الجدول</th>
-                <th style={{ minWidth: 200 }}>التفاصيل (JSON)</th>
+                <th>{t('settings.audit.table.datetime')}</th>
+                <th>{t('settings.audit.table.user')}</th>
+                <th>{t('settings.audit.table.action')}</th>
+                <th>{t('settings.audit.table.table')}</th>
+                <th style={{ minWidth: 200 }}>{t('settings.audit.table.details')}</th>
               </tr>
             </thead>
             <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
@@ -321,7 +327,7 @@ function AuditLogsTab() {
                   <td style={{ fontFamily: 'var(--font-latin)' }}>{log.table_name}</td>
                   <td>
                     <details style={{ cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font-latin)', background: 'var(--bg-page)', padding: 4, borderRadius: 4 }}>
-                      <summary style={{ outline: 'none' }}>عرض التفاصيل</summary>
+                      <summary style={{ outline: 'none' }}>{t('settings.audit.showDetails')}</summary>
                       <pre style={{ margin: 0, marginTop: 4, whiteSpace: 'pre-wrap', color: 'var(--text-secondary)' }}>
                         {JSON.stringify(log.new_values || log.old_values, null, 2)}
                       </pre>

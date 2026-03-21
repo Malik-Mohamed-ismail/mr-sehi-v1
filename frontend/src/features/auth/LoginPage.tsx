@@ -9,16 +9,19 @@ import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { useAuthStore } from '../../store/authStore'
 import { slideUp } from '../../lib/animations'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../lib/i18n'
 
 const schema = z.object({
-  email:    z.string().email('البريد الإلكتروني غير صحيح'),
-  password: z.string().min(1, 'كلمة المرور مطلوبة'),
+  email:    z.string().email(i18n.t('auth.invalidEmail')),
+  password: z.string().min(1, i18n.t('auth.passwordRequired')),
 })
 type FormData = z.infer<typeof schema>
 
 export default function LoginPage() {
   const navigate       = useNavigate()
   const { setAuth }    = useAuthStore()
+  const { t }          = useTranslation()
   const [showPw, setShowPw] = useState(false)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -29,10 +32,10 @@ export default function LoginPage() {
     try {
       const res = await api.post('/auth/login', data)
       setAuth(res.data.data.user, res.data.data.accessToken)
-      toast.success('أهلاً بك، ' + res.data.data.user.full_name)
+      toast.success(t('auth.welcome') + ' ' + res.data.data.user.full_name)
       navigate('/dashboard')
     } catch (err: any) {
-      toast.error(err?.response?.data?.error?.message ?? 'خطأ في تسجيل الدخول')
+      toast.error(err?.response?.data?.error?.message ?? t('auth.loginError'))
     }
   }
 
@@ -75,15 +78,15 @@ export default function LoginPage() {
           }}>
             <Sparkles size={24} color="#0D0F1A"/>
           </div>
-          <h1 style={{ color: '#EDE9E0', fontSize: 22, fontWeight: 700, marginBottom: 4 }}>مستر صحي</h1>
-          <p style={{ color: 'rgba(255,255,255,0.40)', fontSize: 13 }}>نظام إدارة المطعم</p>
+          <h1 style={{ color: '#EDE9E0', fontSize: 22, fontWeight: 700, marginBottom: 4 }}>{t('layout.title')}</h1>
+          <p style={{ color: 'rgba(255,255,255,0.40)', fontSize: 13 }}>{t('auth.subtitle')}</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} dir="rtl">
+        <form onSubmit={handleSubmit(onSubmit)} dir={i18n.dir()}>
           {/* Email */}
           <div className="form-field has-value" style={{ marginBottom: 20 }}>
             <label style={{ background: 'transparent', color: 'rgba(255,255,255,0.50)', top: -8, fontSize: 11 }}>
-              البريد الإلكتروني
+              {t('auth.email')}
             </label>
             <input
               {...register('email')}
@@ -98,7 +101,7 @@ export default function LoginPage() {
           {/* Password */}
           <div className="form-field has-value" style={{ marginBottom: 28 }}>
             <label style={{ background: 'transparent', color: 'rgba(255,255,255,0.50)', top: -8, fontSize: 11 }}>
-              كلمة المرور
+              {t('auth.password')}
             </label>
             <div style={{ position: 'relative' }}>
               <input
@@ -116,7 +119,7 @@ export default function LoginPage() {
                   background: 'none', border: 'none', cursor: 'pointer',
                   color: 'rgba(255,255,255,0.40)', padding: 0,
                 }}
-                aria-label={showPw ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                aria-label={showPw ? t('auth.hidePassword') : t('auth.showPassword')}
               >
                 {showPw ? <EyeOff size={16}/> : <Eye size={16}/>}
               </button>
@@ -130,7 +133,7 @@ export default function LoginPage() {
             disabled={isSubmitting}
             style={{ width: '100%', justifyContent: 'center', fontSize: 15 }}
           >
-            {isSubmitting ? 'جارٍ تسجيل الدخول...' : 'تسجيل الدخول'}
+            {isSubmitting ? t('auth.loggingIn') : t('auth.login')}
           </button>
         </form>
       </motion.div>
