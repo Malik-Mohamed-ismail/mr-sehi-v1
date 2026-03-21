@@ -14,6 +14,7 @@ import { formatSAR, formatDate } from '../../lib/utils'
 import { useTranslation } from 'react-i18next'
 import i18n from '../../lib/i18n'
 import { exportToExcel } from '../../lib/export'
+import { useAuthStore } from '../../store/authStore'
 
 const schema = z.object({
   invoice_number: z.string().min(1),
@@ -33,6 +34,7 @@ type FormData = z.infer<typeof schema>
 export default function PurchasesPage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { user } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
@@ -283,14 +285,16 @@ export default function PurchasesPage() {
                   <td className="amount">{formatSAR(p.vat_amount)}</td>
                   <td className="amount" style={{ fontWeight: 700 }}>{formatSAR(p.total_amount)}</td>
                   <td>
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      style={{ color: 'var(--color-danger)' }}
-                      onClick={() => setDeleteId(p.id)}
-                      aria-label={t("purchases.delete.aria")}
-                    >
-                      <Trash2 size={14}/>
-                    </button>
+                    {user?.role === 'admin' && (
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ color: 'var(--color-danger)' }}
+                        onClick={() => setDeleteId(p.id)}
+                        aria-label={t("purchases.delete.aria")}
+                      >
+                        <Trash2 size={14}/>
+                      </button>
+                    )}
                   </td>
                 </motion.tr>
               ))}

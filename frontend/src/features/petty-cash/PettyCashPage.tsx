@@ -2,20 +2,24 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus, CheckCircle, XCircle, Download } from 'lucide-react'
+import { Plus, CheckCircle, XCircle, Download, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
 import { useTranslation } from 'react-i18next'
 import i18n from '../../lib/i18n'
 import { exportToExcel } from '../../lib/export'
+import { useAuthStore } from '../../store/authStore'
 
 export default function PettyCashPage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { user } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
   const today = new Date().toISOString().split('T')[0]
 
   const { data: records, isLoading } = useQuery({
@@ -45,6 +49,17 @@ export default function PettyCashPage() {
       qc.invalidateQueries({ queryKey: ['petty-cash'] })
       qc.invalidateQueries({ queryKey: ['petty-cash-reconciliation'] })
       reset(); setShowForm(false)
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('pettyCash.messages.error')),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/petty-cash/${id}`),
+    onSuccess: () => {
+      toast.success(t('purchases.messages.deleteSuccess') || 'تم الحذف')
+      qc.invalidateQueries({ queryKey: ['petty-cash'] })
+      qc.invalidateQueries({ queryKey: ['petty-cash-reconciliation'] })
+      setDeleteId(null)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('pettyCash.messages.error')),
   })
@@ -137,7 +152,7 @@ export default function PettyCashPage() {
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <table className="data-table">
-          <thead><tr><th>{t('pettyCash.table.date')}</th><th>{t('pettyCash.table.opening')}</th><th>{t('pettyCash.table.replenishment')}</th><th>{t('pettyCash.table.purchases')}</th><th>{t('pettyCash.table.closing')}</th><th>{t('pettyCash.table.variance')}</th><th>{t('pettyCash.table.status')}</th></tr></thead>
+          <thead><tr><th>{t('pettyCash.table.date')}</th><th>{t('pettyCash.table.opening')}</th><th>{t('pettyCash.table.replenishment')}</th><th>{t('pettyCash.table.purchases')}</th><th>{t('pettyCash.table.closing')}</th><th>{t('pettyCash.table.variance')}</th><th>{t('pettyCash.table.status')}</th><th style={{ width: 60 }}></th></tr></thead>
           <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
             {(records ?? []).map((r: any) => (
               <motion.tr key={r.id} variants={staggerItem}>
@@ -148,12 +163,26 @@ export default function PettyCashPage() {
                 <td className="amount" style={{ fontWeight: 700 }}>{formatSAR(r.closing_balance)}</td>
                 <td className="amount" style={{ color: Math.abs(Number(r.variance)) < 0.01 ? 'var(--color-success)' : 'var(--color-danger)' }}>{formatSAR(r.variance)}</td>
                 <td>{r.is_balanced ? <CheckCircle size={15} color="var(--color-success)"/> : <XCircle size={15} color="var(--color-danger)"/>}</td>
+                <td>
+                  {user?.role === 'admin' && (
+                    <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => setDeleteId(r.id)} title={t("purchases.delete.aria") || 'حذف'}><Trash2 size={14}/></button>
+                  )}
+                </td>
               </motion.tr>
             ))}
-            {!records?.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('pettyCash.table.empty')}</td></tr>}
+            {!records?.length && <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('pettyCash.table.empty')}</td></tr>}
           </motion.tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        title={t("purchases.delete.title") || 'تأكيد الحذف'}
+        message={t("purchases.delete.message") || 'هل أنت متأكد من الحذف؟'}
+        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+        onCancel={() => setDeleteId(null)}
+        loading={deleteMutation.isPending}
+      />
     </PageTransition>
   )
 }

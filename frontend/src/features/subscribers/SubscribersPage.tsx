@@ -3,16 +3,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { Plus, RefreshCw, AlertTriangle, Users, Download } from 'lucide-react'
+import { Plus, RefreshCw, AlertTriangle, Users, Download, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
 import { exportToExcel } from '../../lib/export'
 import { useTranslation } from 'react-i18next'
 import i18n from '../../lib/i18n'
+import { useAuthStore } from '../../store/authStore'
 
 const schema = z.object({
   name:           z.string().min(1, i18n.t('subscribers.validation.nameRequired')),
@@ -35,8 +37,10 @@ const STATUS_STYLES: Record<string, { label: string; badge: string }> = {
 export default function SubscribersPage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { user } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
   const [filter, setFilter] = useState<string>('all')
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   const { data: subscribers, isLoading } = useQuery({
     queryKey: ['subscribers'],
@@ -74,6 +78,16 @@ export default function SubscribersPage() {
       toast.success(t('subscribers.messages.renewSuccess'))
       qc.invalidateQueries({ queryKey: ['subscribers'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('subscribers.messages.error')),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/subscribers/${id}`),
+    onSuccess: () => {
+      toast.success(t('purchases.messages.deleteSuccess') || 'تم الحذف')
+      qc.invalidateQueries({ queryKey: ['subscribers'] })
+      setDeleteId(null)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('subscribers.messages.error')),
   })
@@ -252,6 +266,16 @@ export default function SubscribersPage() {
                       <RefreshCw size={13}/> {t('subscribers.buttons.renew')}
                     </button>
                   )}
+                  {user?.role === 'admin' && (
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      style={{ color: 'var(--color-danger)' }}
+                      onClick={() => setDeleteId(s.id)}
+                      title={t("purchases.delete.aria") || 'حذف'}
+                    >
+                      <Trash2 size={14}/>
+                    </button>
+                  )}
                 </td>
               </motion.tr>
             ))}
@@ -261,6 +285,15 @@ export default function SubscribersPage() {
           </motion.tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        title={t("purchases.delete.title") || 'تأكيد الحذف'}
+        message={t("purchases.delete.message") || 'هل أنت متأكد من الحذف؟'}
+        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+        onCancel={() => setDeleteId(null)}
+        loading={deleteMutation.isPending}
+      />
     </PageTransition>
   )
 }

@@ -29,6 +29,38 @@ async function createRevenueJournalEntry(tx: any, amount: number, description: s
   return entry
 }
 
+async function reverseRevenueJournal(tx: any, entryId: number, userId: number, sourceDesc: string) {
+  const [originalEntry] = await tx.select().from(journalEntries).where(eq(journalEntries.id, entryId))
+  if (!originalEntry || originalEntry.is_reversed) return
+
+  const originalLines = await tx.select().from(journalEntryLines).where(eq(journalEntryLines.entry_id, originalEntry.id))
+  const reversalNumber = await generateEntryNumber(tx, 'REV')
+
+  const [reversal] = await tx.insert(journalEntries).values({
+    entry_number: reversalNumber,
+    entry_date: new Date().toISOString().split('T')[0],
+    description: `عكس قيد: ${originalEntry.entry_number} — ${sourceDesc}`,
+    reference: originalEntry.entry_number,
+    source_type: 'reversal',
+    source_id: originalEntry.id,
+    is_balanced: true,
+    created_by: userId,
+  } as any).returning()
+
+  await tx.insert(journalEntryLines).values(originalLines.map((l: any) => ({
+    entry_id: reversal.id,
+    account_code: l.account_code,
+    debit_amount: l.credit_amount,
+    credit_amount: l.debit_amount,
+    description: `عكس: ${l.description ?? ''}`,
+  })))
+
+  await tx.update(journalEntries)
+    .set({ is_reversed: true, reversed_by: reversal.id } as any)
+    .where(eq(journalEntries.id, originalEntry.id))
+}
+
+// ── Delivery ─────────────────────────────────────────────────────────────
 export async function createDeliveryRevenue(dto: any, userId: number) {
   return db.transaction(async (tx) => {
     const net = parseFloat((Number(dto.gross_amount) - Number(dto.commission_amount ?? 0)).toFixed(4))
@@ -52,6 +84,18 @@ export async function listDeliveryRevenue(query: any) {
   return rows
 }
 
+export async function deleteDeliveryRevenue(id: number, userId: number) {
+  const [row] = await db.select().from(deliveryRevenue).where(eq(deliveryRevenue.id, id))
+  if (!row) throw new AppError('NOT_FOUND', 404)
+  await db.transaction(async (tx) => {
+    await tx.update(deliveryRevenue).set({ is_deleted: true, updated_at: new Date() } as any).where(eq(deliveryRevenue.id, id))
+    if (row.journal_entry_id) {
+      await reverseRevenueJournal(tx, row.journal_entry_id, userId, 'حذف إيراد توصيل')
+    }
+    await writeAuditLog(tx, { userId, action: 'DELETE', tableName: 'delivery_revenue', recordId: id, oldValues: row })
+  })
+}
+
 // ── Restaurant ────────────────────────────────────────────────────────────
 export async function createRestaurantRevenue(dto: any, userId: number) {
   return db.transaction(async (tx) => {
@@ -70,6 +114,18 @@ export async function listRestaurantRevenue(query: any) {
   return db.select().from(restaurantRevenue).where(and(...conditions)).orderBy(desc(restaurantRevenue.revenue_date))
 }
 
+export async function deleteRestaurantRevenue(id: number, userId: number) {
+  const [row] = await db.select().from(restaurantRevenue).where(eq(restaurantRevenue.id, id))
+  if (!row) throw new AppError('NOT_FOUND', 404)
+  await db.transaction(async (tx) => {
+    await tx.update(restaurantRevenue).set({ is_deleted: true, updated_at: new Date() } as any).where(eq(restaurantRevenue.id, id))
+    if (row.journal_entry_id) {
+      await reverseRevenueJournal(tx, row.journal_entry_id, userId, 'حذف إيراد مطعم')
+    }
+    await writeAuditLog(tx, { userId, action: 'DELETE', tableName: 'restaurant_revenue', recordId: id, oldValues: row })
+  })
+}
+
 // ── Subscriptions ─────────────────────────────────────────────────────────
 export async function createSubscriptionRevenue(dto: any, userId: number) {
   return db.transaction(async (tx) => {
@@ -86,6 +142,18 @@ export async function listSubscriptionRevenue(query: any) {
   if (query.from) conditions.push(sql`${subscriptionRevenue.revenue_date} >= ${query.from}`)
   if (query.to)   conditions.push(sql`${subscriptionRevenue.revenue_date} <= ${query.to}`)
   return db.select().from(subscriptionRevenue).where(and(...conditions)).orderBy(desc(subscriptionRevenue.revenue_date))
+}
+
+export async function deleteSubscriptionRevenue(id: number, userId: number) {
+  const [row] = await db.select().from(subscriptionRevenue).where(eq(subscriptionRevenue.id, id))
+  if (!row) throw new AppError('NOT_FOUND', 404)
+  await db.transaction(async (tx) => {
+    await tx.update(subscriptionRevenue).set({ is_deleted: true, updated_at: new Date() } as any).where(eq(subscriptionRevenue.id, id))
+    if (row.journal_entry_id) {
+      await reverseRevenueJournal(tx, row.journal_entry_id, userId, 'حذف إيراد اشتراكات')
+    }
+    await writeAuditLog(tx, { userId, action: 'DELETE', tableName: 'subscription_revenue', recordId: id, oldValues: row })
+  })
 }
 
 // ── Summary + Daily Series ─────────────────────────────────────────────────

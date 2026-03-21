@@ -13,13 +13,16 @@ router.get('/daily-series', authorize(...ALL_ROLES),       ctrl.dailySeries)
 // Delivery
 router.get ('/delivery',    authorize(...ALL_ROLES),       ctrl.listDelivery)
 router.post('/delivery',    authorize(...ALL_ROLES),       ctrl.createDelivery)
+router.delete('/delivery/:id', authorize(...ADMIN_ONLY),   ctrl.removeDelivery)
 
 // Restaurant
 router.get ('/restaurant',  authorize(...ALL_ROLES),       ctrl.listRestaurant)
 router.post('/restaurant',  authorize(...ALL_ROLES),       ctrl.createRestaurant)
+router.delete('/restaurant/:id', authorize(...ADMIN_ONLY), ctrl.removeRestaurant)
 
 // Subscriptions
 router.get ('/subscriptions', authorize(...ALL_ROLES),     ctrl.listSubscriptions)
 router.post('/subscriptions', authorize(...ALL_ROLES),     ctrl.createSubscription)
+router.delete('/subscriptions/:id', authorize(...ADMIN_ONLY), ctrl.removeSubscription)
 
 export default router

@@ -111,6 +111,18 @@ export async function updateAllStatuses() {
     ))
 }
 
+export async function deleteSubscriber(id: number, userId: number) {
+  const [old] = await db.select().from(subscribers).where(eq(subscribers.id, id))
+  if (!old) throw new AppError('NOT_FOUND', 404)
+  return db.transaction(async (tx) => {
+    const [row] = await tx.update(subscribers)
+      .set({ is_deleted: true, updated_at: new Date() } as any)
+      .where(eq(subscribers.id, id)).returning()
+    await writeAuditLog(tx, { userId, action: 'DELETE', tableName: 'subscribers', recordId: id, oldValues: old })
+    return row
+  })
+}
+
 export async function getStats() {
   const stats = await db.execute(sql`
     SELECT

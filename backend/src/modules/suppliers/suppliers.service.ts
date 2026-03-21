@@ -68,6 +68,18 @@ export async function deactivateSupplier(id: number, userId: number) {
   return row
 }
 
+export async function deleteSupplier(id: number, userId: number) {
+  const old = await getSupplier(id)
+  const [row] = await db.transaction(async (tx) => {
+    const [deleted] = await tx.update(suppliers)
+      .set({ is_deleted: true, updated_at: new Date() } as any)
+      .where(eq(suppliers.id, id)).returning()
+    await writeAuditLog(tx, { userId, action: 'DELETE', tableName: 'suppliers', recordId: id, oldValues: old })
+    return [deleted]
+  })
+  return row
+}
+
 export async function getSupplierLedger(id: number, from?: string, to?: string) {
   await getSupplier(id) // 404 check
   const conditions: any[] = [eq(purchaseInvoices.supplier_id, id), eq(purchaseInvoices.is_deleted, false)]

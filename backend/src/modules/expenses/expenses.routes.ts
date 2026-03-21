@@ -71,6 +71,61 @@ export async function getExpense(id: number) {
   return row
 }
 
+export async function deleteExpense(id: number, userId: number) {
+  const expense = await getExpense(id)
+
+  await db.transaction(async (tx) => {
+    // Soft delete
+    await tx.update(expenses)
+      .set({ is_deleted: true, updated_at: new Date() } as any)
+      .where(eq(expenses.id, id))
+
+    // Create journal reversal
+    if (expense.journal_entry_id) {
+      const [originalEntry] = await tx.select().from(journalEntries)
+        .where(eq(journalEntries.id, expense.journal_entry_id))
+
+      if (originalEntry && !originalEntry.is_reversed) {
+        const originalLines = await tx.select().from(journalEntryLines)
+          .where(eq(journalEntryLines.entry_id, originalEntry.id))
+
+        const reversalNumber = await generateEntryNumber(tx, 'REV')
+        const [reversal] = await tx.insert(journalEntries).values({
+          entry_number: reversalNumber,
+          entry_date:   new Date().toISOString().split('T')[0],
+          description:  `عكس قيد: ${originalEntry.entry_number} — حذف مصروف`,
+          reference:    originalEntry.entry_number,
+          source_type:  'reversal',
+          source_id:    originalEntry.id,
+          is_balanced:  true,
+          created_by:   userId,
+        } as any).returning()
+
+        // Swap debit ↔ credit
+        await tx.insert(journalEntryLines).values(
+          originalLines.map(l => ({
+            entry_id:     reversal.id,
+            account_code: l.account_code,
+            debit_amount: l.credit_amount,
+            credit_amount:l.debit_amount,
+            description:  `عكس: ${l.description ?? ''}`,
+          }))
+        )
+
+        // Mark original as reversed
+        await tx.update(journalEntries)
+          .set({ is_reversed: true, reversed_by: reversal.id } as any)
+          .where(eq(journalEntries.id, originalEntry.id))
+      }
+    }
+
+    await writeAuditLog(tx, {
+      userId, action: 'DELETE', tableName: 'expenses',
+      recordId: id, oldValues: expense,
+    })
+  })
+}
+
 export async function getSummaryByAccount(from?: string, to?: string) {
   const conditions = ['is_deleted = false']
   if (from) conditions.push(`expense_date >= '${from}'`)
@@ -101,6 +156,9 @@ async function getCtrl(req: Request, res: Response, next: NextFunction) {
 async function createCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.status(201).json({ success: true, data: await createExpense(req.body, req.user.id), message: 'تم حفظ المصروف' }) } catch (e) { next(e) }
 }
+async function removeCtrl(req: Request, res: Response, next: NextFunction) {
+  try { await deleteExpense(Number(req.params.id), req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (e) { next(e) }
+}
 async function summaryCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.json({ success: true, data: await getSummaryByAccount(req.query.from as any, req.query.to as any) }) } catch (e) { next(e) }
 }
@@ -111,5 +169,6 @@ router.get ('/',        authorize(...ACCOUNTANT_PLUS), listCtrl)
 router.get ('/summary', authorize(...ACCOUNTANT_PLUS), summaryCtrl)
 router.get ('/:id',     authorize(...ACCOUNTANT_PLUS), getCtrl)
 router.post('/',        authorize(...ACCOUNTANT_PLUS), createCtrl)
+router.delete('/:id',   authorize(...ADMIN_ONLY),      removeCtrl)
 
 export default router

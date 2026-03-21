@@ -22,6 +22,10 @@ export async function renew(req: Request, res: Response, next: NextFunction) {
   try { res.json({ success: true, data: await svc.renewSubscriber(Number(req.params.id), req.user.id), message: 'تم تجديد الاشتراك وإنشاء قيد الإيراد' }) }
   catch (err) { next(err) }
 }
+export async function remove(req: Request, res: Response, next: NextFunction) {
+  try { await svc.deleteSubscriber(Number(req.params.id), req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) }
+  catch (err) { next(err) }
+}
 export async function updateStatus(req: Request, res: Response, next: NextFunction) {
   try { await svc.updateAllStatuses(); res.json({ success: true, data: null, message: 'تم تحديث حالة الاشتراكات' }) }
   catch (err) { next(err) }
@@ -45,6 +49,7 @@ router.get ('/stats',          authorize(...ACCOUNTANT_PLUS), stats)
 router.post('/',               authorize(...ALL_ROLES),       create)
 router.put ('/:id',            authorize(...ALL_ROLES),       update)
 router.post('/:id/renew',      authorize(...ALL_ROLES),       renew)
+router.delete('/:id',          authorize(...ADMIN_ONLY),      remove)
 router.patch('/update-status', authorize(...ACCOUNTANT_PLUS), updateStatus)
 
 export default router

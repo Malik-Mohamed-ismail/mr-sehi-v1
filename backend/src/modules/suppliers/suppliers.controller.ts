@@ -34,3 +34,8 @@ export async function ledger(req: Request, res: Response, next: NextFunction) {
     res.json({ success: true, data: await svc.getSupplierLedger(Number(req.params.id), from, to) })
   } catch (err) { next(err) }
 }
+export async function remove(req: Request, res: Response, next: NextFunction) {
+  try {
+    res.json({ success: true, data: await svc.deleteSupplier(Number(req.params.id), req.user.id), message: 'تم الحذف بنجاح' })
+  } catch (err) { next(err) }
+}

@@ -13,6 +13,9 @@ import { formatSAR, formatDate } from '../../lib/utils'
 import { useTranslation } from 'react-i18next'
 import i18n from '../../lib/i18n'
 import { exportToExcel } from '../../lib/export'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { useAuthStore } from '../../store/authStore'
+import { Trash2 } from 'lucide-react'
 
 const schema = z.object({
   revenue_date:     z.string().min(1, i18n.t('delivery.validation.dateRequired')),
@@ -31,7 +34,9 @@ const PLATFORM_COLORS: Record<string, string> = {
 export default function DeliveryRevenuePage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { user } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   const { data: revenues, isLoading } = useQuery({
     queryKey: ['revenue-delivery'],
@@ -55,6 +60,17 @@ export default function DeliveryRevenuePage() {
       qc.invalidateQueries({ queryKey: ['revenue-delivery'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       reset(); setShowForm(false)
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('delivery.messages.error')),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/revenue/delivery/${id}`),
+    onSuccess: () => {
+      toast.success(t('purchases.messages.deleteSuccess') || 'تم الحذف')
+      qc.invalidateQueries({ queryKey: ['revenue-delivery'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      setDeleteId(null)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('delivery.messages.error')),
   })
@@ -195,6 +211,7 @@ export default function DeliveryRevenuePage() {
                 <th>{t('delivery.table.gross')}</th>
                 <th>{t('delivery.table.commission')}</th>
                 <th>{t('delivery.table.net')}</th>
+                <th style={{ width: 60 }}></th>
               </tr>
             </thead>
             <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
@@ -210,15 +227,29 @@ export default function DeliveryRevenuePage() {
                   <td className="amount">{formatSAR(r.gross_amount)}</td>
                   <td className="amount" style={{ color: 'var(--color-danger)' }}>{formatSAR(r.commission_amount)}</td>
                   <td className="amount" style={{ fontWeight: 700, color: 'var(--color-success)' }}>{formatSAR(r.net_amount)}</td>
+                  <td>
+                    {user?.role === 'admin' && (
+                      <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => setDeleteId(r.id)} title={t("purchases.delete.aria") || 'حذف'}><Trash2 size={14}/></button>
+                    )}
+                  </td>
                 </motion.tr>
               ))}
               {!revenues?.length && (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('delivery.table.empty')}</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('delivery.table.empty')}</td></tr>
               )}
             </motion.tbody>
           </table>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        title={t("purchases.delete.title") || 'تأكيد الحذف'}
+        message={t("purchases.delete.message") || 'هل أنت متأكد من الحذف؟'}
+        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+        onCancel={() => setDeleteId(null)}
+        loading={deleteMutation.isPending}
+      />
     </PageTransition>
   )
 }

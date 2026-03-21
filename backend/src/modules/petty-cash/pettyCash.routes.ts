@@ -6,7 +6,7 @@ import { reconcilePettyCash } from '../../utils/accounting.js'
 import { writeAuditLog } from '../../utils/auditLogger.js'
 import { AppError } from '../../utils/AppError.js'
 import { authenticate } from '../../middleware/auth.js'
-import { authorize, ACCOUNTANT_PLUS, ALL_ROLES } from '../../middleware/authorize.js'
+import { authorize, ADMIN_ONLY, ACCOUNTANT_PLUS, ALL_ROLES } from '../../middleware/authorize.js'
 
 export async function createPettyCash(dto: any, userId: number) {
   const reconciliation = reconcilePettyCash(dto)
@@ -38,6 +38,18 @@ export async function getReconciliation(date?: string) {
   if (!row) return { date: d, message: 'لا توجد بيانات لهذا اليوم' }
   const reconciliation = reconcilePettyCash(row)
   return { date: d, ...row, ...reconciliation }
+}
+
+export async function deletePettyCash(id: number, userId: number) {
+  const [old] = await db.select().from(pettyCash).where(eq(pettyCash.id, id))
+  if (!old) throw new AppError('NOT_FOUND', 404)
+  return db.transaction(async (tx) => {
+    const [row] = await tx.update(pettyCash)
+      .set({ is_deleted: true, updated_at: new Date() } as any)
+      .where(eq(pettyCash.id, id)).returning()
+    await writeAuditLog(tx, { userId, action: 'DELETE', tableName: 'petty_cash', recordId: id, oldValues: old })
+    return row
+  })
 }
 
 // ── Rollover: carry closing balance to next day's opening ─────────────────
@@ -73,11 +85,15 @@ async function createCtrl(req: Request, res: Response, next: NextFunction) {
 async function reconciliationCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.json({ success: true, data: await getReconciliation(req.query.date as string) }) } catch (e) { next(e) }
 }
+async function removeCtrl(req: Request, res: Response, next: NextFunction) {
+  try { await deletePettyCash(Number(req.params.id), req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (e) { next(e) }
+}
 
 const router = Router()
 router.use(authenticate)
 router.get ('/',                authorize(...ACCOUNTANT_PLUS), listCtrl)
 router.get ('/reconciliation',  authorize(...ACCOUNTANT_PLUS), reconciliationCtrl)
 router.post('/',                authorize(...ALL_ROLES),       createCtrl)
+router.delete('/:id',           authorize(...ADMIN_ONLY),      removeCtrl)
 
 export default router

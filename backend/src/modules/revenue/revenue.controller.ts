@@ -38,3 +38,12 @@ export async function dailySeries(req: Request, res: Response, next: NextFunctio
     res.json({ success: true, data: await svc.getDailySeries(from, to) })
   } catch (err) { next(err) }
 }
+export async function removeDelivery(req: Request, res: Response, next: NextFunction) {
+  try { await svc.deleteDeliveryRevenue(Number(req.params.id), req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (err) { next(err) }
+}
+export async function removeRestaurant(req: Request, res: Response, next: NextFunction) {
+  try { await svc.deleteRestaurantRevenue(Number(req.params.id), req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (err) { next(err) }
+}
+export async function removeSubscription(req: Request, res: Response, next: NextFunction) {
+  try { await svc.deleteSubscriptionRevenue(Number(req.params.id), req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (err) { next(err) }
+}

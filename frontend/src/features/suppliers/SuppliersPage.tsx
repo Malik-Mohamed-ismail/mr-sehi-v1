@@ -3,15 +3,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { Plus, CheckCircle, XCircle, Download } from 'lucide-react'
+import { Plus, CheckCircle, XCircle, Download, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { exportToExcel } from '../../lib/export'
 import { useTranslation } from 'react-i18next'
 import i18n from '../../lib/i18n'
+import { useAuthStore } from '../../store/authStore'
 
 const schema = z.object({
   name_ar:    z.string().min(1, i18n.t('suppliers.validation.nameArRequired')),
@@ -27,7 +29,9 @@ type FormData = z.infer<typeof schema>
 export default function SuppliersPage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { user } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   const { data: suppliers, isLoading } = useQuery({
     queryKey: ['suppliers'],
@@ -44,6 +48,16 @@ export default function SuppliersPage() {
       toast.success(t('suppliers.messages.createSuccess'))
       qc.invalidateQueries({ queryKey: ['suppliers'] })
       reset(); setShowForm(false)
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('suppliers.messages.error')),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/suppliers/${id}`),
+    onSuccess: () => {
+      toast.success(t('purchases.messages.deleteSuccess') || 'تم الحذف')
+      qc.invalidateQueries({ queryKey: ['suppliers'] })
+      setDeleteId(null)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('suppliers.messages.error')),
   })
@@ -140,6 +154,7 @@ export default function SuppliersPage() {
                 <th>{t('suppliers.table.phone')}</th>
                 <th>{t('suppliers.table.vatStatus')}</th>
                 <th>{t('suppliers.table.status')}</th>
+                <th style={{ width: 60 }}></th>
               </tr>
             </thead>
             <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
@@ -159,15 +174,36 @@ export default function SuppliersPage() {
                       {s.is_active ? t('suppliers.table.active') : t('suppliers.table.inactive')}
                     </span>
                   </td>
+                  <td>
+                    {user?.role === 'admin' && (
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ color: 'var(--color-danger)' }}
+                        onClick={() => setDeleteId(s.id)}
+                        title={t("purchases.delete.aria") || 'حذف'}
+                      >
+                        <Trash2 size={14}/>
+                      </button>
+                    )}
+                  </td>
                 </motion.tr>
               ))}
               {!suppliers?.length && (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('suppliers.table.empty')}</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('suppliers.table.empty')}</td></tr>
               )}
             </motion.tbody>
           </table>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        title={t("purchases.delete.title") || 'تأكيد الحذف'}
+        message={t("purchases.delete.message") || 'هل أنت متأكد من الحذف؟'}
+        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+        onCancel={() => setDeleteId(null)}
+        loading={deleteMutation.isPending}
+      />
     </PageTransition>
   )
 }

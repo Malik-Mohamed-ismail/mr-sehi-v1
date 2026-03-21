@@ -49,12 +49,27 @@ export async function getProductionSummary(from?: string, to?: string) {
   return result.rows
 }
 
+export async function deleteProduction(id: number, userId: number) {
+  const [old] = await db.select().from(production).where(eq(production.id, id))
+  if (!old) throw new AppError('NOT_FOUND', 404)
+  return db.transaction(async (tx) => {
+    const [row] = await tx.update(production)
+      .set({ is_deleted: true, updated_at: new Date() } as any)
+      .where(eq(production.id, id)).returning()
+    await writeAuditLog(tx, { userId, action: 'DELETE', tableName: 'production', recordId: id, oldValues: old })
+    return row
+  })
+}
+
 // ── Controller + Routes ───────────────────────────────────────────────────
 async function listCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.json({ success: true, data: await listProduction(req.query) }) } catch (e) { next(e) }
 }
 async function createCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.status(201).json({ success: true, data: await createProduction(req.body, req.user.id), message: 'تم تسجيل الإنتاج' }) } catch (e) { next(e) }
+}
+async function removeCtrl(req: Request, res: Response, next: NextFunction) {
+  try { await deleteProduction(Number(req.params.id), req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (e) { next(e) }
 }
 async function summaryCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.json({ success: true, data: await getProductionSummary(req.query.from as any, req.query.to as any) }) } catch (e) { next(e) }
@@ -65,5 +80,6 @@ router.use(authenticate)
 router.get ('/',        authorize(...ALL_ROLES),       listCtrl)
 router.get ('/summary', authorize(...ALL_ROLES),       summaryCtrl)
 router.post('/',        authorize(...ALL_ROLES),       createCtrl)
+router.delete('/:id',   authorize(...ADMIN_ONLY),      removeCtrl)
 
 export default router
