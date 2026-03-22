@@ -204,7 +204,8 @@ export default function DeliveryRevenuePage() {
         {isLoading ? (
           <div style={{ padding: 24 }}>{[...Array(4)].map((_, i) => <div key={i} className="skeleton" style={{ height: 40, marginBottom: 8 }}/>)}</div>
         ) : (
-          <table className="data-table">
+          <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
             <thead>
               <tr>
                 <th>{t('delivery.table.date')}</th>
@@ -241,6 +242,7 @@ export default function DeliveryRevenuePage() {
               )}
             </motion.tbody>
           </table>
+          </div>
         )}
       </div>
 

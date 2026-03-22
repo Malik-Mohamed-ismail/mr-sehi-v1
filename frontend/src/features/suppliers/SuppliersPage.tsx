@@ -146,7 +146,8 @@ export default function SuppliersPage() {
         {isLoading ? (
           <div style={{ padding: 24 }}>{[...Array(5)].map((_, i) => <div key={i} className="skeleton" style={{ height: 40, marginBottom: 8 }}/>)}</div>
         ) : (
-          <table className="data-table">
+          <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
             <thead>
               <tr>
                 <th>{t('suppliers.table.name')}</th>
@@ -204,6 +205,7 @@ export default function SuppliersPage() {
               )}
             </motion.tbody>
           </table>
+          </div>
         )}
       </div>
 

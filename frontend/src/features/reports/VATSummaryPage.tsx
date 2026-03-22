@@ -74,7 +74,8 @@ export default function VATSummaryPage() {
             {data.bySupplier?.length > 0 && (
               <motion.div variants={staggerItem} className="card">
                 <h3 style={{ fontWeight: 600, marginBottom: 16 }}>{t('vat.bySupplier')}</h3>
-                <table className="data-table">
+                <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
                   <thead>
                     <tr>
                       <th>{t('suppliers.name')}</th>
@@ -102,6 +103,7 @@ export default function VATSummaryPage() {
                     ))}
                   </tbody>
                 </table>
+          </div>
               </motion.div>
             )}
           </motion.div>

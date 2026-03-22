@@ -86,7 +86,8 @@ export default function ChannelAnalysisPage() {
 
             {/* Channel breakdown table */}
             <motion.div variants={staggerItem} className="card">
-              <table className="data-table">
+              <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
                 <thead>
                   <tr>
                     <th>{t('reports.channel')}</th>
@@ -120,6 +121,7 @@ export default function ChannelAnalysisPage() {
                   ))}
                 </tbody>
               </table>
+          </div>
             </motion.div>
           </motion.div>
         ) : (

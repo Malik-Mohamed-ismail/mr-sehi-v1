@@ -114,7 +114,8 @@ export default function SubscriptionsRevenuePage() {
       )}
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table className="data-table">
+        <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
           <thead><tr><th>{t('subscriptions.table.date')}</th><th>{t('subscriptions.table.amount')}</th><th>{t('subscriptions.fields.paymentMethod')}</th><th>{t('subscriptions.fields.notes')}</th><th style={{ width: 60 }}></th></tr></thead>
           <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
             {(revenues ?? []).map((r: any) => (
@@ -133,6 +134,7 @@ export default function SubscriptionsRevenuePage() {
             {!revenues?.length && <tr><td colSpan={5} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('subscriptions.table.empty')}</td></tr>}
           </motion.tbody>
         </table>
+          </div>
       </div>
 
       <ConfirmDialog

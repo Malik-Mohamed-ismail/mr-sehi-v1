@@ -194,7 +194,8 @@ export default function DashboardPage() {
               <h3 style={{ fontSize: 16, fontWeight: 600 }}>{t('dashboard.recentTransactions') || 'Recent Purchases'}</h3>
             </div>
           </div>
-          <table className="data-table" style={{ width: '100%' }}>
+          <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table" style={{ width: '100%' }}>
             <thead>
               <tr style={{ background: 'transparent' }}>
                 <th style={{ textAlign: 'start' }}>{t('purchases.fields.invoiceNumber') || 'Invoice'}</th>
@@ -217,6 +218,7 @@ export default function DashboardPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Expense Distribution */}

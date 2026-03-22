@@ -78,7 +78,8 @@ export default function AuditLogPage() {
         ) : (
           <motion.div variants={staggerContainer} initial="initial" animate="animate">
             <motion.div variants={staggerItem} className="card" style={{ padding: 0, overflow: 'hidden' }}>
-              <table className="data-table">
+              <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
                 <thead>
                   <tr>
                     <th>{t('audit.time')}</th>
@@ -115,6 +116,7 @@ export default function AuditLogPage() {
                   )}
                 </tbody>
               </table>
+          </div>
             </motion.div>
 
             {/* Pagination */}

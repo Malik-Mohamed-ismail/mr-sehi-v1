@@ -87,7 +87,8 @@ export default function ProductionPage() {
       {summary?.length > 0 && (
         <div className="card" style={{ marginBottom: 24, padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border-color)', fontWeight: 600 }}>{t('production.section1')}</div>
-          <table className="data-table">
+          <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
             <thead><tr><th>{t('production.table.product')}</th><th>{t('production.table.productionKg')}</th><th>{t('production.table.wasteGrams')}</th><th>{t('production.table.wasteValue')}</th><th>{t('production.table.wastePct')}</th></tr></thead>
             <tbody>
               {(summary ?? []).map((s: any) => (
@@ -105,6 +106,7 @@ export default function ProductionPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -128,7 +130,8 @@ export default function ProductionPage() {
       )}
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table className="data-table">
+        <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
           <thead><tr><th>{t('production.table.date')}</th><th>{t('production.table.product')}</th><th>{t('production.table.productionKg')}</th><th>{t('production.table.wasteGrams')}</th><th>{t('production.table.wasteValue')}</th><th style={{ width: 60 }}></th></tr></thead>
           <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
             {(records ?? []).map((r: any) => (
@@ -148,6 +151,7 @@ export default function ProductionPage() {
             {!records?.length && <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('production.table.empty')}</td></tr>}
           </motion.tbody>
         </table>
+          </div>
       </div>
 
       <ConfirmDialog

@@ -121,7 +121,8 @@ export default function RestaurantRevenuePage() {
       )}
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table className="data-table">
+        <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
           <thead><tr><th>{t('restaurant.table.date')}</th><th>{t('restaurant.table.amount')}</th><th>{t('restaurant.table.covers')}</th><th>{t('restaurant.fields.paymentMethod')}</th><th style={{ width: 60 }}></th></tr></thead>
           <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
             {(revenues ?? []).map((r: any) => (
@@ -140,6 +141,7 @@ export default function RestaurantRevenuePage() {
             {!revenues?.length && <tr><td colSpan={5} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('restaurant.table.empty')}</td></tr>}
           </motion.tbody>
         </table>
+          </div>
       </div>
 
       <ConfirmDialog

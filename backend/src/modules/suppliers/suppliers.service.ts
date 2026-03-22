@@ -70,9 +70,20 @@ export async function deactivateSupplier(id: number, userId: number) {
 
 export async function deleteSupplier(id: number, userId: number) {
   const old = await getSupplier(id)
+
+  const [activeInvoice] = await db.select().from(purchaseInvoices)
+    .where(and(eq(purchaseInvoices.supplier_id, id), eq(purchaseInvoices.is_deleted, false)))
+    .limit(1)
+    
+  if (activeInvoice) {
+    throw new AppError('VALIDATION_ERROR', 400, 'لا يمكن حذف مورد لديه فواتير مرتبطة. يمكنك تعطيله بدلاً من ذلك.')
+  }
+
   const [row] = await db.transaction(async (tx) => {
-    const [deleted] = await tx.update(suppliers)
-      .set({ is_deleted: true, updated_at: new Date() } as any)
+    // Purge soft-deleted invoices to satisfy the foreign key constraint
+    await tx.delete(purchaseInvoices).where(eq(purchaseInvoices.supplier_id, id))
+    
+    const [deleted] = await tx.delete(suppliers)
       .where(eq(suppliers.id, id)).returning()
     await writeAuditLog(tx, { userId, action: 'DELETE', tableName: 'suppliers', recordId: id, oldValues: old })
     return [deleted]

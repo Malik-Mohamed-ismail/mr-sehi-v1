@@ -44,8 +44,7 @@ export async function deletePettyCash(id: number, userId: number) {
   const [old] = await db.select().from(pettyCash).where(eq(pettyCash.id, id))
   if (!old) throw new AppError('NOT_FOUND', 404)
   return db.transaction(async (tx) => {
-    const [row] = await tx.update(pettyCash)
-      .set({ is_deleted: true, updated_at: new Date() } as any)
+    const [row] = await tx.delete(pettyCash)
       .where(eq(pettyCash.id, id)).returning()
     await writeAuditLog(tx, { userId, action: 'DELETE', tableName: 'petty_cash', recordId: id, oldValues: old })
     return row

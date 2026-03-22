@@ -97,7 +97,8 @@ export default function IncomeStatementPage() {
             </div>
             <FileText size={24} color="rgba(212,168,83,0.60)"/>
           </div>
-          <table className="data-table">
+          <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
             <thead>
               <tr>
                 <th>{t('incomeStatement.table.item')}</th>
@@ -141,6 +142,7 @@ export default function IncomeStatementPage() {
               })}
             </tbody>
           </table>
+          </div>
         </motion.div>
       ) : null}
     </PageTransition>

@@ -15,14 +15,19 @@ export function ConfirmDialog({ open, title, message, onConfirm, onCancel, loadi
   return (
     <AnimatePresence>
       {open && (
-        <>
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 20
+        }}>
           {/* Backdrop */}
           <motion.div
             variants={fadeIn} initial="initial" animate="animate" exit="exit"
             onClick={onCancel}
             style={{
-              position: 'fixed', inset: 0, zIndex: 999,
+              position: 'absolute', inset: 0,
               background: 'rgba(7,8,15,0.70)', backdropFilter: 'blur(4px)',
+              zIndex: -1
             }}
           />
           {/* Dialog */}
@@ -31,9 +36,8 @@ export function ConfirmDialog({ open, title, message, onConfirm, onCancel, loadi
             animate={{ opacity: 1, scale: 1, y: 0, transition: { duration: 0.25 } }}
             exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.15 } }}
             style={{
-              position: 'fixed', top: '50%', left: '50%',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 1000, width: 400, maxWidth: '90vw',
+              position: 'relative',
+              width: 400, maxWidth: '100%',
               background: 'var(--bg-surface)',
               border: '1px solid var(--border-color)',
               borderRadius: 'var(--radius-xl)',
@@ -65,7 +69,7 @@ export function ConfirmDialog({ open, title, message, onConfirm, onCancel, loadi
               </button>
             </div>
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
   )

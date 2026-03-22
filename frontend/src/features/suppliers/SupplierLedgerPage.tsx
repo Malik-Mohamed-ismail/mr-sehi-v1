@@ -87,7 +87,8 @@ export default function SupplierLedgerPage() {
             {/* Invoices Table */}
             <motion.div variants={staggerItem} className="card">
               <h3 style={{ fontWeight: 600, marginBottom: 16 }}>سجل الفواتير</h3>
-              <table className="data-table">
+              <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
                 <thead>
                   <tr>
                     <th>رقم الفاتورة</th>
@@ -120,6 +121,7 @@ export default function SupplierLedgerPage() {
                   )}
                 </tbody>
               </table>
+          </div>
             </motion.div>
 
           </motion.div>

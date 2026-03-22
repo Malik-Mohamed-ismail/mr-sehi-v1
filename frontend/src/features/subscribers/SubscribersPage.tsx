@@ -229,7 +229,8 @@ export default function SubscribersPage() {
 
       {/* Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table className="data-table">
+        <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
           <thead>
             <tr>
               <th>{t('subscribers.table.subscriber')}</th>
@@ -284,6 +285,7 @@ export default function SubscribersPage() {
             )}
           </motion.tbody>
         </table>
+          </div>
       </div>
 
       <ConfirmDialog

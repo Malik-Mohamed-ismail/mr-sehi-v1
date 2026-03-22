@@ -210,60 +210,62 @@ export default function JournalPage() {
         {isLoading ? (
           <div style={{ padding: 24 }}>{[...Array(5)].map((_, i) => <div key={i} className="skeleton" style={{ height: 40, marginBottom: 8 }}/>)}</div>
         ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>{t('journal.table.entryNumber')}</th>
-                <th>{t('journal.table.date')}</th>
-                <th>{t('journal.table.description')}</th>
-                <th>{t('journal.table.source')}</th>
-                <th>{t('journal.table.reference')}</th>
-                <th>{t('journal.table.amount')}</th>
-                <th>{t('journal.table.isBalanced')}</th>
-                <th>{t('journal.table.status')}</th>
-                {user?.role === 'admin' && <th>{t('journal.table.reverse')}</th>}
-              </tr>
-            </thead>
-            <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
-              {(entries ?? []).map((e: any) => (
-                <motion.tr key={e.id} variants={staggerItem}
-                  style={{ opacity: e.is_reversed ? 0.5 : 1 }}>
-                  <td style={{ fontFamily: 'var(--font-latin)', fontWeight: 600, color: 'var(--color-primary)' }}>{e.entry_number}</td>
-                  <td>{formatDate(e.entry_date)}</td>
-                  <td style={{ maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.description}</td>
-                  <td><span className="badge badge-info">{SOURCE_LABELS[e.source_type] ?? e.source_type}</span></td>
-                  <td style={{ fontFamily: 'var(--font-latin)' }}>{e.reference || '-'}</td>
-                  <td className="amount" style={{ fontWeight: 600 }}>{formatSAR(Number(e.amount) || 0)}</td>
-                  <td>
-                    {e.is_balanced
-                      ? <CheckCircle size={15} color="var(--color-success)"/>
-                      : <XCircle size={15} color="var(--color-danger)"/>}
-                  </td>
-                  <td>
-                    {e.is_reversed
-                      ? <span className="badge badge-danger">{t('journal.table.reversed')}</span>
-                      : <span className="badge badge-success">{t('journal.table.active')}</span>}
-                  </td>
-                  {user?.role === 'admin' && (
+          <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table" style={{ minWidth: 900 }}>
+              <thead>
+                <tr>
+                  <th>{t('journal.table.entryNumber')}</th>
+                  <th>{t('journal.table.date')}</th>
+                  <th>{t('journal.table.description')}</th>
+                  <th>{t('journal.table.source')}</th>
+                  <th>{t('journal.table.reference')}</th>
+                  <th>{t('journal.table.amount')}</th>
+                  <th>{t('journal.table.isBalanced')}</th>
+                  <th>{t('journal.table.status')}</th>
+                  {user?.role === 'admin' && <th>{t('journal.table.reverse')}</th>}
+                </tr>
+              </thead>
+              <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+                {(entries ?? []).map((e: any) => (
+                  <motion.tr key={e.id} variants={staggerItem}
+                    style={{ opacity: e.is_reversed ? 0.5 : 1 }}>
+                    <td style={{ fontFamily: 'var(--font-latin)', fontWeight: 600, color: 'var(--color-primary)' }}>{e.entry_number}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{formatDate(e.entry_date)}</td>
+                    <td style={{ minWidth: 200, whiteSpace: 'normal', lineHeight: 1.5 }}>{e.description}</td>
+                    <td><span className="badge badge-info">{SOURCE_LABELS[e.source_type] ?? e.source_type}</span></td>
+                    <td style={{ fontFamily: 'var(--font-latin)' }}>{e.reference || '-'}</td>
+                    <td className="amount" style={{ fontWeight: 600 }}>{formatSAR(Number(e.amount) || 0)}</td>
                     <td>
-                      {!e.is_reversed && (
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          style={{ color: 'var(--color-warning)', gap: 4 }}
-                          onClick={() => setReverseId(e.id)}
-                        >
-                          <RotateCcw size={13}/> عكس
-                        </button>
-                      )}
+                      {e.is_balanced
+                        ? <CheckCircle size={15} color="var(--color-success)"/>
+                        : <XCircle size={15} color="var(--color-danger)"/>}
                     </td>
-                  )}
-                </motion.tr>
-              ))}
-              {!entries?.length && (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('journal.table.empty')}</td></tr>
-              )}
-            </motion.tbody>
-          </table>
+                    <td>
+                      {e.is_reversed
+                        ? <span className="badge badge-danger">{t('journal.table.reversed')}</span>
+                        : <span className="badge badge-success">{t('journal.table.active')}</span>}
+                    </td>
+                    {user?.role === 'admin' && (
+                      <td>
+                        {!e.is_reversed && (
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: 'var(--color-warning)', gap: 4 }}
+                            onClick={() => setReverseId(e.id)}
+                          >
+                            <RotateCcw size={13}/> عكس
+                          </button>
+                        )}
+                      </td>
+                    )}
+                  </motion.tr>
+                ))}
+                {!entries?.length && (
+                  <tr><td colSpan={9} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('journal.table.empty')}</td></tr>
+                )}
+              </motion.tbody>
+            </table>
+          </div>
         )}
       </div>
 

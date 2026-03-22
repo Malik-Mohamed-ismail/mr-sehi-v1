@@ -155,7 +155,8 @@ export default function ExpensesPage() {
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {isLoading ? <div style={{ padding: 24 }}>{[...Array(4)].map((_, i) => <div key={i} className="skeleton" style={{ height: 40, marginBottom: 8 }}/>)}</div> : (
-          <table className="data-table">
+          <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
             <thead><tr><th>{t('expenses.table.date')}</th><th>{t('expenses.table.description')}</th><th>{t('expenses.table.type')}</th><th>{t('expenses.fields.paymentMethod')}</th><th>{t('expenses.table.amount')}</th><th>{t('expenses.table.vat')}</th><th>{t('expenses.table.total')}</th><th style={{ width: 60 }}></th></tr></thead>
             <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
               {(expenses ?? []).map((e: any) => (
@@ -177,6 +178,7 @@ export default function ExpensesPage() {
               {!expenses?.length && <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('expenses.table.empty')}</td></tr>}
             </motion.tbody>
           </table>
+          </div>
         )}
       </div>
 

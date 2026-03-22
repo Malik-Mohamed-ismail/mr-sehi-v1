@@ -151,7 +151,8 @@ export default function PettyCashPage() {
       )}
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table className="data-table">
+        <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
           <thead><tr><th>{t('pettyCash.table.date')}</th><th>{t('pettyCash.table.opening')}</th><th>{t('pettyCash.table.replenishment')}</th><th>{t('pettyCash.table.purchases')}</th><th>{t('pettyCash.table.closing')}</th><th>{t('pettyCash.table.variance')}</th><th>{t('pettyCash.table.status')}</th><th style={{ width: 60 }}></th></tr></thead>
           <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
             {(records ?? []).map((r: any) => (
@@ -173,6 +174,7 @@ export default function PettyCashPage() {
             {!records?.length && <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('pettyCash.table.empty')}</td></tr>}
           </motion.tbody>
         </table>
+          </div>
       </div>
 
       <ConfirmDialog

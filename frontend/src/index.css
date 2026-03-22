@@ -675,6 +675,10 @@ body[dir="ltr"] .table td { text-align: left; }
 }
 
 /* ── Scrollbar ───────────────────────────────────────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
@@ -731,7 +735,11 @@ body[dir="ltr"] .sidebar { right: auto; left: 0; box-shadow: 4px 0 24px rgba(0,0
 .sidebar-logo-text .brand-sub  { font-size: 11px; color: var(--text-on-sidebar); opacity: 0.7; }
 
 /* Sidebar Nav */
-.sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+.sidebar-nav { 
+  flex: 1; padding: 12px 0; overflow-y: auto; 
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
 .sidebar-nav::-webkit-scrollbar { width: 4px; }
 .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
 .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }

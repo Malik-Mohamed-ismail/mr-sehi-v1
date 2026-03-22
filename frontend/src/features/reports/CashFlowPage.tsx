@@ -99,7 +99,8 @@ export default function CashFlowPage() {
               data[s.label.toLowerCase()]?.details?.length > 0 && (
                 <motion.div key={s.label} variants={staggerItem} className="card" style={{ marginTop: 16 }}>
                   <h3 style={{ fontWeight: 600, marginBottom: 12, color: s.color }}>{s.label}</h3>
-                  <table className="data-table">
+                  <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
                     <tbody>
                       {data[s.label.toLowerCase()]?.details?.map((item: any, i: number) => (
                         <tr key={i}>
@@ -111,6 +112,7 @@ export default function CashFlowPage() {
                       ))}
                     </tbody>
                   </table>
+          </div>
                 </motion.div>
               )
             ))}

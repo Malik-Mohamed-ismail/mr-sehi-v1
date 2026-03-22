@@ -61,7 +61,8 @@ export function TrialBalancePage() {
         <div className="card">{[...Array(8)].map((_, i) => <div key={i} className="skeleton" style={{ height: 36, marginBottom: 8 }}/>)}</div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <table className="data-table">
+          <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
             <thead>
               <tr>
                 <th>{t('trialBalance.table.accountCode')}</th>
@@ -100,6 +101,7 @@ export function TrialBalancePage() {
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </PageTransition>
@@ -168,7 +170,8 @@ export function LedgerPage() {
         <div className="card">{[...Array(6)].map((_, i) => <div key={i} className="skeleton" style={{ height: 36, marginBottom: 8 }}/>)}</div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <table className="data-table">
+          <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
             <thead>
               <tr><th>{t('ledger.table.date')}</th><th>{t('ledger.table.entryNumber')}</th><th>{t('ledger.table.description')}</th><th>{t('ledger.table.account')}</th><th>{t('ledger.table.debit')}</th><th>{t('ledger.table.credit')}</th><th>{t('trialBalance.table.balance')}</th></tr>
             </thead>
@@ -189,6 +192,7 @@ export function LedgerPage() {
               {!data?.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('ledger.table.empty')}</td></tr>}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </PageTransition>

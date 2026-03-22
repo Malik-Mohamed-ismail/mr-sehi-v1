@@ -156,7 +156,8 @@ export default function AccountsPage() {
                 <span style={{ fontWeight: 700 }}>{meta.label}</span>
                 <span className={`badge ${meta.badge}`} style={{ marginLeft: 'auto' /* Wait, rtl is default, so if they used marginRight to push left... we can keep it as is or handle it based on dir */ }}>{items.length} {t('accounts.accountCount')}</span>
               </div>
-              <table className="data-table">
+              <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
+            <table className="data-table">
                 <thead><tr><th>{t('accounts.table.code')}</th><th>{t('accounts.table.nameAr')}</th><th>{t('accounts.table.nameEn')}</th><th>{t('accounts.table.level')}</th><th>{t('accounts.table.isSystem')}</th></tr></thead>
                 <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
                   {items.map((a: any) => (
@@ -171,6 +172,7 @@ export default function AccountsPage() {
                   ))}
                 </motion.tbody>
               </table>
+          </div>
             </div>
           )
         })
