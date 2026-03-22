@@ -67,13 +67,13 @@ export default function CashFlowPage() {
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>{s.label}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     {s.value >= 0 ? <TrendingUp size={16} color="var(--color-success)" /> : <TrendingDown size={16} color="var(--color-danger)" />}
-                    <AnimatedNumber value={s.value} suffix=" ر.س" />
+                    <AnimatedNumber value={s.value} suffix="" />
                   </div>
                 </motion.div>
               ))}
               <motion.div variants={staggerItem} className="card" style={{ borderTop: `3px solid ${netChange >= 0 ? 'var(--color-success)' : 'var(--color-danger)'}`, background: netChange >= 0 ? 'var(--color-success-bg)' : 'var(--color-danger-bg)' }}>
                 <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>{t('cashFlow.netChange')}</div>
-                <AnimatedNumber value={netChange} suffix=" ر.س" />
+                <AnimatedNumber value={netChange} suffix="" />
               </motion.div>
             </div>
 
@@ -86,7 +86,7 @@ export default function CashFlowPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                     <XAxis dataKey="date" tick={{ fontSize: 11, fontFamily: 'var(--font-latin)' }} />
                     <YAxis tick={{ fontSize: 11, fontFamily: 'var(--font-latin)' }} />
-                    <Tooltip formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س`} />
+                    <Tooltip formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`} />
                     <Area type="monotone" dataKey="inflow" stroke="var(--color-success)" fill="rgba(29,184,123,0.1)" strokeWidth={2} />
                     <Area type="monotone" dataKey="outflow" stroke="var(--color-danger)" fill="rgba(232,56,77,0.1)" strokeWidth={2} />
                   </AreaChart>

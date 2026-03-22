@@ -50,12 +50,12 @@ export default function VATSummaryPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
               <motion.div variants={staggerItem} className="card" style={{ borderTop: '3px solid var(--color-info)' }}>
                 <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>{t('vat.vatInput')}</div>
-                <AnimatedNumber value={Number(data.totalVatInput ?? 0)} suffix=" ر.س" />
+                <AnimatedNumber value={Number(data.totalVatInput ?? 0)} suffix="" />
                 <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>{t('vat.fromPurchases')}</div>
               </motion.div>
               <motion.div variants={staggerItem} className="card" style={{ borderTop: '3px solid var(--color-warning)' }}>
                 <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>{t('vat.vatOutput')}</div>
-                <AnimatedNumber value={Number(data.totalVatOutput ?? 0)} suffix=" ر.س" />
+                <AnimatedNumber value={Number(data.totalVatOutput ?? 0)} suffix="" />
                 <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>{t('vat.fromRevenue')}</div>
               </motion.div>
               <motion.div variants={staggerItem} className="card" style={{
@@ -63,7 +63,7 @@ export default function VATSummaryPage() {
                 background: Number(data.netVatPayable ?? 0) >= 0 ? 'var(--color-danger-bg)' : 'var(--color-success-bg)',
               }}>
                 <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>{t('vat.netPayable')}</div>
-                <AnimatedNumber value={Number(data.netVatPayable ?? 0)} suffix=" ر.س" />
+                <AnimatedNumber value={Number(data.netVatPayable ?? 0)} suffix="" />
                 <div style={{ fontSize: 11, marginTop: 4, color: Number(data.netVatPayable ?? 0) >= 0 ? 'var(--color-danger)' : 'var(--color-success)' }}>
                   {Number(data.netVatPayable ?? 0) >= 0 ? t('vat.payable') : t('vat.refundable')}
                 </div>

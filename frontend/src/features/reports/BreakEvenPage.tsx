@@ -75,7 +75,7 @@ export default function BreakEvenPage() {
               ].map(kpi => (
                 <motion.div key={kpi.label} variants={staggerItem} className="card" style={{ borderTop: `3px solid ${kpi.color}` }}>
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>{kpi.label}</div>
-                  <AnimatedNumber value={Number(kpi.value ?? 0)} suffix=" ر.س" />
+                  <AnimatedNumber value={Number(kpi.value ?? 0)} suffix="" />
                 </motion.div>
               ))}
               <motion.div variants={staggerItem} className="card" style={{ borderTop: '3px solid var(--color-info)' }}>
@@ -93,8 +93,8 @@ export default function BreakEvenPage() {
               <h3 style={{ fontWeight: 600, marginBottom: 16 }}>{t('breakeven.progress')}</h3>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>
                 <span>0</span>
-                <span>{t('breakeven.breakeven')}: {Number(data.breakEvenSales ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0 })} ر.س</span>
-                <span>{t('breakeven.current')}: {Number(data.currentRevenue ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0 })} ر.س</span>
+                <span>{t('breakeven.breakeven')}: {Number(data.breakEvenSales ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
+                <span>{t('breakeven.current')}: {Number(data.currentRevenue ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
               </div>
               <div style={{ height: 20, borderRadius: 10, background: 'var(--bg-surface-2)', overflow: 'hidden', position: 'relative' }}>
                 <motion.div

@@ -47,7 +47,7 @@ function MiniSparkline({ data }: { data: SparkPoint[] }) {
   )
 }
 
-export function KPICard({ label, value, prefix = '', suffix = ' ر.س', decimals = 2, delta, glow = 'none', sparkData, icon, className = '' }: Props) {
+export function KPICard({ label, value, prefix = '', suffix = '', decimals = 2, delta, glow = 'none', sparkData, icon, className = '' }: Props) {
   const glowClass = glow !== 'none' ? `glow-${glow}` : ''
   const isPositive = (delta ?? 0) >= 0
 
@@ -81,7 +81,7 @@ export function KPICard({ label, value, prefix = '', suffix = ' ر.س', decimals
           {icon && (
             <div style={{
               width: 40, height: 40, borderRadius: '10px',
-              background: 'var(--gradient-gold-glow)',
+              background: 'var(--color-primary-light)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'var(--color-primary)',
             }}>

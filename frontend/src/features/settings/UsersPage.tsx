@@ -74,7 +74,7 @@ export default function UsersPage() {
       <div style={{ padding: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(212,168,83,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Users size={18} color="var(--color-primary)" />
             </div>
             <div>
@@ -136,9 +136,9 @@ export default function UsersPage() {
               <motion.div key={user.id} variants={staggerItem} className="card" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px' }}>
                 <div style={{
                   width: 42, height: 42, borderRadius: '50%',
-                  background: 'var(--gradient-gold)',
+                  background: '#2B9225',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#0D0F1A', fontWeight: 700, fontSize: 16, flexShrink: 0,
+                  color: '#FFFFFF', fontWeight: 700, fontSize: 16, flexShrink: 0,
                 }}>
                   {user.full_name?.[0] ?? 'U'}
                 </div>

@@ -83,7 +83,7 @@ export default function AccountsPage() {
             <Download size={16}/> تصدير Excel
           </button>
           <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
-            <Plus size={16}/> حساب جديد
+            <Plus size={16}/> {t('accounts.newAccount')}
           </button>
         </div>
       </div>

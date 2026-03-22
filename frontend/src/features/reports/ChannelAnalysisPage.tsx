@@ -13,7 +13,7 @@ import { staggerContainer, staggerItem } from '../../lib/animations'
 const toDay = new Date().toISOString().split('T')[0]
 const fromDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
 
-const COLORS = ['#D4A853', '#4A90E2', '#1DB87B', '#E8384D', '#F5A623', '#9B59B6']
+const COLORS = ['#2B9225', '#4A90E2', '#1DB87B', '#E8384D', '#F5A623', '#9B59B6']
 
 export default function ChannelAnalysisPage() {
   const { t } = useTranslation()
@@ -62,7 +62,7 @@ export default function ChannelAnalysisPage() {
                     <Pie data={channels} dataKey="total" nameKey="channel" cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={3}>
                       {channels.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Pie>
-                    <Tooltip formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س`} />
+                    <Tooltip formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`} />
                     <Legend />
                   </RechartsPie>
                 </ResponsiveContainer>
@@ -75,7 +75,7 @@ export default function ChannelAnalysisPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                     <XAxis dataKey="channel" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11, fontFamily: 'var(--font-latin)' }} />
-                    <Tooltip formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س`} />
+                    <Tooltip formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`} />
                     <Bar dataKey="total" radius={[6, 6, 0, 0]}>
                       {channels.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Bar>

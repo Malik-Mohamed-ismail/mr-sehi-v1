@@ -85,9 +85,9 @@ export default function PerformancePage() {
               </div>
             </div>
 
-            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12, background: 'linear-gradient(135deg, rgba(212, 168, 83, 0.1) 0%, rgba(212, 168, 83, 0.05) 100%)', border: '1px solid rgba(212,168,83,0.2)' }}>
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12, background: 'linear-gradient(135deg, rgba(43,146,37,0.08) 0%, rgba(43,146,37,0.03) 100%)', border: '1px solid rgba(43,146,37,0.20)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-primary)' }}>
-                <div style={{ padding: 8, borderRadius: 8, background: 'rgba(212, 168, 83, 0.2)' }}><Activity size={20}/></div>
+                <div style={{ padding: 8, borderRadius: 8, background: 'rgba(43,146,37,0.15)', color: 'var(--color-primary)' }}><Activity size={20}/></div>
                 <span style={{ fontWeight: 700 }}>{t('performance.kpi.netProfit')}</span>
               </div>
               <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-latin)', color: 'var(--color-primary)' }}>
@@ -114,8 +114,8 @@ export default function PerformancePage() {
                     <stop offset="95%" stopColor="#f87171" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorProf" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#D4A853" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#D4A853" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#2B9225" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#2B9225" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="date" stroke="var(--text-secondary)" tick={{ fontFamily: 'var(--font-latin)', fontSize: 12 }} />
@@ -128,7 +128,7 @@ export default function PerformancePage() {
                 <Legend wrapperStyle={{ paddingTop: 20, fontFamily: i18n.dir() === 'rtl' ? 'var(--font-arabic)' : 'var(--font-latin)' }} />
                 <Area type="monotone" dataKey="revenue" name={t('performance.chart.revenue')} stroke="#34d399" fillOpacity={1} fill="url(#colorRev)" strokeWidth={3} />
                 <Area type="monotone" dataKey="expenses" name={t('performance.chart.expenses')} stroke="#f87171" fillOpacity={1} fill="url(#colorExp)" strokeWidth={3} />
-                <Area type="monotone" dataKey="profit" name={t('performance.chart.profit')} stroke="#D4A853" fillOpacity={1} fill="url(#colorProf)" strokeWidth={3} />
+                <Area type="monotone" dataKey="profit" name={t('performance.chart.profit')} stroke="#2B9225" fillOpacity={1} fill="url(#colorProf)" strokeWidth={3} />
               </AreaChart>
             </ResponsiveContainer>
           </div>

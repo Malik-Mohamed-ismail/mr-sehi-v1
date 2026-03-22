@@ -108,7 +108,7 @@ export default function JournalPage() {
             <Download size={16}/> تصدير Excel
           </button>
           <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
-            <Plus size={16}/> قيد جديد
+            <Plus size={16}/> {t('journal.newEntry')}
           </button>
         </div>
       </div>

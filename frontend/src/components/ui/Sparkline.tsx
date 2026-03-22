@@ -6,7 +6,7 @@ interface SparklineProps {
   height?: number
 }
 
-export function Sparkline({ data, color = '#D4A853', height = 40 }: SparklineProps) {
+export function Sparkline({ data, color = '#2B9225', height = 40 }: SparklineProps) {
   const chartData = data.map((value, index) => ({ index, value }))
   return (
     <ResponsiveContainer width="100%" height={height}>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -7,43 +7,46 @@ import {
   ShoppingCart, Briefcase, Wallet,
   Users, UserCheck, Factory,
   BookOpen, BookMarked, Scale, DollarSign,
-  ChevronLeft, ChevronRight, Sparkles,
-  BarChart2, PieChart, Leaf, Target, Receipt, Shield, UserCog
+  ChevronLeft, ChevronRight, ChevronDown,
+  BarChart2, Leaf, Target, Receipt, Shield, UserCog,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../../store/authStore'
 
+/* ── Types ─────────────────────────────────────────────────────────────── */
 interface NavItem {
-  to:    string
-  icon:  React.ReactNode
-  label: string
+  to:     string
+  icon:   React.ReactNode
+  label:  string
   roles?: string[]
 }
 
 interface NavSection {
-  title: string
-  items: NavItem[]
+  id:     string
+  title:  string           // i18n key — empty string means no header (top group)
+  items:  NavItem[]
 }
 
-const navSections: NavSection[] = [
+/* ── Nav config ──────────────────────────────────────────────────────────── */
+const NAV_SECTIONS: NavSection[] = [
   {
-    title: '',
+    id: 'main', title: '',
     items: [
-      { to: '/dashboard',    icon: <LayoutDashboard size={18}/>, label: 'pages.dashboard' },
-      { to: '/performance',  icon: <TrendingUp size={18}/>,      label: 'pages.performance' },
-      { to: '/reports',      icon: <FileText size={18}/>,        label: 'pages.reports' },
+      { to: '/dashboard',   icon: <LayoutDashboard size={18}/>, label: 'pages.dashboard' },
+      { to: '/performance', icon: <TrendingUp size={18}/>,      label: 'pages.performance' },
+      { to: '/reports',     icon: <FileText size={18}/>,        label: 'pages.reports' },
     ],
   },
   {
-    title: 'sidebar.revenue',
+    id: 'revenue', title: 'sidebar.revenue',
     items: [
-      { to: '/revenue/delivery',      icon: <Truck size={18}/>,             label: 'pages.delivery' },
-      { to: '/revenue/restaurant',    icon: <UtensilsCrossed size={18}/>,   label: 'pages.restaurant' },
-      { to: '/revenue/subscriptions', icon: <Package size={18}/>,           label: 'pages.subscriptions' },
+      { to: '/revenue/delivery',      icon: <Truck size={18}/>,           label: 'pages.delivery' },
+      { to: '/revenue/restaurant',    icon: <UtensilsCrossed size={18}/>, label: 'pages.restaurant' },
+      { to: '/revenue/subscriptions', icon: <Package size={18}/>,         label: 'pages.subscriptions' },
     ],
   },
   {
-    title: 'sidebar.expenses',
+    id: 'expenses', title: 'sidebar.expenses',
     items: [
       { to: '/purchases',  icon: <ShoppingCart size={18}/>, label: 'pages.purchases' },
       { to: '/expenses',   icon: <Briefcase size={18}/>,    label: 'pages.expenses' },
@@ -51,25 +54,25 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    title: 'sidebar.management',
+    id: 'management', title: 'sidebar.management',
     items: [
-      { to: '/suppliers',    icon: <Users size={18}/>,    label: 'pages.suppliers' },
-      { to: '/subscribers',  icon: <UserCheck size={18}/>,label: 'pages.subscribers' },
-      { to: '/production',   icon: <Factory size={18}/>,  label: 'pages.production' },
+      { to: '/suppliers',   icon: <Users size={18}/>,    label: 'pages.suppliers' },
+      { to: '/subscribers', icon: <UserCheck size={18}/>,label: 'pages.subscribers' },
+      { to: '/production',  icon: <Factory size={18}/>,  label: 'pages.production' },
     ],
   },
   {
-    title: 'sidebar.accounting',
+    id: 'accounting', title: 'sidebar.accounting',
     items: [
-      { to: '/accounts',       icon: <BookOpen size={18}/>,   label: 'pages.accounts',      roles: ['admin','accountant'] },
-      { to: '/journal',        icon: <BookMarked size={18}/>, label: 'pages.journal',       roles: ['admin','accountant'] },
-      { to: '/ledger',         icon: <Scale size={18}/>,      label: 'pages.ledger',        roles: ['admin','accountant'] },
-      { to: '/trial-balance',  icon: <Scale size={18}/>,      label: 'pages.trialBalance',  roles: ['admin','accountant'] },
-      { to: '/income-statement',icon: <DollarSign size={18}/>,label: 'pages.incomeStatement',roles: ['admin','accountant'] },
+      { to: '/accounts',         icon: <BookOpen size={18}/>,   label: 'pages.accounts',        roles: ['admin','accountant'] },
+      { to: '/journal',          icon: <BookMarked size={18}/>, label: 'pages.journal',         roles: ['admin','accountant'] },
+      { to: '/ledger',           icon: <Scale size={18}/>,      label: 'pages.ledger',          roles: ['admin','accountant'] },
+      { to: '/trial-balance',    icon: <Scale size={18}/>,      label: 'pages.trialBalance',    roles: ['admin','accountant'] },
+      { to: '/income-statement', icon: <DollarSign size={18}/>, label: 'pages.incomeStatement', roles: ['admin','accountant'] },
     ],
   },
   {
-    title: 'sidebar.analysis',
+    id: 'analysis', title: 'sidebar.analysis',
     items: [
       { to: '/balance-sheet',    icon: <FileText size={18}/>,   label: 'pages.balanceSheet',    roles: ['admin','accountant'] },
       { to: '/cash-flow',        icon: <TrendingUp size={18}/>, label: 'pages.cashFlow',        roles: ['admin','accountant'] },
@@ -80,7 +83,7 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    title: 'sidebar.administration',
+    id: 'admin', title: 'sidebar.administration',
     items: [
       { to: '/users',     icon: <UserCog size={18}/>, label: 'pages.users',    roles: ['admin'] },
       { to: '/audit-log', icon: <Shield size={18}/>,  label: 'pages.auditLog', roles: ['admin'] },
@@ -88,174 +91,306 @@ const navSections: NavSection[] = [
   },
 ]
 
+const EXPANDED_W  = 280
+const COLLAPSED_W = 80
+
+/* ── Component ───────────────────────────────────────────────────────────── */
 export function Sidebar() {
-  const [expanded, setExpanded]   = useState(true)
-  const { user }                  = useAuthStore()
-  const location                  = useLocation()
-  const { t, i18n }               = useTranslation()
+  const [expanded, setExpanded]       = useState(true)
+  // sections open by default: main always open, rest open if has active item
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    main: true, revenue: true, expenses: true,
+    management: true, accounting: true, analysis: true, admin: true,
+  })
+
+  const { user }      = useAuthStore()
+  const location      = useLocation()
+  const { t, i18n }   = useTranslation()
+  const isRtl         = i18n.dir() === 'rtl'
+
+  /* Sync CSS variable so Topbar + AppShell follow sidebar width */
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--current-sidebar-w',
+      `${expanded ? EXPANDED_W : COLLAPSED_W}px`
+    )
+  }, [expanded])
+
+  const toggleSection = (id: string) => {
+    setOpenSections(prev => ({ ...prev, [id]: !prev[id] }))
+  }
 
   return (
     <motion.aside
-      animate={{ width: expanded ? 280 : 80 }}
-      transition={{ type: 'spring', stiffness: 200, damping: 28 }}
+      animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
+      transition={{ type: 'spring', stiffness: 220, damping: 30 }}
       style={{
-        position:   'fixed',
-        top:        0,
-        bottom:     0,
-        ...(i18n.dir() === 'rtl' ? { right: 0, borderLeft: '1px solid rgba(255,255,255,0.05)' } : { left: 0, borderRight: '1px solid rgba(255,255,255,0.05)' }),
-        zIndex:     100,
-        background: 'var(--bg-sidebar)',
-        display:    'flex',
+        position:      'fixed',
+        top: 0, bottom: 0,
+        ...(isRtl ? { right: 0 } : { left: 0 }),
+        zIndex:        100,
+        background:    '#132E11',
+        display:       'flex',
         flexDirection: 'column',
-        overflow:   'hidden',
+        overflow:      'hidden',
+        borderInlineEnd: '1px solid rgba(255,255,255,0.06)',
       }}
     >
-      {/* Logo */}
+
+      {/* ── Logo bar ──────────────────────────────────────────────────── */}
       <div style={{
-        height: 64, padding: '0 20px',
+        height: 64, padding: '0 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        flexShrink: 0,
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        flexShrink: 0, gap: 8,
       }}>
-        <AnimatePresence>
+        {/* Logo + name (hidden when collapsed) */}
+        <AnimatePresence initial={false}>
           {expanded && (
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              key="logo-text"
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: 'auto' }}
+              exit={{ opacity: 0, width: 0 }}
               transition={{ duration: 0.2 }}
-              style={{ display: 'flex', alignItems: 'center', gap: 10 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden', minWidth: 0 }}
             >
-              <div style={{
-                width: 32, height: 32, borderRadius: 8,
-                background: 'var(--gradient-gold)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Sparkles size={16} color="#0D0F1A"/>
-              </div>
-              <div>
-                <div style={{ color: '#EDE9E0', fontWeight: 700, fontSize: 14, lineHeight: 1.2 }}>{t('layout.title')}</div>
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>{t('sidebar.systemName')}</div>
+              <img src="/logo_icon_only.png" alt="logo"
+                style={{ width: 38, height: 38, objectFit: 'contain', flexShrink: 0 }} />
+              <div style={{ overflow: 'hidden' }}>
+                <div style={{ color: '#FFF', fontWeight: 700, fontSize: 15, lineHeight: 1.2,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {t('layout.title')}
+                </div>
+                <div style={{ color: '#C8DEC6', fontSize: 10, opacity: 0.6, whiteSpace: 'nowrap' }}>
+                  {t('sidebar.systemName')}
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* When collapsed — center the logo icon */}
         {!expanded && (
-          <div style={{
-            width: 32, height: 32, borderRadius: 8, margin: '0 auto',
-            background: 'var(--gradient-gold)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Sparkles size={16} color="#0D0F1A"/>
-          </div>
+          <img src="/logo_icon_only.png" alt="logo"
+            style={{ width: 38, height: 38, objectFit: 'contain', margin: '0 auto' }} />
         )}
+
+        {/* Collapse/Expand toggle */}
         <button
-          onClick={() => setExpanded(e => !e)}
-          aria-label={t(expanded ? 'sidebar.collapse' : 'sidebar.expand')}
+          onClick={() => setExpanded(v => !v)}
+          aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
           style={{
-            background: 'rgba(255,255,255,0.06)',
-            border: 'none', borderRadius: 6, cursor: 'pointer',
-            width: 28, height: 28,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'rgba(255,255,255,0.5)',
-            transition: 'background 0.2s',
             flexShrink: 0,
-            transform: i18n.language === 'en' ? 'scaleX(-1)' : 'none',
+            width: 26, height: 26,
+            borderRadius: 6, border: 'none', cursor: 'pointer',
+            background: 'rgba(255,255,255,0.08)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'rgba(200,222,198,0.7)',
+            transition: 'background 0.15s',
           }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.16)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
         >
-          {expanded ? <ChevronRight size={14}/> : <ChevronLeft size={14}/>}
+          {/* In RTL: right arrow means "expand towards right", swap icons */}
+          {isRtl
+            ? (expanded ? <ChevronRight size={13}/> : <ChevronLeft size={13}/>)
+            : (expanded ? <ChevronLeft  size={13}/> : <ChevronRight size={13}/>)
+          }
         </button>
       </div>
 
-      {/* Nav */}
-      <nav style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
-        {navSections.map((section) => {
-          const visibleItems = section.items.filter(item =>
-            !item.roles || item.roles.includes(user?.role ?? '')
+      {/* ── Scrollable nav ────────────────────────────────────────────── */}
+      <nav
+        style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingTop: 8, paddingBottom: 8 }}
+      >
+        {NAV_SECTIONS.map(section => {
+          const visibleItems = section.items.filter(
+            item => !item.roles || item.roles.includes(user?.role ?? '')
           )
           if (!visibleItems.length) return null
+
+          /* Is any item in this section currently active? */
+          const sectionHasActive = visibleItems.some(item =>
+            location.pathname.startsWith(item.to)
+          )
+          const isSectionOpen = openSections[section.id] ?? true
+
           return (
-            <div key={section.title} style={{ marginBottom: 4 }}>
+            <div key={section.id}>
+              {/* Section header (accordion trigger) — only shown when sidebar expanded */}
               {expanded && section.title && (
-                <div style={{
-                  padding: '8px 20px 4px',
-                  fontSize: 10, fontWeight: 600,
-                  color: 'rgba(255,255,255,0.25)',
-                  letterSpacing: '0.8px',
-                  textTransform: 'uppercase',
-                }}>
-                  {t(section.title)}
-                </div>
-              )}
-              {visibleItems.map((item) => {
-                const active = location.pathname.startsWith(item.to)
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    style={{
-                      display: 'flex', alignItems: 'center',
-                      gap: expanded ? 12 : 0,
-                      justifyContent: expanded ? 'flex-start' : 'center',
-                      padding: expanded ? '9px 20px' : '9px 0',
-                      margin: '1px 8px',
-                      borderRadius: 8,
-                      textDecoration: 'none',
-                      background: active
-                        ? 'linear-gradient(135deg, rgba(212,168,83,0.20) 0%, rgba(212,168,83,0.08) 100%)'
-                        : 'transparent',
-                      color: active ? '#D4A853' : 'rgba(255,255,255,0.55)',
-                      fontSize: 13, fontWeight: active ? 600 : 400,
-                      transition: 'all 0.15s ease',
-                      borderLeft: active && expanded ? '2px solid #D4A853' : '2px solid transparent',
-                    }}
-                    title={!expanded ? item.label : undefined}
+                <button
+                  onClick={() => toggleSection(section.id)}
+                  style={{
+                    width: '100%', border: 'none', background: 'none',
+                    padding: '10px 20px 6px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  <span style={{
+                    fontSize: 10, fontWeight: 700,
+                    letterSpacing: '0.8px',
+                    textTransform: 'uppercase',
+                    color: sectionHasActive ? '#C47A3C' : '#C8DEC6',
+                    opacity: sectionHasActive ? 1 : 0.5,
+                    transition: 'color 0.2s, opacity 0.2s',
+                  }}>
+                    {t(section.title)}
+                  </span>
+                  <motion.span
+                    animate={{ rotate: isSectionOpen ? 0 : -90 }}
+                    transition={{ duration: 0.2 }}
+                    style={{ display: 'flex', color: 'rgba(200,222,198,0.4)' }}
                   >
-                    <span style={{ flexShrink: 0 }}>{item.icon}</span>
-                    <AnimatePresence>
-                      {expanded && (
-                        <motion.span
-                          initial={{ opacity: 0, width: 0 }}
-                          animate={{ opacity: 1, width: 'auto' }}
-                          exit={{ opacity: 0, width: 0 }}
-                          transition={{ duration: 0.15 }}
-                          style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}
+                    <ChevronDown size={12}/>
+                  </motion.span>
+                </button>
+              )}
+
+              {/* Collapsed sidebar: show a thin divider between sections */}
+              {!expanded && section.title && (
+                <div style={{
+                  height: 1,
+                  margin: '6px 12px',
+                  background: 'rgba(255,255,255,0.07)',
+                }}/>
+              )}
+
+              {/* Animated item list */}
+              <AnimatePresence initial={false}>
+                {(isSectionOpen || !expanded) && (
+                  <motion.div
+                    key={section.id + '-items'}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    {visibleItems.map(item => {
+                      const active = location.pathname.startsWith(item.to)
+                      return (
+                        <NavLink
+                          key={item.to}
+                          to={item.to}
+                          title={!expanded ? String(t(item.label)) : undefined}
+                          style={{
+                            display:        'flex',
+                            alignItems:     'center',
+                            gap:            expanded ? 11 : 0,
+                            justifyContent: expanded ? 'flex-start' : 'center',
+                            padding:        expanded ? '9px 20px' : '10px 0',
+                            margin:         '1px 0',
+                            textDecoration: 'none',
+                            background:     active ? 'rgba(43,146,37,0.90)' : 'transparent',
+                            color:          active ? '#FFFFFF' : '#C8DEC6',
+                            fontSize:       13,
+                            fontWeight:     active ? 600 : 400,
+                            borderInlineStart: (active && expanded)
+                              ? '3px solid #C47A3C'
+                              : '3px solid transparent',
+                            transition:     'background 0.15s, color 0.15s',
+                            position:       'relative',
+                          }}
+                          onMouseEnter={e => {
+                            if (!active) {
+                              e.currentTarget.style.background = '#1F4A1C'
+                              e.currentTarget.style.color = '#FFFFFF'
+                            }
+                          }}
+                          onMouseLeave={e => {
+                            if (!active) {
+                              e.currentTarget.style.background = 'transparent'
+                              e.currentTarget.style.color = '#C8DEC6'
+                            }
+                          }}
                         >
-                          {t(item.label)}
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                  </NavLink>
-                )
-              })}
+                          {/* Active indicator dot when collapsed */}
+                          {!expanded && active && (
+                            <span style={{
+                              position: 'absolute',
+                              insetInlineStart: 0, top: '50%', transform: 'translateY(-50%)',
+                              width: 3, height: 20, borderRadius: 2,
+                              background: '#C47A3C',
+                            }}/>
+                          )}
+
+                          <span style={{ flexShrink: 0, opacity: active ? 1 : 0.75 }}>
+                            {item.icon}
+                          </span>
+
+                          <AnimatePresence initial={false}>
+                            {expanded && (
+                              <motion.span
+                                key="label"
+                                initial={{ opacity: 0, width: 0 }}
+                                animate={{ opacity: 1, width: 'auto' }}
+                                exit={{ opacity: 0, width: 0 }}
+                                transition={{ duration: 0.15 }}
+                                style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}
+                              >
+                                {t(item.label)}
+                              </motion.span>
+                            )}
+                          </AnimatePresence>
+                        </NavLink>
+                      )
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )
         })}
       </nav>
 
-      {/* User info */}
-      {expanded && user && (
+      {/* ── User footer ───────────────────────────────────────────────── */}
+      {user && (
         <div style={{
-          padding: '16px 20px',
-          borderTop: '1px solid rgba(255,255,255,0.05)',
-          display: 'flex', alignItems: 'center', gap: 10,
+          padding:       expanded ? '14px 20px' : '14px 0',
+          borderTop:     '1px solid rgba(255,255,255,0.08)',
+          display:       'flex',
+          alignItems:    'center',
+          justifyContent: expanded ? 'flex-start' : 'center',
+          gap:           10,
+          flexShrink:    0,
         }}>
+          {/* Avatar */}
           <div style={{
             width: 32, height: 32, borderRadius: '50%',
-            background: 'var(--gradient-gold)',
+            background: '#2B9225',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#0D0F1A', fontWeight: 700, fontSize: 13, flexShrink: 0,
+            color: '#FFF', fontWeight: 700, fontSize: 13,
+            flexShrink: 0,
           }}>
-            {user.full_name[0]}
+            {user.full_name?.[0] ?? 'U'}
           </div>
-          <div style={{ overflow: 'hidden' }}>
-            <div style={{ color: '#EDE9E0', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user.full_name}
-            </div>
-            <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>
-              {t(`sidebar.roles.${user.role}`)}
-            </div>
-          </div>
+
+          <AnimatePresence initial={false}>
+            {expanded && (
+              <motion.div
+                key="user-info"
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: 'auto' }}
+                exit={{ opacity: 0, width: 0 }}
+                transition={{ duration: 0.15 }}
+                style={{ overflow: 'hidden', minWidth: 0 }}
+              >
+                <div style={{
+                  color: '#FFF', fontSize: 13, fontWeight: 600,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                }}>
+                  {user.full_name}
+                </div>
+                <div style={{ color: '#C8DEC6', fontSize: 11, opacity: 0.6, whiteSpace: 'nowrap' }}>
+                  {t(`sidebar.roles.${user.role}`)}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
     </motion.aside>

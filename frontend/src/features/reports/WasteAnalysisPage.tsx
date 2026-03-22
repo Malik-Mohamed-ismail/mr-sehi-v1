@@ -56,7 +56,7 @@ export default function WasteAnalysisPage() {
                   <div className="kpi-icon-circle kpi-icon-circle--danger"><AlertTriangle size={16} /></div>
                   <span className="kpi-label">{t('waste.totalValue')}</span>
                 </div>
-                <AnimatedNumber value={Number(data.totalWasteValue ?? 0)} suffix=" ر.س" />
+                <AnimatedNumber value={Number(data.totalWasteValue ?? 0)} suffix="" />
               </motion.div>
               <motion.div variants={staggerItem} className="card kpi-card">
                 <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>{t('waste.pctOfRevenue')}</div>
@@ -77,7 +77,7 @@ export default function WasteAnalysisPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                     <XAxis type="number" tick={{ fontSize: 11, fontFamily: 'var(--font-latin)' }} />
                     <YAxis type="category" dataKey="product_name" width={100} tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س`} />
+                    <Tooltip formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`} />
                     <Bar dataKey="waste_value" radius={[0, 6, 6, 0]}>
                       {items.map((_: any, i: number) => {
                         const pct = Number(items[i]?.waste_pct ?? 0)

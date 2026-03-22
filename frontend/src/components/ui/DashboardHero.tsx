@@ -25,13 +25,13 @@ export function DashboardHero({ totalRevenue, netProfit, from, to, onRangeChange
       style={{
         borderRadius: 20, padding: '36px 40px', marginBottom: 28,
         position: 'relative', overflow: 'hidden', minHeight: 200,
-        background: 'linear-gradient(160deg, #0D0F1A 0%, #151829 40%, #1A1030 100%)',
+        background: 'linear-gradient(160deg, #132E11 0%, #1A3D18 40%, #2B6B27 100%)',
       }}
     >
       {/* Animated glow */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'radial-gradient(ellipse 60% 80% at 80% 50%, rgba(212,168,83,0.13) 0%, transparent 70%)',
+        background: 'radial-gradient(ellipse 60% 80% at 80% 50%, rgba(196,122,60,0.15) 0%, transparent 70%), radial-gradient(ellipse 40% 60% at 20% 50%, rgba(43,146,37,0.10) 0%, transparent 60%)',
         animation: 'heroPulse 4s ease-in-out infinite alternate',
         pointerEvents: 'none',
       }}/>
@@ -40,7 +40,7 @@ export function DashboardHero({ totalRevenue, netProfit, from, to, onRangeChange
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
           <motion.div variants={staggerItem} initial="initial" animate="animate">
-            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(212,168,83,0.75)', marginBottom: 6 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(196,122,60,0.85)', marginBottom: 6 }}>
               {t('dashboard.financialReport')} · {from} — {to}
             </p>
             <h2 style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
@@ -49,8 +49,8 @@ export function DashboardHero({ totalRevenue, netProfit, from, to, onRangeChange
             {isLoading ? (
               <div className="skeleton" style={{ height: 56, width: 200, borderRadius: 8 }}/>
             ) : (
-              <div style={{ fontSize: 52, fontFamily: 'var(--font-display)', fontWeight: 400, color: '#F5E8C8', letterSpacing: '-0.02em', lineHeight: 1 }}>
-                <AnimatedNumber value={totalRevenue} suffix=" ر.س" decimals={2} />
+              <div style={{ fontSize: 52, fontFamily: 'var(--font-display)', fontWeight: 400, color: '#E8F5E7', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                <AnimatedNumber value={totalRevenue} suffix="" decimals={2} />
               </div>
             )}
           </motion.div>
@@ -64,7 +64,7 @@ export function DashboardHero({ totalRevenue, netProfit, from, to, onRangeChange
             {isLoading
               ? <div className="skeleton" style={{ height: 22, width: 100, borderRadius: 4 }}/>
               : <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'var(--font-latin)', color: netProfit >= 0 ? 'rgba(29,184,123,0.9)' : 'rgba(232,56,77,0.9)', direction: 'ltr' }}>
-                  <AnimatedNumber value={netProfit} suffix=" ر.س" decimals={2} />
+                  <AnimatedNumber value={netProfit} suffix="" decimals={2} />
                 </div>
             }
           </div>

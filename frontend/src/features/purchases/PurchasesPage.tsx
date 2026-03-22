@@ -126,7 +126,7 @@ export default function PurchasesPage() {
           <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>{t('purchases.pageSubtitle')}</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
-          <Plus size={16}/> فاتورة جديدة
+          <Plus size={16}/> {t('purchases.newInvoice')}
         </button>
       </div>
 

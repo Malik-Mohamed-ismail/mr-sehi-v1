@@ -710,6 +710,9 @@ export default {
     showPassword: 'Show password',
     loggingIn: 'Logging in...',
     login: 'Login',
+    loginTitle: 'Welcome back 👋',
+    loginSubtitle: 'Sign in to your account',
+    emailPlaceholder: 'admin@mrsehi.sa',
   },
   dashboard: {
     financialStory: 'Financial Story',

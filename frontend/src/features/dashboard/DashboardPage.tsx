@@ -53,7 +53,7 @@ export default function DashboardPage() {
   })), [dailySeries, t])
 
   // Donut Chart - we use fixed static data for visual mockup if the actual structure isn't populated
-  const expColors = ['#D4A853', '#1DB87B', '#4A90E2', '#F5A623', '#E8384D']
+  const expColors = ['#2B9225', '#1DB87B', '#4A90E2', '#F5A623', '#E8384D']
   const donutData = useMemo(() => {
     // Basic approximation if backend isn't sending expense summary properly
     const expenseLabels = t('dashboard.expensesLabels', { returnObjects: true }) as string[] || ['الرواتب', 'المشتريات', 'الإيجار', 'التسويق', 'أخرى']
@@ -76,7 +76,7 @@ export default function DashboardPage() {
     { label: t('dashboard.channels.keeta') || 'Keeta', amount: delivery * 0.42, color: '#FF6B35' },
     { label: t('dashboard.channels.hunger') || 'HungerStation', amount: delivery * 0.38, color: '#EE2A26' },
     { label: t('dashboard.channels.ninja') || 'Ninja', amount: delivery * 0.20, color: '#00C9A7' },
-    { label: t('dashboard.channels.resto') || 'Restaurant', amount: restaurant, color: '#D4A853' },
+    { label: t('dashboard.channels.resto') || 'Restaurant', amount: restaurant, color: '#2B9225' },
     { label: t('dashboard.channels.subs') || 'Subscriptions', amount: subscriptions, color: '#4A90E2' },
   ].sort((a,b) => b.amount - a.amount)
 

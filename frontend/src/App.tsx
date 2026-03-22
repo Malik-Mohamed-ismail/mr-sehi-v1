@@ -119,9 +119,13 @@ export default function App() {
         richColors
         toastOptions={{
           style: {
-            background: 'var(--bg-surface)', border: '1px solid var(--border-color)',
-            fontFamily: 'var(--font-arabic)', direction: 'rtl',
-            borderRadius: '12px', boxShadow: 'var(--shadow-lg)',
+            fontFamily: 'var(--font-arabic)', 
+            direction: 'rtl',
+            borderRadius: '12px', 
+            padding: '16px 20px',
+            fontSize: '15px',
+            fontWeight: 600,
+            boxShadow: 'var(--shadow-lg)',
           },
         }}
       />

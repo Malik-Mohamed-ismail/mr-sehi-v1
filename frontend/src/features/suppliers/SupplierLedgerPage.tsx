@@ -69,18 +69,18 @@ export default function SupplierLedgerPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
               <motion.div variants={staggerItem} className="card kpi-card">
                 <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>إجمالي الفواتير</div>
-                <AnimatedNumber value={Number(ledger.totals?.total_amount ?? 0)} suffix=" ر.س" />
+                <AnimatedNumber value={Number(ledger.totals?.total_amount ?? 0)} suffix="" />
               </motion.div>
               <motion.div variants={staggerItem} className="card kpi-card">
                 <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>إجمالي الضريبة (مشتريات)</div>
-                <AnimatedNumber value={Number(ledger.totals?.vat_amount ?? 0)} suffix=" ر.س" />
+                <AnimatedNumber value={Number(ledger.totals?.vat_amount ?? 0)} suffix="" />
               </motion.div>
               <motion.div variants={staggerItem} className="card kpi-card" style={{ borderTop: '2px solid var(--color-danger)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                   <div className="kpi-icon-circle kpi-icon-circle--danger"><FileText size={16} /></div>
                   <span className="kpi-label">الرصيد المستحق (آجل)</span>
                 </div>
-                <AnimatedNumber value={Number(ledger.outstanding_balance ?? 0)} suffix=" ر.س" />
+                <AnimatedNumber value={Number(ledger.outstanding_balance ?? 0)} suffix="" />
               </motion.div>
             </div>
 

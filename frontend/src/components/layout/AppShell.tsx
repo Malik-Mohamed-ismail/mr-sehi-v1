@@ -13,11 +13,14 @@ export function AppShell() {
       <Sidebar/>
       <Topbar/>
       <main style={{
-        ...(isRTL ? { marginRight: 280 } : { marginLeft: 280 }), // sidebar width
-        marginTop:   56,     // topbar height
-        padding:     '24px',
-        minHeight:   'calc(100vh - 56px)',
-        transition:  'margin 0.3s ease',
+        // Use the CSS variable updated by Sidebar; fall back to 280px if not yet set
+        ...(isRTL
+          ? { marginRight: 'var(--current-sidebar-w, 280px)' }
+          : { marginLeft:  'var(--current-sidebar-w, 280px)' }),
+        marginTop:  56,
+        padding:    '24px',
+        minHeight:  'calc(100vh - 56px)',
+        transition: 'margin 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
       }}>
         <Outlet/>
       </main>
@@ -25,4 +28,3 @@ export function AppShell() {
     </div>
   )
 }
-

@@ -710,6 +710,9 @@ export default {
     showPassword: 'إظهار كلمة المرور',
     loggingIn: 'جارٍ تسجيل الدخول...',
     login: 'تسجيل الدخول',
+    loginTitle: 'أهلاً بك 👋',
+    loginSubtitle: 'سجّل دخولك للمتابعة',
+    emailPlaceholder: 'admin@mrsehi.sa',
   },
   dashboard: {
     financialStory: 'القصة المالية',

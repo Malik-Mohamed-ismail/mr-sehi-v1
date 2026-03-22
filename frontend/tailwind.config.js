@@ -5,23 +5,24 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        arabic:  ['IBMPlexArabic', 'sans-serif'],
+        arabic:  ['IBMPlexArabic', 'IBM Plex Sans Arabic', 'sans-serif'],
         latin:   ['IBM Plex Sans', 'sans-serif'],
         display: ['Instrument Serif', 'serif'],
       },
       colors: {
-        primary:  { DEFAULT: '#D4A853', hover: '#C4953F', light: '#FDF3DC' },
+        primary:  { DEFAULT: '#2B9225', hover: '#1F6E1A', light: '#E8F5E7' },
+        accent:   { DEFAULT: '#C47A3C', hover: '#9E5F28', light: '#FDF0E4' },
         success:  { DEFAULT: '#1DB87B', bg: '#E8FBF3' },
         danger:   { DEFAULT: '#E8384D', bg: '#FDECED' },
         warning:  { DEFAULT: '#F5A623', bg: '#FEF6E4' },
         info:     { DEFAULT: '#4A90E2', bg: '#EBF4FF' },
-        sidebar:  '#0D0F1A',
+        sidebar:  '#132E11',
+        page:     '#F4F6F3',
         surface:  '#FFFFFF',
-        'surface-2': '#F0EFE9',
+        'surface-2': '#F4F6F3',
       },
       boxShadow: {
-        gold:    '0 0 30px rgba(212,168,83,0.25)',
-        'gold-lg':'0 0 40px rgba(212,168,83,0.35)',
+        green:   '0 0 24px rgba(43,146,37,0.18)',
         success: '0 0 20px rgba(29,184,123,0.20)',
         danger:  '0 0 20px rgba(232,56,77,0.20)',
       },

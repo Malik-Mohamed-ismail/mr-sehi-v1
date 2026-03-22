@@ -28,7 +28,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 const PLATFORM_COLORS: Record<string, string> = {
-  Keeta: '#D4A853', HungerStation: '#4A90E2', Ninja: '#1DB87B',
+  Keeta: '#2B9225', HungerStation: '#4A90E2', Ninja: '#1DB87B',
 }
 
 export default function DeliveryRevenuePage() {
@@ -110,7 +110,7 @@ export default function DeliveryRevenuePage() {
           <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>Keeta · HungerStation · Ninja</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
-          <Plus size={16}/> إضافة إيراد
+          <Plus size={16}/> {t('delivery.newRevenue')}
         </button>
       </div>
 

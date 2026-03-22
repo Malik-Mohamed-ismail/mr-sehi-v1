@@ -1,10 +1,10 @@
 /**
  * Format SAR amount — ALWAYS English digits (en-US locale).
- * → "22,747.78 ر.س"
+ * → "22,747.78"
  */
 export function formatSAR(amount: number | string | null | undefined): string {
   const n = Number(amount ?? 0)
-  return `${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ر.س`
+  return `${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 /**
