@@ -60,47 +60,94 @@ export default function LoginPage() {
       <motion.div
         variants={slideUp} initial="initial" animate="animate"
         style={{
-          width: '100%', maxWidth: 420,
+          width: '100%', maxWidth: 440,
           background: '#FFFFFF',
-          borderRadius: 24,
+          borderRadius: 8,
           overflow: 'hidden',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.40)',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.30)',
           position: 'relative', zIndex: 1,
+          border: '1px solid rgba(43,146,37,0.08)',
         }}
       >
-        {/* Card Header — dark green */}
+        {/* Animated gradient header */}
         <div style={{
-          background: '#132E11',
-          padding: '32px 32px 24px',
+          background: 'linear-gradient(135deg, #132E11 0%, #1F6E1A 50%, #1A3D18 100%)',
+          padding: '40px 32px 32px',
           textAlign: 'center',
-          borderBottom: '3px solid #C47A3C',
+          position: 'relative',
+          overflow: 'hidden',
         }}>
-          <img
-            src="/logo_icon_only.png"
-            alt="مستر صحي"
-            style={{ width: 72, height: 72, objectFit: 'contain', marginBottom: 12 }}
-          />
-          <div style={{ fontSize: 22, fontWeight: 700, color: '#FFFFFF', marginBottom: 4 }}>
-            {t('layout.title') || 'مستر صحي'}
-          </div>
-          <div style={{ fontSize: 13, color: '#C8DEC6', opacity: 0.75 }}>
-            {t('auth.subtitle')}
+          {/* Decorative elements */}
+          <div style={{
+            position: 'absolute', inset: 0, pointerEvents: 'none',
+            background: `
+              radial-gradient(circle at 20% 50%, rgba(212,168,83,0.15) 0%, transparent 40%),
+              radial-gradient(circle at 80% 30%, rgba(43,146,37,0.20) 0%, transparent 50%)
+            `,
+          }}/>
+          
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <img
+              src="/logo_icon_only.png"
+              alt="مستر صحي"
+              style={{ 
+                width: 64, 
+                height: 64, 
+                objectFit: 'contain', 
+                marginBottom: 16,
+                filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.15))',
+              }}
+            />
+            <div style={{ 
+              fontSize: 24, 
+              fontWeight: 800, 
+              color: '#FFFFFF', 
+              marginBottom: 8,
+              letterSpacing: '-0.5px',
+            }}>
+              {t('layout.title') || 'مستر صحي'}
+            </div>
+            <div style={{ 
+              fontSize: 12, 
+              color: 'rgba(255,255,255,0.70)', 
+              opacity: 0.85,
+              fontWeight: 500,
+            }}>
+              {t('auth.subtitle')}
+            </div>
           </div>
         </div>
 
         {/* Card Body */}
-        <div style={{ padding: 32 }}>
-          <h2 style={{ color: '#1A2B18', fontSize: 18, fontWeight: 700, marginBottom: 6 }}>
+        <div style={{ padding: '40px 32px' }}>
+          <h2 style={{ 
+            color: '#132E11', 
+            fontSize: 20, 
+            fontWeight: 700, 
+            marginBottom: 8,
+            letter: 'spacing: -0.3px',
+          }}>
             {t('auth.loginTitle')}
           </h2>
-          <p style={{ color: '#8A9E88', fontSize: 14, marginBottom: 28 }}>
+          <p style={{ 
+            color: '#8A9E88', 
+            fontSize: 14, 
+            marginBottom: 32,
+            lineHeight: 1.5,
+          }}>
             {t('auth.loginSubtitle')}
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} dir={i18n.dir()}>
             {/* Email */}
             <div className="form-field has-value" style={{ marginBottom: 24 }}>
-              <label style={{ top: -8, fontSize: 12, background: '#FFFFFF' }}>
+              <label style={{ 
+                top: -10, 
+                fontSize: 13, 
+                background: '#FFFFFF',
+                fontWeight: 600,
+                color: '#2B6B27',
+              }}>
                 {t('auth.email')}
               </label>
               <input
@@ -108,13 +155,25 @@ export default function LoginPage() {
                 type="email"
                 className={`form-input ${errors.email ? 'is-error' : ''}`}
                 placeholder={t('auth.emailPlaceholder')}
+                style={{
+                  borderRadius: 6,
+                  fontSize: 14,
+                  padding: '12px 16px',
+                  transition: 'all 0.2s ease',
+                }}
               />
-              {errors.email && <p style={{ color: '#E8384D', fontSize: 12, marginTop: 6 }}>{errors.email.message}</p>}
+              {errors.email && <p style={{ color: '#E8384D', fontSize: 12, marginTop: 8, fontWeight: 500 }}>{errors.email.message}</p>}
             </div>
 
             {/* Password */}
             <div className="form-field has-value" style={{ marginBottom: 32 }}>
-              <label style={{ top: -8, fontSize: 12, background: '#FFFFFF' }}>
+              <label style={{ 
+                top: -10, 
+                fontSize: 13, 
+                background: '#FFFFFF',
+                fontWeight: 600,
+                color: '#2B6B27',
+              }}>
                 {t('auth.password')}
               </label>
               <div style={{ position: 'relative' }}>
@@ -123,35 +182,56 @@ export default function LoginPage() {
                   type={showPw ? 'text' : 'password'}
                   className={`form-input ${errors.password ? 'is-error' : ''}`}
                   placeholder="••••••••"
-                  style={i18n.dir() === 'rtl' ? { paddingRight: 48 } : { paddingLeft: 48 }}
+                  style={{
+                    borderRadius: 6,
+                    fontSize: 14,
+                    padding: '12px 16px',
+                    paddingLeft: i18n.dir() === 'rtl' ? 16 : 48,
+                    paddingRight: i18n.dir() === 'rtl' ? 48 : 16,
+                    transition: 'all 0.2s ease',
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw(p => !p)}
                   style={{
                     position: 'absolute',
-                    [i18n.dir() === 'rtl' ? 'right' : 'left']: 16,
+                    [i18n.dir() === 'rtl' ? 'right' : 'left']: 14,
                     top: '50%', transform: 'translateY(-50%)',
                     background: 'none', border: 'none', cursor: 'pointer',
-                    color: '#8A9E88', padding: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    color: '#A0B8A0', padding: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'color 0.2s ease',
                   }}
                   aria-label={showPw ? t('auth.hidePassword') : t('auth.showPassword')}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#2B6B27'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#A0B8A0'}
                 >
                   {showPw ? <EyeOff size={18}/> : <Eye size={18}/>}
                 </button>
               </div>
-              {errors.password && <p style={{ color: '#E8384D', fontSize: 12, marginTop: 6 }}>{errors.password.message}</p>}
+              {errors.password && <p style={{ color: '#E8384D', fontSize: 12, marginTop: 8, fontWeight: 500 }}>{errors.password.message}</p>}
             </div>
 
             <button
               type="submit"
               className="btn btn-primary btn-lg"
               disabled={isSubmitting}
-              style={{ width: '100%', justifyContent: 'center', fontSize: 16, height: 52, borderRadius: 14 }}
+              style={{ 
+                width: '100%', 
+                justifyContent: 'center', 
+                fontSize: 16, 
+                height: 48, 
+                borderRadius: 6,
+                fontWeight: 600,
+                letterSpacing: '-0.2px',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => !isSubmitting && (e.currentTarget.style.transform = 'translateY(-2px)')}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
               {isSubmitting ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{
                     width: 16, height: 16,
                     border: '2px solid rgba(255,255,255,0.4)',
@@ -165,6 +245,18 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+
+          {/* Decorative footer line */}
+          <div style={{
+            marginTop: 32,
+            paddingTop: 24,
+            borderTop: '1px solid rgba(43,146,37,0.08)',
+            textAlign: 'center',
+            fontSize: 12,
+            color: '#A0B8A0',
+          }}>
+            {t('auth.footerNote') || 'Secure authentication powered by مستر صحي'}
+          </div>
         </div>
       </motion.div>
     </div>

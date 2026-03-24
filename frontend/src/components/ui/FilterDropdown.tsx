@@ -36,7 +36,7 @@ export function FilterDropdown({ value, onChange, options, placeholder }: Filter
             style={{
               position: 'absolute', top: '110%', insetInlineStart: 0,
               background: 'var(--bg-surface)',
-              border: '1px solid var(--border-color)',
+              border: '1px solid rgba(43,146,37,0.10)',
               borderRadius: 'var(--radius-md)',
               boxShadow: 'var(--shadow-lg)',
               minWidth: 160, overflow: 'hidden', zIndex: 200,

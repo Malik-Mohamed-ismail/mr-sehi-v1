@@ -174,7 +174,7 @@ export default function JournalPage() {
             {/* Balance indicator */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-              borderRadius: 10, marginBottom: 20,
+              borderRadius: 8, marginBottom: 20,
               background: isBalanced ? 'var(--color-success-bg)' : 'var(--color-danger-bg)',
               border: `1px solid ${isBalanced ? 'rgba(29,184,123,0.20)' : 'rgba(232,56,77,0.20)'}`,
             }}>

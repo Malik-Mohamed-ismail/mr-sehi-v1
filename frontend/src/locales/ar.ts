@@ -769,7 +769,15 @@ export default {
     subscribers: 'مشتركين',
     subscriber: 'مشترك',
     nextTaxQuarter: 'الربع الضريبي القادم',
-    vatPayable: 'ضريبة مستحقة'
+    vatPayable: 'ضريبة مستحقة',
+    welcome: 'أهلاً وسهلاً',
+    lastUpdate: 'آخر تحديث:',
+    profitMargin: 'هامش الربح',
+    recentTransactionsTitle: 'آخر العمليات في النظام',
+    transactionType: 'نوع العملية',
+    transactionAmount: 'المبلغ',
+    transactionDate: 'التاريخ',
+    noRecentTransactions: 'لا توجد عمليات حديثة'
   },
   pages: {
     dashboard: 'لوحة القيادة',
@@ -854,27 +862,6 @@ export default {
     from: 'من',
     to: 'إلى'
   },
-  reports: {
-    assets: 'الأصول',
-    liabilities: 'الالتزامات',
-    liabilitiesAndEquity: 'الالتزامات وحقوق الملكية',
-    totalAssets: 'إجمالي الأصول',
-    totalLiabEquity: 'إجمالي الالتزامات وحقوق الملكية',
-    subtotal: 'المجموع الفرعي',
-    revenueShare: 'حصة الإيراد',
-    channelComparison: 'مقارنة القنوات',
-    channel: 'القناة',
-    revenue: 'الإيراد',
-    share: 'الحصة',
-    transactions: 'العمليات',
-    avgPerDay: 'المعدل اليومي',
-    balanceSheetDesc: 'تقرير الوضع المالي في نهاية الفترة',
-    cashFlowDesc: 'تدفقات النقدية من الأنشطة التشغيلية والاستثمارية والتمويلية',
-    channelDesc: 'تحليل مصادر الإيراد حسب قنوات التوصيل',
-    wasteDesc: 'تحليل الهالك والتالف في الإنتاج',
-    breakevenDesc: 'حساب نقطة التعادل وهامش الأمان',
-    vatDesc: 'ملخص ضريبة القيمة المضافة للإقرار الضريبي'
-  },
   cashFlow: {
     operating: 'الأنشطة التشغيلية',
     investing: 'الأنشطة الاستثمارية',
@@ -948,5 +935,67 @@ export default {
     active: 'نشط',
     inactive: 'معطّل',
     searchPlaceholder: 'بحث في المستخدمين...'
+  },
+  reports: {
+    pageTitle: 'مركز التقارير المالية',
+    pageDescription: 'اجمع رؤى شاملة عن أداء عملك من خلال مجموعة متنوعة من التقارير المالية والتحليلات العميقة. جميع البيانات محدثة في الوقت الفعلي.',
+    dateRangeLabel: 'نطاق التاريخ المختار',
+    categoriesFinancial: '📊 البيانات المالية',
+    categoriesAnalysis: '📈 التحليلات المتقدمة',
+    categoriesOperational: '⚙️ التقارير التشغيلية',
+    filterIndicator: 'يتطلب تصفية التاريخ',
+    viewReport: 'عرض التقرير',
+    footerTipTitle: '💡 نصيحة',
+    footerTipDescription: 'جميع التقارير قابلة للتصدير كملفات PDF و Excel. استخدم مرشحات التاريخ لتضييق نطاق البيانات التي تريد تحليلها.',
+    buttonGetStarted: 'ابدأ هنا',
+    buttonBackDashboard: 'العودة للرئيسية',
+    badgeFinancial: 'مالي',
+    badgeAnalysis: 'تحليل',
+    badgeInvestment: 'استثماري',
+    badgeSecurity: 'أمان',
+    incomeStatement: {
+      title: 'قائمة الدخل',
+      description: 'بيان بالإيرادات والمصروفات في فترة زمنية محددة'
+    },
+    balanceSheet: {
+      title: 'الميزانية العمومية',
+      description: 'موقف الأصول والخصوم والملكية في تاريخ معين'
+    },
+    cashFlow: {
+      title: 'بيان التدفق النقدي',
+      description: 'حركة النقد الداخلة والخارجة خلال فترة زمنية'
+    },
+    trialBalance: {
+      title: 'ميزان المراجعة',
+      description: 'تحقق من توازن الحسابات قبل الترحيل النهائي'
+    },
+    performance: {
+      title: 'تقييم الأداء',
+      description: 'تحليل الإيرادات والمصروفات والأرباح عبر الزمن'
+    },
+    channelAnalysis: {
+      title: 'تحليل القنوات',
+      description: 'مقارنة الإيرادات والأداء حسب قناة التوزيع'
+    },
+    vatSummary: {
+      title: 'ملخص الضريبة المضافة',
+      description: 'تفاصيل الضريبة المضافة على المشتريات والمبيعات'
+    },
+    wasteAnalysis: {
+      title: 'تحليل الهدر',
+      description: 'متابعة نسبة الهدر من المواد الخام والقيمة المفقودة'
+    },
+    breakeven: {
+      title: 'نقطة التعادل',
+      description: 'حساب نقطة التعادل والهامش الآمن للعمليات'
+    },
+    ledger: {
+      title: 'الأستاذ العام',
+      description: 'تفاصيل جميع الحركات على كل حساب'
+    },
+    auditLog: {
+      title: 'سجل المراجعة',
+      description: 'تتبع جميع العمليات والتعديلات والمستخدمين'
+    }
   }
 }

@@ -45,7 +45,7 @@ export default function WasteAnalysisPage() {
 
         {isLoading ? (
           <div style={{ display: 'grid', gap: 20 }}>
-            {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 150, borderRadius: 16 }} />)}
+            {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 150, borderRadius: 12 }} />)}
           </div>
         ) : data ? (
           <motion.div variants={staggerContainer} initial="initial" animate="animate" style={{ display: 'grid', gap: 20 }}>

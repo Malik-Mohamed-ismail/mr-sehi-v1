@@ -28,6 +28,7 @@ const ChannelAnalysisPage      = lazy(() => import('./features/reports/ChannelAn
 const WasteAnalysisPage        = lazy(() => import('./features/reports/WasteAnalysisPage'))
 const BreakEvenPage            = lazy(() => import('./features/reports/BreakEvenPage'))
 const VATSummaryPage           = lazy(() => import('./features/reports/VATSummaryPage'))
+const ReportsHubPage           = lazy(() => import('./features/reports/ReportsHubPage'))
 const AuditLogPage             = lazy(() => import('./features/settings/AuditLogPage'))
 const UsersPage                = lazy(() => import('./features/settings/UsersPage'))
 const SettingsPage             = lazy(() => import('./features/settings/SettingsPage'))
@@ -37,20 +38,6 @@ const TrialBalancePage         = lazy(() =>
 const LedgerPage               = lazy(() =>
   import('./features/reports/TrialBalancePage').then(m => ({ default: m.LedgerPage }))
 )
-
-function ComingSoon({ title }: { title: string }) {
-  return (
-    <div style={{ padding: '60px 24px', textAlign: 'center' }}>
-      <div style={{
-        width: 64, height: 64, borderRadius: '50%', margin: '0 auto 20px',
-        background: 'var(--color-primary-light)', border: '2px solid var(--color-primary)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24,
-      }}>⏳</div>
-      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{title}</h2>
-      <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>هذه الصفحة قيد التطوير</p>
-    </div>
-  )
-}
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 0, refetchOnWindowFocus: true } },
@@ -108,7 +95,7 @@ export default function App() {
             <Route path="vat-summary"           element={<PageSuspense><VATSummaryPage /></PageSuspense>} />
             <Route path="audit-log"             element={<PageSuspense><AuditLogPage /></PageSuspense>} />
             <Route path="users"                 element={<PageSuspense><UsersPage /></PageSuspense>} />
-            <Route path="reports"               element={<ComingSoon title="التقارير والتحليلات" />} />
+            <Route path="reports"               element={<PageSuspense><ReportsHubPage /></PageSuspense>} />
             <Route path="settings"              element={<PageSuspense><SettingsPage /></PageSuspense>} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

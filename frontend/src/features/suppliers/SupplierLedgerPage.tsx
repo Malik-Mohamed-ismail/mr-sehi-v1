@@ -59,8 +59,8 @@ export default function SupplierLedgerPage() {
 
         {isLoading ? (
           <div style={{ display: 'grid', gap: 20 }}>
-            <div className="skeleton" style={{ height: 100, borderRadius: 16 }} />
-            <div className="skeleton" style={{ height: 400, borderRadius: 16 }} />
+            <div className="skeleton" style={{ height: 100, borderRadius: 12 }} />
+            <div className="skeleton" style={{ height: 400, borderRadius: 12 }} />
           </div>
         ) : ledger ? (
           <motion.div variants={staggerContainer} initial="initial" animate="animate" style={{ display: 'grid', gap: 20 }}>

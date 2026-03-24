@@ -769,7 +769,15 @@ export default {
     subscribers: 'subscribers',
     subscriber: 'subscriber',
     nextTaxQuarter: 'Next Tax Quarter',
-    vatPayable: 'VAT Payable'
+    vatPayable: 'VAT Payable',
+    welcome: 'Welcome',
+    lastUpdate: 'Last Update:',
+    profitMargin: 'Profit Margin',
+    recentTransactionsTitle: 'Recent Transactions in System',
+    transactionType: 'Transaction Type',
+    transactionAmount: 'Amount',
+    transactionDate: 'Date',
+    noRecentTransactions: 'No recent transactions'
   },
   pages: {
     dashboard: 'Dashboard',
@@ -854,27 +862,6 @@ export default {
     from: 'From',
     to: 'To'
   },
-  reports: {
-    assets: 'Assets',
-    liabilities: 'Liabilities',
-    liabilitiesAndEquity: 'Liabilities & Equity',
-    totalAssets: 'Total Assets',
-    totalLiabEquity: 'Total Liabilities & Equity',
-    subtotal: 'Subtotal',
-    revenueShare: 'Revenue Share',
-    channelComparison: 'Channel Comparison',
-    channel: 'Channel',
-    revenue: 'Revenue',
-    share: 'Share',
-    transactions: 'Transactions',
-    avgPerDay: 'Avg/Day',
-    balanceSheetDesc: 'Financial position report at end of period',
-    cashFlowDesc: 'Cash flows from operating, investing, and financing activities',
-    channelDesc: 'Revenue breakdown by delivery channels',
-    wasteDesc: 'Waste and spoilage analysis in production',
-    breakevenDesc: 'Break-even calculation and safety margin',
-    vatDesc: 'VAT summary for tax filing'
-  },
   cashFlow: {
     operating: 'Operating Activities',
     investing: 'Investing Activities',
@@ -948,5 +935,67 @@ export default {
     active: 'Active',
     inactive: 'Inactive',
     searchPlaceholder: 'Search users...'
+  },
+  reports: {
+    pageTitle: 'Reports Center',
+    pageDescription: 'Get comprehensive insights into your business performance with our detailed financial reports and analytics. All data is updated in real-time.',
+    dateRangeLabel: 'Selected Date Range',
+    categoriesFinancial: '📊 Financial Statements',
+    categoriesAnalysis: '📈 Advanced Analytics',
+    categoriesOperational: '⚙️ Operational Reports',
+    filterIndicator: 'Requires date filter',
+    viewReport: 'View Report',
+    footerTipTitle: '💡 Tip',
+    footerTipDescription: 'All reports can be exported as PDF and Excel files. Use date filters to narrow down the data you want to analyze.',
+    buttonGetStarted: 'Get Started',
+    buttonBackDashboard: 'Back to Dashboard',
+    badgeFinancial: 'Financial',
+    badgeAnalysis: 'Analysis',
+    badgeInvestment: 'Investment',
+    badgeSecurity: 'Security',
+    incomeStatement: {
+      title: 'Income Statement',
+      description: 'Revenue and expenses statement for a specified time period'
+    },
+    balanceSheet: {
+      title: 'Balance Sheet',
+      description: 'Assets, liabilities, and equity position on a specific date'
+    },
+    cashFlow: {
+      title: 'Cash Flow Statement',
+      description: 'Inflow and outflow of cash during a time period'
+    },
+    trialBalance: {
+      title: 'Trial Balance',
+      description: 'Verify account balance before final posting'
+    },
+    performance: {
+      title: 'Performance Assessment',
+      description: 'Analyze revenue, expenses, and profits over time'
+    },
+    channelAnalysis: {
+      title: 'Channel Analysis',
+      description: 'Compare revenue and performance by distribution channel'
+    },
+    vatSummary: {
+      title: 'VAT Summary',
+      description: 'Details of VAT on purchases and sales'
+    },
+    wasteAnalysis: {
+      title: 'Waste Analysis',
+      description: 'Track waste ratio from raw materials and lost value'
+    },
+    breakeven: {
+      title: 'Break-Even Point',
+      description: 'Calculate break-even point and operational safety margin'
+    },
+    ledger: {
+      title: 'General Ledger',
+      description: 'Details of all transactions on each account'
+    },
+    auditLog: {
+      title: 'Audit Log',
+      description: 'Track all operations, modifications, and users'
+    }
   }
 }

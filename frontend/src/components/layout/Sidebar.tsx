@@ -129,11 +129,12 @@ export function Sidebar() {
         top: 0, bottom: 0,
         ...(isRtl ? { right: 0 } : { left: 0 }),
         zIndex:        100,
-        background:    '#132E11',
+        background:    'linear-gradient(180deg, #0a0d16 0%, #07080f 50%, #0f111d 100%)',
         display:       'flex',
         flexDirection: 'column',
         overflow:      'hidden',
-        borderInlineEnd: '1px solid rgba(255,255,255,0.06)',
+        borderInlineEnd: '1px solid rgba(212,168,83,0.12)',
+        backdropFilter: 'blur(10px)',
       }}
     >
 
@@ -141,8 +142,9 @@ export function Sidebar() {
       <div style={{
         height: 64, padding: '0 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        borderBottom: '1px solid rgba(212,168,83,0.1)',
         flexShrink: 0, gap: 8,
+        background: 'linear-gradient(180deg, rgba(212,168,83,0.08) 0%, transparent 100%)',
       }}>
         {/* Logo + name (hidden when collapsed) */}
         <AnimatePresence initial={false}>
@@ -158,11 +160,11 @@ export function Sidebar() {
               <img src="/logo_icon_only.png" alt="logo"
                 style={{ width: 38, height: 38, objectFit: 'contain', flexShrink: 0 }} />
               <div style={{ overflow: 'hidden' }}>
-                <div style={{ color: '#FFF', fontWeight: 700, fontSize: 15, lineHeight: 1.2,
+                <div style={{ color: '#EDE9E0', fontWeight: 700, fontSize: 15, lineHeight: 1.2,
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {t('layout.title')}
                 </div>
-                <div style={{ color: '#C8DEC6', fontSize: 10, opacity: 0.6, whiteSpace: 'nowrap' }}>
+                <div style={{ color: '#D4A853', fontSize: 10, opacity: 0.8, whiteSpace: 'nowrap', fontWeight: 600 }}>
                   {t('sidebar.systemName')}
                 </div>
               </div>
@@ -184,13 +186,19 @@ export function Sidebar() {
             flexShrink: 0,
             width: 26, height: 26,
             borderRadius: 6, border: 'none', cursor: 'pointer',
-            background: 'rgba(255,255,255,0.08)',
+            background: 'rgba(212,168,83,0.12)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'rgba(200,222,198,0.7)',
-            transition: 'background 0.15s',
+            color: '#D4A853',
+            transition: 'all 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.16)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+          onMouseEnter={e => {
+            (e.currentTarget.style.background = 'rgba(212,168,83,0.25)');
+            (e.currentTarget.style.boxShadow = '0 0 12px rgba(212,168,83,0.2)');
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget.style.background = 'rgba(212,168,83,0.12)');
+            (e.currentTarget.style.boxShadow = 'none');
+          }}
         >
           {/* In RTL: right arrow means "expand towards right", swap icons */}
           {isRtl
@@ -234,8 +242,8 @@ export function Sidebar() {
                     fontSize: 10, fontWeight: 700,
                     letterSpacing: '0.8px',
                     textTransform: 'uppercase',
-                    color: sectionHasActive ? '#C47A3C' : '#C8DEC6',
-                    opacity: sectionHasActive ? 1 : 0.5,
+                    color: sectionHasActive ? '#D4A853' : '#8B7F7F',
+                    opacity: sectionHasActive ? 1 : 0.6,
                     transition: 'color 0.2s, opacity 0.2s',
                   }}>
                     {t(section.title)}
@@ -243,7 +251,7 @@ export function Sidebar() {
                   <motion.span
                     animate={{ rotate: isSectionOpen ? 0 : -90 }}
                     transition={{ duration: 0.2 }}
-                    style={{ display: 'flex', color: 'rgba(200,222,198,0.4)' }}
+                    style={{ display: 'flex', color: '#D4A853' }}
                   >
                     <ChevronDown size={12}/>
                   </motion.span>
@@ -255,7 +263,7 @@ export function Sidebar() {
                 <div style={{
                   height: 1,
                   margin: '6px 12px',
-                  background: 'rgba(255,255,255,0.07)',
+                  background: 'rgba(212,168,83,0.08)',
                 }}/>
               )}
 
@@ -282,29 +290,30 @@ export function Sidebar() {
                             alignItems:     'center',
                             gap:            expanded ? 11 : 0,
                             justifyContent: expanded ? 'flex-start' : 'center',
-                            padding:        expanded ? '9px 20px' : '10px 0',
-                            margin:         '1px 0',
+                            padding:        expanded ? '10px 16px' : '10px 0',
+                            margin:         '2px 8px',
+                            borderRadius:   expanded ? 8 : 0,
                             textDecoration: 'none',
-                            background:     active ? 'rgba(43,146,37,0.90)' : 'transparent',
-                            color:          active ? '#FFFFFF' : '#C8DEC6',
+                            background:     active ? 'rgba(212,168,83,0.15)' : 'transparent',
+                            color:          active ? '#D4A853' : '#8B7F7F',
                             fontSize:       13,
-                            fontWeight:     active ? 600 : 400,
+                            fontWeight:     active ? 600 : 500,
                             borderInlineStart: (active && expanded)
-                              ? '3px solid #C47A3C'
-                              : '3px solid transparent',
-                            transition:     'background 0.15s, color 0.15s',
+                              ? '2px solid #D4A853'
+                              : '2px solid transparent',
+                            transition:     'all 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
                             position:       'relative',
                           }}
                           onMouseEnter={e => {
                             if (!active) {
-                              e.currentTarget.style.background = '#1F4A1C'
-                              e.currentTarget.style.color = '#FFFFFF'
+                              e.currentTarget.style.background = 'rgba(212,168,83,0.08)';
+                              e.currentTarget.style.color = '#D4A853';
                             }
                           }}
                           onMouseLeave={e => {
                             if (!active) {
-                              e.currentTarget.style.background = 'transparent'
-                              e.currentTarget.style.color = '#C8DEC6'
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = '#8B7F7F';
                             }
                           }}
                         >
@@ -314,7 +323,7 @@ export function Sidebar() {
                               position: 'absolute',
                               insetInlineStart: 0, top: '50%', transform: 'translateY(-50%)',
                               width: 3, height: 20, borderRadius: 2,
-                              background: '#C47A3C',
+                              background: '#D4A853',
                             }}/>
                           )}
 

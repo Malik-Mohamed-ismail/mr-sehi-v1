@@ -44,13 +44,13 @@ export default function BreakEvenPage() {
 
         {isLoading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-            {[1,2,3,4,5,6].map(i => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 16 }} />)}
+            {[1,2,3,4,5,6].map(i => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 12 }} />)}
           </div>
         ) : data ? (
           <motion.div variants={staggerContainer} initial="initial" animate="animate" style={{ display: 'grid', gap: 20 }}>
             {/* Status Banner */}
             <motion.div variants={staggerItem} style={{
-              padding: 20, borderRadius: 16, display: 'flex', alignItems: 'center', gap: 16,
+              padding: 20, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 16,
               background: isBeyond ? 'var(--color-success-bg)' : 'var(--color-danger-bg)',
               border: `1.5px solid ${isBeyond ? 'rgba(29,184,123,0.3)' : 'rgba(232,56,77,0.3)'}`,
             }}>

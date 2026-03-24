@@ -42,7 +42,7 @@ export default function VATSummaryPage() {
 
         {isLoading ? (
           <div style={{ display: 'grid', gap: 16 }}>
-            {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 16 }} />)}
+            {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 12 }} />)}
           </div>
         ) : data ? (
           <motion.div variants={staggerContainer} initial="initial" animate="animate" style={{ display: 'grid', gap: 20 }}>

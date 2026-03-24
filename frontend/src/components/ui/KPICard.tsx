@@ -58,8 +58,8 @@ export function KPICard({ label, value, prefix = '', suffix = '', decimals = 2, 
       whileHover="hover"
       variants={cardHover}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+        <div>
           <div className="kpi-label">{label}</div>
           <AnimatedNumber
             value={value}
@@ -69,7 +69,7 @@ export function KPICard({ label, value, prefix = '', suffix = '', decimals = 2, 
           />
           {delta !== undefined && (
             <div className={`kpi-delta ${isPositive ? 'positive' : 'negative'}`}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 6 }}>
               {isPositive
                 ? <TrendingUp size={12}/>
                 : <TrendingDown size={12}/>}
@@ -77,7 +77,7 @@ export function KPICard({ label, value, prefix = '', suffix = '', decimals = 2, 
             </div>
           )}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginTop: 12 }}>
           {icon && (
             <div style={{
               width: 40, height: 40, borderRadius: '10px',

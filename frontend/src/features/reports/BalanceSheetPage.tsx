@@ -16,7 +16,7 @@ function BalanceGroup({ group, color }: { group: any; color: string }) {
   const [open, setOpen] = useState(true)
 
   return (
-    <div style={{ background: 'var(--bg-page)', borderRadius: 12, border: '1px solid var(--border-color)', marginBottom: 16, overflow: 'hidden', transition: 'all 0.2s', boxShadow: open ? '0 4px 12px rgba(0,0,0,0.02)' : 'none' }}>
+    <div style={{ background: 'var(--bg-page)', borderRadius: 8, border: '1px solid var(--border-color)', marginBottom: 16, overflow: 'hidden', transition: 'all 0.2s', boxShadow: open ? '0 4px 12px rgba(0,0,0,0.02)' : 'none' }}>
       <button 
         onClick={() => setOpen(!open)} 
         style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer', outline: 'none' }}
@@ -103,8 +103,8 @@ export default function BalanceSheetPage() {
 
         {isLoading ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-             <div className="skeleton" style={{ height: 120, borderRadius: 16, gridColumn: '1 / -1' }} />
-            {[1, 2].map(i => <div key={i} className="skeleton" style={{ height: 500, borderRadius: 16 }} />)}
+             <div className="skeleton" style={{ height: 120, borderRadius: 12, gridColumn: '1 / -1' }} />
+            {[1, 2].map(i => <div key={i} className="skeleton" style={{ height: 500, borderRadius: 12 }} />)}
           </div>
         ) : data ? (
           <motion.div variants={staggerContainer} initial="initial" animate="animate">
@@ -112,7 +112,7 @@ export default function BalanceSheetPage() {
             {/* KPI Summary Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, marginBottom: 32 }}>
               <motion.div variants={staggerItem} className="card" style={{ display: 'flex', alignItems: 'center', gap: 20, padding: 24, border: '1px solid var(--border-color)', borderBottom: '4px solid var(--color-primary)' }}>
-                <div style={{ width: 56, height: 56, borderRadius: '16px', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
+                <div style={{ width: 56, height: 56, borderRadius: '12px', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
                   <Wallet size={28} />
                 </div>
                 <div style={{ flex: 1 }}>
@@ -124,7 +124,7 @@ export default function BalanceSheetPage() {
               </motion.div>
 
               <motion.div variants={staggerItem} className="card" style={{ display: 'flex', alignItems: 'center', gap: 20, padding: 24, border: '1px solid var(--border-color)', borderBottom: '4px solid #C47A3C' }}>
-                <div style={{ width: 56, height: 56, borderRadius: '16px', background: '#FDF0E4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C47A3C' }}>
+                <div style={{ width: 56, height: 56, borderRadius: '12px', background: '#FDF0E4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C47A3C' }}>
                   <Scale size={28} />
                 </div>
                 <div style={{ flex: 1 }}>
@@ -151,7 +151,7 @@ export default function BalanceSheetPage() {
               <motion.div variants={staggerItem} className="card" style={{ padding: 24, background: 'var(--bg-surface)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 20, marginBottom: 20, borderBottom: '2px solid var(--border-color)' }}>
                   <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>{t('reports.assets')}</h2>
-                  <div style={{ padding: '6px 12px', background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '20px', fontSize: 13, fontWeight: 700 }}>
+                  <div style={{ padding: '6px 12px', background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '14px', fontSize: 13, fontWeight: 700 }}>
                     {Number(data.totalAssets ?? 0).toLocaleString('en-US')}
                   </div>
                 </div>
@@ -165,7 +165,7 @@ export default function BalanceSheetPage() {
               <motion.div variants={staggerItem} className="card" style={{ padding: 24, background: 'var(--bg-surface)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 20, marginBottom: 20, borderBottom: '2px solid var(--border-color)' }}>
                   <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>{t('reports.liabilitiesAndEquity')}</h2>
-                  <div style={{ padding: '6px 12px', background: '#FDF0E4', color: '#C47A3C', borderRadius: '20px', fontSize: 13, fontWeight: 700 }}>
+                  <div style={{ padding: '6px 12px', background: '#FDF0E4', color: '#C47A3C', borderRadius: '14px', fontSize: 13, fontWeight: 700 }}>
                     {Number(data.totalLiabilitiesAndEquity ?? 0).toLocaleString('en-US')}
                   </div>
                 </div>
@@ -178,7 +178,7 @@ export default function BalanceSheetPage() {
 
           </motion.div>
         ) : (
-          <div style={{ textAlign: 'center', padding: 100, color: 'var(--text-secondary)', background: 'var(--bg-surface)', borderRadius: 24, border: '1px dashed var(--border-color)' }}>
+          <div style={{ textAlign: 'center', padding: 100, color: 'var(--text-secondary)', background: 'var(--bg-surface)', borderRadius: 16, border: '1px dashed var(--border-color)' }}>
              <Scale size={48} color="var(--border-color)" style={{ margin: '0 auto 16px' }} />
              <p>{t('common.noData')}</p>
           </div>
