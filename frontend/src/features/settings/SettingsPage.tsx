@@ -213,6 +213,10 @@ function UsersManagementTab() {
     <>
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 20 }}>
+          <div className="form-card-header">
+            <span className="form-card-header-title">➕ {t('settings.users.newUser')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق">&#x2715;</button>
+          </div>
           <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir={i18n.dir()}>
             <div className="form-section-header">
               <div className="form-section-number">١</div>

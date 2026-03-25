@@ -41,21 +41,19 @@ export default function LoginPage() {
 
   return (
     <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(145deg, #132E11 0%, #1A3D18 40%, #2B6B27 100%)',
+      height: '100vh',
+      background: 'linear-gradient(160deg, #0C2010 0%, #132E11 45%, #1A4515 100%)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: 24,
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Decorative radial gradients */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: `
-          radial-gradient(ellipse at 30% 60%, rgba(196,122,60,0.15) 0%, transparent 60%),
-          radial-gradient(ellipse at 70% 20%, rgba(43,146,37,0.20) 0%, transparent 50%)
-        `,
-      }}/>
+      {/* Glowing orbs background */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(43,146,37,0.18) 0%, transparent 70%)', top: '-10%', right: '-10%' }}/>
+        <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,100,27,0.22) 0%, transparent 70%)', bottom: '-15%', left: '-10%' }}/>
+        <div style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,168,83,0.07) 0%, transparent 70%)', top: '40%', left: '30%' }}/>
+      </div>
 
       <motion.div
         variants={slideUp} initial="initial" animate="animate"
@@ -71,8 +69,8 @@ export default function LoginPage() {
       >
         {/* Animated gradient header */}
         <div style={{
-          background: 'linear-gradient(135deg, #132E11 0%, #1F6E1A 50%, #1A3D18 100%)',
-          padding: '40px 32px 32px',
+          background: 'linear-gradient(135deg, #0F2510 0%, #1A4A19 50%, #132E11 100%)',
+          padding: '28px 32px 24px',
           textAlign: 'center',
           position: 'relative',
           overflow: 'hidden',
@@ -87,30 +85,36 @@ export default function LoginPage() {
           }}/>
           
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <img
-              src="/logo_icon_only.png"
-              alt="مستر صحي"
-              style={{ 
-                width: 64, 
-                height: 64, 
-                objectFit: 'contain', 
-                marginBottom: 16,
-                filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.15))',
-              }}
-            />
+            <div style={{
+              width: 64, height: 64,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.95)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 14px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+            }}>
+              <img
+                src="/logo_icon_only.png"
+                alt="مستر صحي"
+                style={{ 
+                  width: 44, 
+                  height: 44, 
+                  objectFit: 'contain',
+                }}
+              />
+            </div>
             <div style={{ 
-              fontSize: 24, 
+              fontSize: 20, 
               fontWeight: 800, 
               color: '#FFFFFF', 
-              marginBottom: 8,
-              letterSpacing: '-0.5px',
+              marginBottom: 4,
+              letterSpacing: '-0.3px',
             }}>
               {t('layout.title') || 'مستر صحي'}
             </div>
             <div style={{ 
-              fontSize: 12, 
-              color: 'rgba(255,255,255,0.70)', 
-              opacity: 0.85,
+              fontSize: 11, 
+              color: 'rgba(255,255,255,0.60)', 
               fontWeight: 500,
             }}>
               {t('auth.subtitle')}
@@ -119,25 +123,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card Body */}
-        <div style={{ padding: '40px 32px' }}>
-          <h2 style={{ 
-            color: '#132E11', 
-            fontSize: 20, 
-            fontWeight: 700, 
-            marginBottom: 8,
-            letterSpacing: '-0.3px',
-          }}>
-            {t('auth.loginTitle')}
-          </h2>
-          <p style={{ 
-            color: '#8A9E88', 
-            fontSize: 14, 
-            marginBottom: 32,
-            lineHeight: 1.5,
-          }}>
-            {t('auth.loginSubtitle')}
-          </p>
-
+        <div style={{ padding: '32px 32px 40px' }}>
           <form onSubmit={handleSubmit(onSubmit)} dir={i18n.dir()}>
             {/* Email */}
             <div className="form-field has-value" style={{ marginBottom: 24 }}>

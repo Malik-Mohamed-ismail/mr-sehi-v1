@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Plus, RefreshCw, Users, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Plus, RefreshCw, Users, CheckCircle, XCircle, Loader2, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -93,7 +93,10 @@ export default function UsersPage() {
         {/* Add user form */}
         {showForm && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 20 }}>
-            <h2 style={{ fontWeight: 600, marginBottom: 16 }}>{t('users.newUser')}</h2>
+            <div className="form-card-header">
+              <span className="form-card-header-title">➕ {t('users.newUser')}</span>
+              <button type="button" className="form-close-btn" onClick={() => { setShowForm(false); reset() }} title="إغلاق"><X size={16}/></button>
+            </div>
             <form onSubmit={handleSubmit(d => createMutation.mutate(d))}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
                 {[
