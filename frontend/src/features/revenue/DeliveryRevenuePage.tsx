@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus, Download } from 'lucide-react'
+import { Plus, Download, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -19,10 +19,10 @@ import { Trash2 } from 'lucide-react'
 
 const schema = z.object({
   revenue_date:     z.string().min(1, i18n.t('delivery.validation.dateRequired')),
-  platform:         z.enum(['Keeta', 'HungerStation', 'Ninja']),
+  platform:         z.string().min(1, i18n.t('validation.required') || 'مطلوب'),
   gross_amount:     z.coerce.number().positive(i18n.t('delivery.validation.grossPositive')),
   commission_rate:  z.coerce.number().min(0).max(1).default(0),
-  payment_method:   z.enum(['كاش', 'بنك', 'آجل']),
+  payment_method:   z.string().min(1, i18n.t('validation.required') || 'مطلوب'),
   notes:            z.string().optional(),
 })
 type FormData = z.infer<typeof schema>
@@ -45,7 +45,17 @@ export default function DeliveryRevenuePage() {
 
   const { register, handleSubmit, watch, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { platform: 'Keeta', commission_rate: 0.15, payment_method: 'بنك' },
+    defaultValues: { commission_rate: 0.15 },
+  })
+
+  // Dynamic lookups
+  const { data: platforms = [] } = useQuery({
+    queryKey: ['lookups', 'platform'],
+    queryFn: () => api.get('/lookups?type=platform').then(r => r.data.data),
+  })
+  const { data: paymentMethods = [] } = useQuery({
+    queryKey: ['lookups', 'payment_method'],
+    queryFn: () => api.get('/lookups?type=payment_method').then(r => r.data.data),
   })
 
   const gross      = watch('gross_amount') ?? 0
@@ -116,23 +126,29 @@ export default function DeliveryRevenuePage() {
 
       {/* Summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
-        {[
-          { label: t('delivery.kpi.gross'), value: totals.gross, color: 'var(--color-primary)' },
-          { label: t('delivery.kpi.commissions'), value: totals.commission, color: 'var(--color-danger)' },
-          { label: t('delivery.kpi.net'), value: totals.net, color: 'var(--color-success)' },
-        ].map(item => (
-          <div key={item.label} className="card" style={{ padding: '16px 20px' }}>
-            <div className="kpi-label">{item.label}</div>
-            <div className="kpi-value" style={{ color: item.color, fontSize: 22 }}>
-              {formatSAR(item.value)}
+        {
+          [
+            { label: t('delivery.kpi.gross'), value: totals.gross, color: 'var(--color-primary)', cls: 'kpi-card-primary' },
+            { label: t('delivery.kpi.commissions'), value: totals.commission, color: 'var(--color-danger)', cls: 'kpi-card-danger' },
+            { label: t('delivery.kpi.net'), value: totals.net, color: 'var(--color-success)', cls: 'kpi-card-success' },
+          ].map(item => (
+            <div key={item.label} className={`card ${item.cls}`} style={{ padding: '16px 20px' }}>
+              <div className="kpi-label">{item.label}</div>
+              <div className="kpi-value" style={{ color: item.color, fontSize: 22 }}>
+                {formatSAR(item.value)}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        }
       </div>
 
       {/* Form */}
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
+          <div className="form-card-header">
+            <span className="form-card-header-title">➕ {t('delivery.newRevenue')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق"><X size={16}/></button>
+          </div>
           <form onSubmit={handleSubmit(onSubmit)} dir={i18n.dir()}>
             <div className="form-section-header">
               <div className="form-section-number">١</div>
@@ -145,18 +161,20 @@ export default function DeliveryRevenuePage() {
               </div>
               <div className="form-field has-value">
                 <label>{t('delivery.table.platform')}</label>
-                <select {...register('platform')} className="form-select">
-                  <option value="Keeta">Keeta</option>
-                  <option value="HungerStation">HungerStation</option>
-                  <option value="Ninja">Ninja</option>
+                <select {...register('platform')} className={`form-select ${errors.platform ? 'is-error' : ''}`}>
+                  <option value="">اختر منصة التوصيل...</option>
+                  {platforms.map((p: any) => (
+                    <option key={p.id} value={p.name_en}>{i18n.language === 'ar' ? p.name_ar : p.name_en}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-field has-value">
                 <label>{t('delivery.fields.paymentMethod')}</label>
-                <select {...register('payment_method')} className="form-select">
-                  <option value="كاش">{t("purchases.paymentMethods.cash")}</option>
-                  <option value="بنك">{t("purchases.paymentMethods.bank")}</option>
-                  <option value="آجل">{t("purchases.paymentMethods.credit")}</option>
+                <select {...register('payment_method')} className={`form-select ${errors.payment_method ? 'is-error' : ''}`}>
+                  <option value="">اختر طريقة الدفع...</option>
+                  {paymentMethods.map((pm: any) => (
+                    <option key={pm.id} value={pm.name_ar}>{i18n.language === 'ar' ? pm.name_ar : pm.name_en}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-field has-value">
@@ -222,11 +240,11 @@ export default function DeliveryRevenuePage() {
                 <motion.tr key={r.id} variants={staggerItem}>
                   <td className="amount">{formatDate(r.revenue_date)}</td>
                   <td>
-                    <span className="badge" style={{ background: PLATFORM_COLORS[r.platform] + '22', color: PLATFORM_COLORS[r.platform] }}>
+                    <span className="badge" style={{ background: (PLATFORM_COLORS[r.platform] || '#6b7280') + '22', color: PLATFORM_COLORS[r.platform] || '#6b7280' }}>
                       {r.platform}
                     </span>
                   </td>
-                  <td><span className="badge badge-neutral">{t(`purchases.paymentMethods.${r.payment_method === 'كاش' ? 'cash' : r.payment_method === 'بنك' ? 'bank' : 'credit'}`)}</span></td>
+                  <td><span className="badge badge-neutral">{r.payment_method}</span></td>
                   <td className="amount">{formatSAR(r.gross_amount)}</td>
                   <td className="amount" style={{ color: 'var(--color-danger)' }}>{formatSAR(r.commission_amount)}</td>
                   <td className="amount" style={{ fontWeight: 700, color: 'var(--color-success)' }}>{formatSAR(r.net_amount)}</td>

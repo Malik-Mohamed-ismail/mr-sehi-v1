@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus, Download, Trash2 } from 'lucide-react'
+import { Plus, Download, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
@@ -37,6 +37,11 @@ export default function ExpensesPage() {
   const { data: expenses, isLoading } = useQuery({
     queryKey: ['expenses'],
     queryFn: () => api.get('/expenses').then(r => r.data.data),
+  })
+
+  const { data: paymentMethods = [] } = useQuery({
+    queryKey: ['lookups', 'payment_method'],
+    queryFn: () => api.get('/lookups?type=payment_method').then(r => r.data.data),
   })
 
   const { register, handleSubmit, watch, reset, formState: { isSubmitting } } = useForm({
@@ -77,7 +82,7 @@ export default function ExpensesPage() {
       [i18n.t('expenses.table.date')]: formatDate(e.expense_date),
       [i18n.t('expenses.table.description')]: e.description,
       [i18n.t('expenses.table.type')]: i18n.t(`expenses.types.${e.expense_type === 'ثابت' ? 'fixed' : e.expense_type === 'متغير' ? 'variable' : e.expense_type === 'تشغيلي' ? 'operational' : 'emergency'}`),
-      [i18n.t('expenses.fields.paymentMethod')]: i18n.t(`purchases.paymentMethods.${e.payment_method === 'كاش' ? 'cash' : e.payment_method === 'بنك' ? 'bank' : 'credit'}`),
+      [i18n.t('expenses.fields.paymentMethod')]: e.payment_method,
       [i18n.t('expenses.table.amount')]: e.amount,
       [i18n.t('expenses.table.vat')]: e.vat_amount,
       [i18n.t('expenses.table.total')]: e.total_amount
@@ -100,8 +105,35 @@ export default function ExpensesPage() {
         </div>
       </div>
 
+      {/* Summary KPI Cards */}
+      {(() => {
+        const total  = (expenses ?? []).reduce((s: number, e: any) => s + Number(e.total_amount), 0)
+        const vat    = (expenses ?? []).reduce((s: number, e: any) => s + Number(e.vat_amount), 0)
+        const count  = (expenses ?? []).length
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
+            <div className="card kpi-card-danger" style={{ padding: '16px 20px' }}>
+              <div className="kpi-label">إجمالي المصروفات</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-danger)' }}>{(expenses ?? []).reduce((s: number, e: any) => s + Number(e.amount), 0).toLocaleString('ar-SA', {style:'currency', currency:'SAR'})}</div>
+            </div>
+            <div className="card kpi-card-warning" style={{ padding: '16px 20px' }}>
+              <div className="kpi-label">ضريبة القيمة المضافة</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-warning)' }}>{vat.toLocaleString('ar-SA', {style:'currency', currency:'SAR'})}</div>
+            </div>
+            <div className="card kpi-card-info" style={{ padding: '16px 20px' }}>
+              <div className="kpi-label">عدد السجلات</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-info)' }}>{count}</div>
+            </div>
+          </div>
+        )
+      })()}
+
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
+          <div className="form-card-header">
+            <span className="form-card-header-title">➕ {t('expenses.newExpense')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق"><X size={16}/></button>
+          </div>
           <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir={i18n.dir()}>
             <div className="form-section-header">
               <div className="form-section-number">١</div>
@@ -127,7 +159,10 @@ export default function ExpensesPage() {
               <div className="form-field has-value">
                 <label>طريقة الدفع</label>
                 <select {...register('payment_method')} className="form-select">
-                  <option value="كاش">{t("purchases.paymentMethods.cash")}</option><option value="بنك">{t("purchases.paymentMethods.bank")}</option><option value="آجل">{t("purchases.paymentMethods.credit")}</option>
+                  <option value="">طريقة الدفع...</option>
+                  {paymentMethods.map((pm: any) => (
+                    <option key={pm.id} value={pm.name_ar}>{i18n.language === 'ar' ? pm.name_ar : pm.name_en}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-field has-value" style={{ gridColumn: '1 / -1' }}><label>{t('expenses.fields.description')}</label><input {...register('description')} className="form-input"/></div>
@@ -164,7 +199,7 @@ export default function ExpensesPage() {
                   <td className="amount">{formatDate(e.expense_date)}</td>
                   <td>{e.description}</td>
                   <td><span className="badge badge-warning">{t(`expenses.types.${e.expense_type === 'ثابت' ? 'fixed' : e.expense_type === 'متغير' ? 'variable' : e.expense_type === 'تشغيلي' ? 'operational' : 'emergency'}`)}</span></td>
-                  <td><span className="badge badge-neutral">{t(`purchases.paymentMethods.${e.payment_method === 'كاش' ? 'cash' : e.payment_method === 'بنك' ? 'bank' : 'credit'}`)}</span></td>
+                  <td><span className="badge badge-neutral">{e.payment_method}</span></td>
                   <td className="amount">{formatSAR(e.amount)}</td>
                   <td className="amount">{formatSAR(e.vat_amount)}</td>
                   <td className="amount" style={{ fontWeight: 700 }}>{formatSAR(e.total_amount)}</td>

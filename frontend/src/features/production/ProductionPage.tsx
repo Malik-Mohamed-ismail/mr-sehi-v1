@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus, Download, Trash2 } from 'lucide-react'
+import { Plus, Download, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
@@ -24,6 +24,11 @@ export default function ProductionPage() {
   const { data: records, isLoading } = useQuery({
     queryKey: ['production'],
     queryFn: () => api.get('/production').then(r => r.data.data),
+  })
+
+  const { data: products = [] } = useQuery({
+    queryKey: ['lookups', 'product_name'],
+    queryFn: () => api.get('/lookups?type=product_name').then(r => r.data.data),
   })
 
   const { data: summary } = useQuery({
@@ -83,12 +88,44 @@ export default function ProductionPage() {
         </div>
       </div>
 
+      {showForm && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
+          <div className="form-card-header">
+            <span className="form-card-header-title">➕ {t('production.newProduction')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق"><X size={16}/></button>
+          </div>
+          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir={i18n.dir()}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 20 }}>
+              <div className="form-field has-value"><label>{t('production.fields.date')}</label><input {...register('production_date')} type="date" className="form-input"/></div>
+              <div className="form-field has-value">
+                <label>{t('production.fields.productName')}</label>
+                <select {...register('product_name', { required: true })} className="form-select">
+                  <option value="">اختر المنتج...</option>
+                  {products.map((p: any) => (
+                    <option key={p.id} value={p.name_ar}>{i18n.language === 'ar' ? p.name_ar : p.name_en}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-field has-value"><label>{t('production.fields.producedKg')}</label><input {...register('produced_kg')} type="number" step="0.001" className="form-input"/></div>
+              <div className="form-field has-value"><label>{t('production.fields.wasteGrams')}</label><input {...register('waste_grams')} type="number" step="1" className="form-input"/></div>
+              <div className="form-field has-value"><label>{t('production.fields.wasteValue')}</label><input {...register('waste_value')} type="number" step="0.01" className="form-input"/></div>
+              <div className="form-field has-value"><label>{t('production.fields.unitCost')}</label><input {...register('unit_cost')} type="number" step="0.01" className="form-input"/></div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>{t('production.buttons.cancel')}</button>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? t('production.buttons.saving') : t('production.buttons.save')}</button>
+            </div>
+          </form>
+        </motion.div>
+      )}
+
       {/* Summary */}
       {summary?.length > 0 && (
         <div className="card" style={{ marginBottom: 24, padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border-color)', fontWeight: 600 }}>{t('production.section1')}</div>
           <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
-            <table className="data-table">
+            <style>{`.summary-table th, .summary-table td { border: 1px solid var(--border-color); }`}</style>
+            <table className="data-table summary-table">
             <thead><tr><th>{t('production.table.product')}</th><th>{t('production.table.productionKg')}</th><th>{t('production.table.wasteGrams')}</th><th>{t('production.table.wasteValue')}</th><th>{t('production.table.wastePct')}</th></tr></thead>
             <tbody>
               {(summary ?? []).map((s: any) => (
@@ -108,25 +145,6 @@ export default function ProductionPage() {
           </table>
           </div>
         </div>
-      )}
-
-      {showForm && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
-          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir={i18n.dir()}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 20 }}>
-              <div className="form-field has-value"><label>{t('production.fields.date')}</label><input {...register('production_date')} type="date" className="form-input"/></div>
-              <div className="form-field has-value"><label>{t('production.fields.productName')}</label><input {...register('product_name')} className="form-input"/></div>
-              <div className="form-field has-value"><label>{t('production.fields.producedKg')}</label><input {...register('produced_kg')} type="number" step="0.001" className="form-input"/></div>
-              <div className="form-field has-value"><label>{t('production.fields.wasteGrams')}</label><input {...register('waste_grams')} type="number" step="1" className="form-input"/></div>
-              <div className="form-field has-value"><label>{t('production.fields.wasteValue')}</label><input {...register('waste_value')} type="number" step="0.01" className="form-input"/></div>
-              <div className="form-field has-value"><label>{t('production.fields.unitCost')}</label><input {...register('unit_cost')} type="number" step="0.01" className="form-input"/></div>
-            </div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>{t('production.buttons.cancel')}</button>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? t('production.buttons.saving') : t('production.buttons.save')}</button>
-            </div>
-          </form>
-        </motion.div>
       )}
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>

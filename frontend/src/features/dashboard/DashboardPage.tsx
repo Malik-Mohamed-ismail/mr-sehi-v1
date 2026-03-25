@@ -9,7 +9,8 @@ import {
 import { useTranslation } from 'react-i18next'
 import {
   TrendingUp, TrendingDown, Wallet, Target,
-  ArrowUpRight, ArrowDownLeft, Zap, DollarSign
+  ArrowUpRight, ArrowDownLeft, Zap, DollarSign,
+  Plus, Edit2, Trash2, LogIn, Download, ArrowRight, Activity
 } from 'lucide-react'
 import { api } from '../../lib/api'
 import { useAuthStore } from '../../store/authStore'
@@ -49,7 +50,7 @@ function KPICard({ title, value, trend, icon, color, sparkline }: any) {
       style={{
         background: scheme.bg,
         border: `1.5px solid ${scheme.border}`,
-        borderRadius: 12,
+        borderRadius: 2,
         padding: 24,
         position: 'relative',
         overflow: 'hidden',
@@ -85,7 +86,7 @@ function KPICard({ title, value, trend, icon, color, sparkline }: any) {
           <div style={{
             width: 40,
             height: 40,
-            borderRadius: 10,
+            borderRadius: 2,
             background: `${scheme.icon}15`,
             display: 'flex',
             alignItems: 'center',
@@ -144,8 +145,8 @@ export default function DashboardPage() {
   })
 
   const { data: recentTransactions = [] } = useQuery({
-    queryKey: ['recent-transactions'],
-    queryFn: () => api.get('/audit-log?limit=10').then(r => r.data.data || []),
+    queryKey: ['recent-transactions', user?.id],
+    queryFn: () => api.get(`/audit-log?limit=10&user_id=${user?.id || ''}`).then(r => r.data.data || []),
     staleTime: 2 * 60 * 1000,
   })
 
@@ -282,7 +283,7 @@ export default function DashboardPage() {
             style={{
               background: 'rgba(212,168,83,0.05)',
               border: '1px solid rgba(212,168,83,0.10)',
-              borderRadius: 12,
+              borderRadius: 2,
               padding: 24,
               overflow: 'hidden',
             }}
@@ -307,7 +308,7 @@ export default function DashboardPage() {
                     contentStyle={{
                       background: 'var(--bg-surface)',
                       border: '1px solid rgba(212,168,83,0.2)',
-                      borderRadius: 8,
+                      borderRadius: 2,
                       fontFamily: 'var(--font-latin)',
                     }}
                     itemStyle={{ fontFamily: 'var(--font-latin)' }}
@@ -334,7 +335,7 @@ export default function DashboardPage() {
             style={{
               background: 'rgba(29,184,123,0.05)',
               border: '1px solid rgba(29,184,123,0.10)',
-              borderRadius: 12,
+              borderRadius: 2,
               padding: 24,
               overflow: 'hidden',
             }}
@@ -353,7 +354,7 @@ export default function DashboardPage() {
                     contentStyle={{
                       background: 'var(--bg-surface)',
                       border: '1px solid rgba(29,184,123,0.2)',
-                      borderRadius: 8,
+                      borderRadius: 2,
                       fontFamily: 'var(--font-latin)',
                     }}
                     itemStyle={{ fontFamily: 'var(--font-latin)' }}
@@ -375,7 +376,7 @@ export default function DashboardPage() {
           style={{
             background: 'rgba(59,130,246,0.05)',
             border: '1px solid rgba(59,130,246,0.10)',
-            borderRadius: 12,
+            borderRadius: 2,
             padding: 24,
             overflow: 'hidden',
           }}
@@ -390,7 +391,7 @@ export default function DashboardPage() {
               <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }}>
                 <div style={{
                   padding: 16,
-                  borderRadius: 8,
+                  borderRadius: 2,
                   background: `${channel.color}10`,
                   border: `1px solid ${channel.color}20`,
                   textAlign: 'center',
@@ -429,7 +430,7 @@ export default function DashboardPage() {
           style={{
             background: 'rgba(212,168,83,0.05)',
             border: '1px solid rgba(212,168,83,0.10)',
-            borderRadius: 16,
+            borderRadius: 2,
             padding: 24,
             overflow: 'hidden',
             marginTop: 32,
@@ -441,116 +442,113 @@ export default function DashboardPage() {
           </h3>
 
           {recentTransactions && recentTransactions.length > 0 ? (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                fontSize: 13,
-              }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(212,168,83,0.15)' }}>
-                    <th style={{
-                      padding: '12px 8px',
-                      textAlign: i18n.language === 'ar' ? 'right' : 'left',
-                      color: 'var(--text-secondary)',
-                      fontWeight: 600,
-                      fontSize: 12,
+            <div style={{ position: 'relative', paddingRight: 8, paddingLeft: 8, maxHeight: 420, overflowY: 'auto', overflowX: 'auto' }}>
+              {recentTransactions.map((tx: any, idx: number) => {
+                const getActionDetails = (action: string) => {
+                  switch(action) {
+                    case 'CREATE': return { icon: <Plus size={16}/>, color: '#1db87b', bg: 'rgba(29,184,123,0.15)', label: 'إضافة جديد' }
+                    case 'UPDATE': return { icon: <Edit2 size={16}/>, color: '#3b82f6', bg: 'rgba(59,130,246,0.15)', label: 'تحديث بيانات' }
+                    case 'DELETE': return { icon: <Trash2 size={16}/>, color: '#e8384d', bg: 'rgba(232,56,77,0.15)', label: 'حذف سجل' }
+                    case 'LOGIN':  return { icon: <LogIn size={16}/>, color: '#D4A853', bg: 'rgba(212,168,83,0.15)', label: 'تسجيل دخول' }
+                    case 'EXPORT': return { icon: <Download size={16}/>, color: '#8b5cf6', bg: 'rgba(139,92,246,0.15)', label: 'تصدير بيانات' }
+                    default:       return { icon: <Activity size={16}/>, color: '#8A9E88', bg: 'rgba(138,158,136,0.15)', label: action || 'عملية' }
+                  }
+                }
+
+                const getTableLabel = (table: string) => {
+                  if (!table) return 'النظام'
+                  const map: Record<string, string> = {
+                    'journal_entries': 'القيود اليومية',
+                    'invoices': 'الفواتير',
+                    'users': 'المستخدمين',
+                    'accounts': 'الحسابات',
+                    'system': 'النظام',
+                  }
+                  return map[table] || table
+                }
+
+                const details = getActionDetails(tx.action || tx.type)
+                const isLast = idx === recentTransactions.length - 1
+
+                return (
+                  <motion.div 
+                    key={idx}
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    viewport={{ once: true }}
+                    style={{ display: 'flex', gap: 16, marginBottom: isLast ? 0 : 24, position: 'relative' }}
+                  >
+                    {/* Connection Line */}
+                    {!isLast && (
+                      <div style={{ 
+                        position: 'absolute', 
+                        right: 19, 
+                        top: 40, 
+                        bottom: -32, 
+                        width: 2, 
+                        background: 'rgba(212,168,83,0.15)', 
+                        zIndex: 0 
+                      }} />
+                    )}
+                    
+                    {/* Action Icon */}
+                    <div style={{ 
+                      width: 40, 
+                      height: 40, 
+                      borderRadius: '50%', 
+                      background: details.bg, 
+                      color: details.color, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      zIndex: 1, 
+                      flexShrink: 0,
+                      boxShadow: `0 0 12px ${details.color}20`,
                     }}>
-                      {t('dashboard.transactionType')}
-                    </th>
-                    <th style={{
-                      padding: '12px 8px',
-                      textAlign: i18n.language === 'ar' ? 'right' : 'left',
-                      color: 'var(--text-secondary)',
-                      fontWeight: 600,
-                      fontSize: 12,
-                    }}>
-                      المستخدم / البيان
-                    </th>
-                    <th style={{
-                      padding: '12px 8px',
-                      textAlign: i18n.language === 'ar' ? 'right' : 'left',
-                      color: 'var(--text-secondary)',
-                      fontWeight: 600,
-                      fontSize: 12,
-                    }}>
-                      {t('dashboard.transactionDate')}
-                    </th>
-                    <th style={{
-                      padding: '12px 8px',
-                      textAlign: i18n.language === 'ar' ? 'right' : 'left',
-                      color: 'var(--text-secondary)',
-                      fontWeight: 600,
-                      fontSize: 12,
-                    }}>
-                      الإجراء
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentTransactions.map((tx: any, idx: number) => (
-                    <tr
-                      key={idx}
-                      style={{
-                        borderBottom: '1px solid rgba(212,168,83,0.1)',
-                        transition: 'background-color 0.2s',
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(212,168,83,0.08)')}
-                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      {details.icon}
+                    </div>
+                    
+                    {/* Content Card */}
+                    <div style={{ 
+                      flex: 1, 
+                      background: 'var(--bg-surface)', 
+                      border: '1px solid rgba(212,168,83,0.15)', 
+                      borderRadius: 2, 
+                      padding: '16px 20px',
+                      transition: 'all 0.2s ease',
+                      position: 'relative',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'}
+                    onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
                     >
-                      <td style={{
-                        padding: '12px 8px',
-                        color: 'var(--text-primary)',
-                        textAlign: i18n.language === 'ar' ? 'right' : 'left',
-                      }}>
-                        <span style={{
-                          display: 'inline-block',
-                          padding: '4px 8px',
-                          borderRadius: 6,
-                          background: 'rgba(212,168,83,0.15)',
-                          color: '#D4A853',
-                          fontWeight: 500,
-                          fontSize: 11,
-                        }}>
-                          {tx.action || tx.type || '-'}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                        <strong style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 600 }}>
+                          {details.label} {(tx.table_name || tx.type) && `في ${getTableLabel(tx.table_name || tx.type)}`}
+                        </strong>
+                        <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-latin)', background: 'var(--bg-page)', padding: '4px 8px', borderRadius: 2 }}>
+                          {tx.created_at ? new Date(tx.created_at).toLocaleString(i18n.language === 'ar' ? 'ar-SA' : 'en-GB', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '-'}
                         </span>
-                      </td>
-                      <td style={{
-                        padding: '12px 8px',
-                        color: 'var(--text-secondary)',
-                        textAlign: i18n.language === 'ar' ? 'right' : 'left',
-                      }}>
-                        {tx.user_name || tx.description || '-'}
-                      </td>
-                      <td style={{
-                        padding: '12px 8px',
-                        color: 'var(--text-secondary)',
-                        textAlign: i18n.language === 'ar' ? 'right' : 'left',
-                        fontFamily: 'var(--font-latin)',
-                      }}>
-                        {tx.created_at ? new Date(tx.created_at).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-GB') : '-'}
-                      </td>
-                      <td style={{
-                        padding: '12px 8px',
-                        color: 'var(--text-secondary)',
-                        textAlign: i18n.language === 'ar' ? 'right' : 'left',
-                      }}>
-                        <span style={{
-                          display: 'inline-block',
-                          padding: '4px 8px',
-                          borderRadius: 4,
-                          background: 'rgba(29,184,123,0.15)',
-                          color: '#1db87b',
-                          fontSize: 11,
-                          fontWeight: 500,
-                        }}>
-                          ✓ تم
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 13, color: 'var(--text-secondary)' }}>
+                        {tx.record_id && (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--text-muted)' }} />
+                            رقم السجل: <span style={{ fontFamily: 'var(--font-latin)', color: 'var(--text-primary)', fontWeight: 500 }}>#{tx.record_id}</span>
+                          </span>
+                        )}
+                        {tx.ip_address && (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--text-muted)' }} />
+                            عنوان IP: <span style={{ fontFamily: 'var(--font-latin)', color: 'var(--text-primary)' }}>{tx.ip_address}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })}
             </div>
           ) : (
             <div style={{

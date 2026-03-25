@@ -185,7 +185,7 @@ export function Sidebar() {
           style={{
             flexShrink: 0,
             width: 26, height: 26,
-            borderRadius: 6, border: 'none', cursor: 'pointer',
+            borderRadius: 2, border: 'none', cursor: 'pointer',
             background: 'rgba(212,168,83,0.12)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: '#D4A853',

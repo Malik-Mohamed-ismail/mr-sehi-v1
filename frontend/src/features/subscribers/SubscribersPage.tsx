@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { Plus, RefreshCw, AlertTriangle, Users, Download, Trash2 } from 'lucide-react'
+import { Plus, RefreshCw, AlertTriangle, Users, Download, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api } from '../../lib/api'
@@ -23,7 +23,7 @@ const schema = z.object({
   plan_amount:    z.coerce.number().positive(i18n.t('subscribers.validation.amountRequired')),
   start_date:     z.string().min(1, i18n.t('subscribers.validation.startDateRequired')),
   end_date:       z.string().min(1, i18n.t('subscribers.validation.endDateRequired')),
-  payment_method: z.enum(['كاش', 'بنك', 'آجل']),
+  payment_method: z.string().min(1, i18n.t('validation.required') || 'مطلوب'),
   notes:          z.string().optional(),
 })
 type FormData = z.infer<typeof schema>
@@ -55,6 +55,11 @@ export default function SubscribersPage() {
   const { data: stats } = useQuery({
     queryKey: ['subscribers-stats'],
     queryFn:  () => api.get('/subscribers/stats').then(r => r.data.data),
+  })
+
+  const { data: paymentMethods = [] } = useQuery({
+    queryKey: ['lookups', 'payment_method'],
+    queryFn: () => api.get('/lookups?type=payment_method').then(r => r.data.data),
   })
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -103,7 +108,7 @@ export default function SubscribersPage() {
       [i18n.t('subscribers.table.plan')]: s.plan_name || '-',
       [i18n.t('subscribers.table.endDate')]: formatDate(s.end_date),
       [i18n.t('subscribers.table.amount')]: Number(s.plan_amount),
-      [i18n.t('subscribers.fields.paymentMethod')]: i18n.t(`purchases.paymentMethods.${s.payment_method === 'كاش' ? 'cash' : s.payment_method === 'بنك' ? 'bank' : 'credit'}`),
+      [i18n.t('subscribers.fields.paymentMethod')]: s.payment_method,
       [i18n.t('subscribers.table.status')]: i18n.t(`subscribers.status.${s.status}`),
     }))
     exportToExcel(exportData, i18n.t('subscribers.exportTitle'))
@@ -139,15 +144,15 @@ export default function SubscribersPage() {
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
-        <div className="card" style={{ padding: '16px 20px' }}>
+        <div className="card kpi-card-success" style={{ padding: '16px 20px' }}>
           <div className="kpi-label">{t('subscribers.kpi.active')}</div>
           <div className="kpi-value" style={{ color: 'var(--color-success)', fontSize: 28 }}>{stats?.active ?? 0}</div>
         </div>
-        <div className="card" style={{ padding: '16px 20px' }}>
+        <div className="card kpi-card-danger" style={{ padding: '16px 20px' }}>
           <div className="kpi-label">{t('subscribers.kpi.expired')}</div>
           <div className="kpi-value" style={{ color: 'var(--color-danger)', fontSize: 28 }}>{stats?.expired ?? 0}</div>
         </div>
-        <div className="card" style={{ padding: '16px 20px' }}>
+        <div className="card kpi-card-primary" style={{ padding: '16px 20px' }}>
           <div className="kpi-label">{t('subscribers.kpi.mrr')}</div>
           <div className="kpi-value" style={{ fontSize: 22 }}>{formatSAR(stats?.active_mrr ?? 0)}</div>
         </div>
@@ -156,6 +161,10 @@ export default function SubscribersPage() {
       {/* New subscriber form */}
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
+          <div className="form-card-header">
+            <span className="form-card-header-title">➕ {t('subscribers.newSubscriber')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق"><X size={16}/></button>
+          </div>
           <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir={i18n.dir()}>
             <div className="form-section-header">
               <div className="form-section-number">١</div>
@@ -189,9 +198,10 @@ export default function SubscribersPage() {
               <div className="form-field has-value">
                 <label>{t('subscribers.fields.paymentMethod')}</label>
                 <select {...register('payment_method')} className="form-select">
-                  <option value="كاش">{t("purchases.paymentMethods.cash")}</option>
-                  <option value="بنك">{t("purchases.paymentMethods.bank")}</option>
-                  <option value="آجل">{t("purchases.paymentMethods.credit")}</option>
+                  <option value="">طريقة الدفع...</option>
+                  {paymentMethods.map((pm: any) => (
+                    <option key={pm.id} value={pm.name_ar}>{i18n.language === 'ar' ? pm.name_ar : pm.name_en}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-field has-value">

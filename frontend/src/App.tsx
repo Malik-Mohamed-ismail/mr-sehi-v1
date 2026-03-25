@@ -53,7 +53,7 @@ function PageSuspense({ children }: { children: React.ReactNode }) {
     <Suspense fallback={
       <div style={{ padding: 24 }}>
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="skeleton" style={{ height: 80, marginBottom: 12, borderRadius: 12 }} />
+          <div key={i} className="skeleton" style={{ height: 80, marginBottom: 12, borderRadius: 2 }} />
         ))}
       </div>
     }>
@@ -108,7 +108,7 @@ export default function App() {
           style: {
             fontFamily: 'var(--font-arabic)', 
             direction: 'rtl',
-            borderRadius: '12px', 
+            borderRadius: 2, 
             padding: '16px 20px',
             fontSize: '15px',
             fontWeight: 600,

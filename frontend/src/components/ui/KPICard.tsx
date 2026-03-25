@@ -80,7 +80,7 @@ export function KPICard({ label, value, prefix = '', suffix = '', decimals = 2, 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginTop: 12 }}>
           {icon && (
             <div style={{
-              width: 40, height: 40, borderRadius: '10px',
+              width: 40, height: 40, borderRadius: 2,
               background: 'var(--color-primary-light)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'var(--color-primary)',

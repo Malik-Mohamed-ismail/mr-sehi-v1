@@ -55,7 +55,7 @@ export default function AuditLogPage() {
       <div style={{ padding: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(212,168,83,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 2, background: 'rgba(212,168,83,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Shield size={18} color="var(--color-primary)" />
             </div>
             <div>
@@ -74,7 +74,7 @@ export default function AuditLogPage() {
         </div>
 
         {isLoading ? (
-          <div>{[...Array(8)].map((_, i) => <div key={i} className="skeleton" style={{ height: 50, marginBottom: 4, borderRadius: 8 }} />)}</div>
+          <div>{[...Array(8)].map((_, i) => <div key={i} className="skeleton" style={{ height: 50, marginBottom: 4, borderRadius: 2 }} />)}</div>
         ) : (
           <motion.div variants={staggerContainer} initial="initial" animate="animate">
             <motion.div variants={staggerItem} className="card" style={{ padding: 0, overflow: 'hidden' }}>

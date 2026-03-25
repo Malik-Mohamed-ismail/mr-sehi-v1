@@ -44,13 +44,13 @@ export default function BreakEvenPage() {
 
         {isLoading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-            {[1,2,3,4,5,6].map(i => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 12 }} />)}
+            {[1,2,3,4,5,6].map(i => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 2 }} />)}
           </div>
         ) : data ? (
           <motion.div variants={staggerContainer} initial="initial" animate="animate" style={{ display: 'grid', gap: 20 }}>
             {/* Status Banner */}
             <motion.div variants={staggerItem} style={{
-              padding: 20, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 16,
+              padding: 20, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 16,
               background: isBeyond ? 'var(--color-success-bg)' : 'var(--color-danger-bg)',
               border: `1.5px solid ${isBeyond ? 'rgba(29,184,123,0.3)' : 'rgba(232,56,77,0.3)'}`,
             }}>
@@ -96,13 +96,13 @@ export default function BreakEvenPage() {
                 <span>{t('breakeven.breakeven')}: {Number(data.breakEvenSales ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
                 <span>{t('breakeven.current')}: {Number(data.currentRevenue ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
               </div>
-              <div style={{ height: 20, borderRadius: 10, background: 'var(--bg-surface-2)', overflow: 'hidden', position: 'relative' }}>
+              <div style={{ height: 20, borderRadius: 2, background: 'var(--bg-surface-2)', overflow: 'hidden', position: 'relative' }}>
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(100, (data.currentRevenue / data.breakEvenSales) * 100)}%` }}
                   transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
                   style={{
-                    height: '100%', borderRadius: 10,
+                    height: '100%', borderRadius: 2,
                     background: isBeyond ? 'var(--gradient-success)' : 'var(--gradient-danger)',
                   }}
                 />

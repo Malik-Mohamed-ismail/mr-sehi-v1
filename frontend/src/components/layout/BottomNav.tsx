@@ -26,7 +26,7 @@ export function BottomNav() {
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
             fontSize: 10, textDecoration: 'none',
             color: isActive ? 'var(--color-primary)' : 'var(--text-secondary)',
-            padding: '8px 12px', borderRadius: 12, transition: 'all 0.15s',
+            padding: '8px 12px', borderRadius: 2, transition: 'all 0.15s',
           })}
         >
           {item.icon}

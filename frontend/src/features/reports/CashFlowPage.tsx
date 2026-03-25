@@ -56,7 +56,7 @@ export default function CashFlowPage() {
 
         {isLoading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-            {[1,2,3,4].map(i => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 12 }} />)}
+            {[1,2,3,4].map(i => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 2 }} />)}
           </div>
         ) : data ? (
           <motion.div variants={staggerContainer} initial="initial" animate="animate">

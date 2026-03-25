@@ -58,8 +58,8 @@ export default function PerformancePage() {
 
       {isLoading ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-          {[...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 12 }} />)}
-          <div className="skeleton" style={{ gridColumn: '1 / -1', height: 400, borderRadius: 12, marginTop: 24 }} />
+          {[...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 2 }} />)}
+          <div className="skeleton" style={{ gridColumn: '1 / -1', height: 400, borderRadius: 2, marginTop: 24 }} />
         </div>
       ) : (
         <>
@@ -67,7 +67,7 @@ export default function PerformancePage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, marginBottom: 24 }}>
             <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-secondary)' }}>
-                <div style={{ padding: 8, borderRadius: 8, background: 'rgba(52, 211, 153, 0.1)', color: '#34d399' }}><DollarSign size={20}/></div>
+                <div style={{ padding: 8, borderRadius: 2, background: 'rgba(52, 211, 153, 0.1)', color: '#34d399' }}><DollarSign size={20}/></div>
                 <span style={{ fontWeight: 600 }}>{t('performance.kpi.totalRevenue')}</span>
               </div>
               <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-latin)' }}>
@@ -77,7 +77,7 @@ export default function PerformancePage() {
 
             <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-secondary)' }}>
-                <div style={{ padding: 8, borderRadius: 8, background: 'rgba(248, 113, 113, 0.1)', color: '#f87171' }}><TrendingUp size={20} style={{ transform: 'scaleY(-1)' }}/></div>
+                <div style={{ padding: 8, borderRadius: 2, background: 'rgba(248, 113, 113, 0.1)', color: '#f87171' }}><TrendingUp size={20} style={{ transform: 'scaleY(-1)' }}/></div>
                 <span style={{ fontWeight: 600 }}>{t('performance.kpi.totalExpenses')}</span>
               </div>
               <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-latin)' }}>
@@ -87,7 +87,7 @@ export default function PerformancePage() {
 
             <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12, background: 'linear-gradient(135deg, rgba(43,146,37,0.08) 0%, rgba(43,146,37,0.03) 100%)', border: '1px solid rgba(43,146,37,0.20)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-primary)' }}>
-                <div style={{ padding: 8, borderRadius: 8, background: 'rgba(43,146,37,0.15)', color: 'var(--color-primary)' }}><Activity size={20}/></div>
+                <div style={{ padding: 8, borderRadius: 2, background: 'rgba(43,146,37,0.15)', color: 'var(--color-primary)' }}><Activity size={20}/></div>
                 <span style={{ fontWeight: 700 }}>{t('performance.kpi.netProfit')}</span>
               </div>
               <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-latin)', color: 'var(--color-primary)' }}>
@@ -122,7 +122,7 @@ export default function PerformancePage() {
                 <YAxis stroke="var(--text-secondary)" tick={{ fontFamily: 'var(--font-latin)', fontSize: 12 }} />
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                 <Tooltip 
-                  contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 8, fontFamily: 'var(--font-latin)' }}
+                  contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 2, fontFamily: 'var(--font-latin)' }}
                   itemStyle={{ fontFamily: 'var(--font-latin)' }}
                 />
                 <Legend wrapperStyle={{ paddingTop: 20, fontFamily: i18n.dir() === 'rtl' ? 'var(--font-arabic)' : 'var(--font-latin)' }} />

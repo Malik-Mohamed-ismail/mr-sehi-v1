@@ -29,7 +29,7 @@ export function LanguageToggle() {
         gap: 5,
         height: 36,
         padding: '0 10px',
-        borderRadius: 8,
+        borderRadius: 2,
         border: '1px solid #DDE8DC',
         background: 'transparent',
         cursor: 'pointer',

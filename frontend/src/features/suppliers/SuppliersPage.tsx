@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Plus, CheckCircle, XCircle, Download, Trash2, FileText } from 'lucide-react'
+import { Plus, CheckCircle, XCircle, Download, Trash2, FileText, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api } from '../../lib/api'
@@ -39,6 +39,11 @@ export default function SuppliersPage() {
     queryFn:  () => api.get('/suppliers').then(r => r.data.data),
   })
 
+  const { data: categories = [] } = useQuery({
+    queryKey: ['lookups', 'category'],
+    queryFn: () => api.get('/lookups?type=category').then(r => r.data.data),
+  })
+
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
@@ -67,7 +72,7 @@ export default function SuppliersPage() {
     const exportData = (suppliers ?? []).map((s: any) => ({
       [i18n.t('suppliers.fields.nameAr')]: s.name_ar,
       [i18n.t('suppliers.fields.nameEn')]: s.name_en || '-',
-      [i18n.t('suppliers.fields.category')]: i18n.t(`purchases.categories.${s.category || '-'}`) || '-',
+      [i18n.t('suppliers.fields.category')]: s.category || '-',
       [i18n.t('suppliers.table.vatNumber')]: s.vat_number || i18n.t('suppliers.table.exempt'),
       [i18n.t('suppliers.table.phone')]: s.phone || '-',
       [i18n.t('suppliers.fields.email')]: s.email || '-',
@@ -93,8 +98,35 @@ export default function SuppliersPage() {
         </div>
       </div>
 
+      {/* Summary Cards */}
+      {(() => {
+        const total    = (suppliers ?? []).length
+        const active   = (suppliers ?? []).filter((s: any) => s.is_active).length
+        const vatReg   = (suppliers ?? []).filter((s: any) => s.vat_number).length
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
+            <div className="card kpi-card-primary" style={{ padding: '16px 20px' }}>
+              <div className="kpi-label">إجمالي الموردين</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-primary)' }}>{total}</div>
+            </div>
+            <div className="card kpi-card-success" style={{ padding: '16px 20px' }}>
+              <div className="kpi-label">نشطون</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-success)' }}>{active}</div>
+            </div>
+            <div className="card kpi-card-info" style={{ padding: '16px 20px' }}>
+              <div className="kpi-label">مسجلو ضريبة القيمة المضافة</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-info)' }}>{vatReg}</div>
+            </div>
+          </div>
+        )
+      })()}
+
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
+          <div className="form-card-header">
+            <span className="form-card-header-title">➕ {t('suppliers.newSupplier')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق"><X size={16}/></button>
+          </div>
           <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir={i18n.dir()}>
             <div className="form-section-header">
               <div className="form-section-number">١</div>
@@ -118,8 +150,8 @@ export default function SuppliersPage() {
                 <label>{t('suppliers.fields.category')}</label>
                 <select {...register('category')} className="form-select">
                   <option value="">{t('suppliers.fields.selectCategory')}</option>
-                  {['مواد غذائية','خضار','بلاستيكيات','مشروبات','خبز','معدات مطبخ','مياه'].map(c => (
-                    <option key={c} value={c}>{t(`purchases.categories.${c}`)}</option>
+                  {categories.map((c: any) => (
+                    <option key={c.id} value={c.name_ar}>{i18n.language === 'ar' ? c.name_ar : c.name_en}</option>
                   ))}
                 </select>
               </div>
@@ -163,7 +195,7 @@ export default function SuppliersPage() {
               {(suppliers ?? []).map((s: any) => (
                 <motion.tr key={s.id} variants={staggerItem}>
                   <td style={{ fontWeight: 600 }}>{s.name_ar}</td>
-                  <td>{s.category ? <span className="badge badge-info">{t(`purchases.categories.${s.category}`)}</span> : '—'}</td>
+                  <td>{s.category ? <span className="badge badge-info">{s.category}</span> : '—'}</td>
                   <td className="amount" style={{ fontSize: 12 }}>{s.vat_number ?? '—'}</td>
                   <td className="amount">{s.phone ?? '—'}</td>
                   <td>

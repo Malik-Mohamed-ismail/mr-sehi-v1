@@ -78,7 +78,7 @@ export function DateRangePicker({ from, to, onChange }: DateRangePickerProps) {
                 type="button"
                 onClick={() => { setTempFrom(p.from); setTempTo(p.to); onChange(p.from, p.to); setOpen(false) }}
                 style={{
-                  padding: '4px 10px', borderRadius: 20, border: '1px solid rgba(43,146,37,0.15)',
+                  padding: '4px 10px', borderRadius: 2, border: '1px solid rgba(43,146,37,0.15)',
                   background: 'var(--bg-surface-2)', fontSize: 12, cursor: 'pointer',
                   fontFamily: 'var(--font-arabic)', color: 'var(--text-primary)',
                 }}

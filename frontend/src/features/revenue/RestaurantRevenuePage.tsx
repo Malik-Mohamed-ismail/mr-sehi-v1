@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus, Download } from 'lucide-react'
+import { Plus, Download, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
@@ -25,6 +25,11 @@ export default function RestaurantRevenuePage() {
   const { data: revenues, isLoading } = useQuery({
     queryKey: ['revenue-restaurant'],
     queryFn: () => api.get('/revenue/restaurant').then(r => r.data.data),
+  })
+
+  const { data: paymentMethods = [] } = useQuery({
+    queryKey: ['lookups', 'payment_method'],
+    queryFn: () => api.get('/lookups?type=payment_method').then(r => r.data.data),
   })
 
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm({
@@ -62,7 +67,7 @@ export default function RestaurantRevenuePage() {
       [i18n.t('restaurant.table.date')]: formatDate(r.revenue_date),
       [i18n.t('restaurant.table.amount')]: r.amount,
       [i18n.t('restaurant.table.covers')]: r.covers || '-',
-      [i18n.t('restaurant.fields.paymentMethod')]: i18n.t(`purchases.paymentMethods.${r.payment_method === 'كاش' ? 'cash' : r.payment_method === 'بنك' ? 'bank' : 'credit'}`)
+      [i18n.t('restaurant.fields.paymentMethod')]: r.payment_method
     }))
     exportToExcel(exportData, i18n.t('restaurant.exportTitle'))
   }
@@ -82,13 +87,17 @@ export default function RestaurantRevenuePage() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: '16px 20px', marginBottom: 24 }}>
+      <div className="card kpi-card-success" style={{ padding: '16px 20px', marginBottom: 24 }}>
         <div className="kpi-label">{t('restaurant.kpi.totalRevenue')}</div>
         <div className="kpi-value" style={{ color: 'var(--color-primary)', fontSize: 28 }}>{formatSAR(total)}</div>
       </div>
 
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
+          <div className="form-card-header">
+            <span className="form-card-header-title">➕ {t('restaurant.newRevenue')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق"><X size={16}/></button>
+          </div>
           <form onSubmit={handleSubmit((d) => {
             createMutation.mutate({
               ...d,
@@ -107,7 +116,10 @@ export default function RestaurantRevenuePage() {
               <div className="form-field has-value">
                 <label>{t('restaurant.fields.paymentMethod')}</label>
                 <select {...register('payment_method')} className="form-select">
-                  <option value="كاش">{t("purchases.paymentMethods.cash")}</option><option value="بنك">{t("purchases.paymentMethods.bank")}</option><option value="آجل">{t("purchases.paymentMethods.credit")}</option>
+                  <option value="">طريقة الدفع...</option>
+                  {paymentMethods.map((pm: any) => (
+                    <option key={pm.id} value={pm.name_ar}>{i18n.language === 'ar' ? pm.name_ar : pm.name_en}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-field has-value" style={{ gridColumn: '2 / -1' }}><label>{t('restaurant.fields.notes')}</label><input {...register('notes')} className="form-input"/></div>
@@ -130,7 +142,7 @@ export default function RestaurantRevenuePage() {
                 <td className="amount">{formatDate(r.revenue_date)}</td>
                 <td className="amount" style={{ fontWeight: 700, color: 'var(--color-success)' }}>{formatSAR(r.amount)}</td>
                 <td className="amount">{r.covers ?? '—'}</td>
-                <td><span className="badge badge-neutral">{t(`purchases.paymentMethods.${r.payment_method === 'كاش' ? 'cash' : r.payment_method === 'بنك' ? 'bank' : 'credit'}`)}</span></td>
+                <td><span className="badge badge-neutral">{r.payment_method}</span></td>
                 <td>
                   {user?.role === 'admin' && (
                     <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => setDeleteId(r.id)} title={t("purchases.delete.aria") || 'حذف'}><Trash2 size={14}/></button>

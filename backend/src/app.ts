@@ -20,6 +20,7 @@ import journalRoutes     from './modules/journal/journal.routes.js'
 import reportsRoutes     from './modules/reports/reports.routes.js'
 import auditRoutes       from './modules/audit/audit.routes.js'
 import settingsRoutes    from './modules/settings/settings.routes.js'
+import lookupsRoutes     from './modules/lookups/lookups.routes.js'
 import { authenticate }  from './middleware/auth.js'
 import { authorize, ACCOUNTANT_PLUS } from './middleware/authorize.js'
 import * as journalCtrl  from './modules/journal/journal.controller.js'
@@ -60,6 +61,7 @@ export function createApp() {
   app.use(`${api}/reports`,     reportsRoutes)
   app.use(`${api}/audit-log`,   auditRoutes)
   app.use(`${api}/settings`,    settingsRoutes)
+  app.use(`${api}/lookups`,     lookupsRoutes)
 
   // Standalone ledger + trial balance endpoints
   app.get(`${api}/trial-balance`,         authenticate, authorize(...ACCOUNTANT_PLUS), journalCtrl.trialBalance)

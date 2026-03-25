@@ -62,7 +62,7 @@ export default function LoginPage() {
         style={{
           width: '100%', maxWidth: 440,
           background: '#FFFFFF',
-          borderRadius: 8,
+          borderRadius: 2,
           overflow: 'hidden',
           boxShadow: '0 20px 60px rgba(0,0,0,0.30)',
           position: 'relative', zIndex: 1,
@@ -125,7 +125,7 @@ export default function LoginPage() {
             fontSize: 20, 
             fontWeight: 700, 
             marginBottom: 8,
-            letter: 'spacing: -0.3px',
+            letterSpacing: '-0.3px',
           }}>
             {t('auth.loginTitle')}
           </h2>
@@ -156,7 +156,7 @@ export default function LoginPage() {
                 className={`form-input ${errors.email ? 'is-error' : ''}`}
                 placeholder={t('auth.emailPlaceholder')}
                 style={{
-                  borderRadius: 6,
+                  borderRadius: 2,
                   fontSize: 14,
                   padding: '12px 16px',
                   transition: 'all 0.2s ease',
@@ -183,7 +183,7 @@ export default function LoginPage() {
                   className={`form-input ${errors.password ? 'is-error' : ''}`}
                   placeholder="••••••••"
                   style={{
-                    borderRadius: 6,
+                    borderRadius: 2,
                     fontSize: 14,
                     padding: '12px 16px',
                     paddingLeft: i18n.dir() === 'rtl' ? 16 : 48,
@@ -222,7 +222,7 @@ export default function LoginPage() {
                 justifyContent: 'center', 
                 fontSize: 16, 
                 height: 48, 
-                borderRadius: 6,
+                borderRadius: 2,
                 fontWeight: 600,
                 letterSpacing: '-0.2px',
                 transition: 'all 0.3s ease',

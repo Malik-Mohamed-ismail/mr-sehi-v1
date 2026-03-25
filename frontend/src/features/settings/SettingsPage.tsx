@@ -10,7 +10,9 @@ import { staggerContainer, staggerItem } from '../../lib/animations'
 import { useTranslation } from 'react-i18next'
 import i18n from '../../lib/i18n'
 
-type TabType = 'system' | 'users' | 'audit'
+import { LookupsTab } from './LookupsTab'
+
+type TabType = 'system' | 'users' | 'audit' | 'lookups'
 
 export default function SettingsPage() {
   const { t } = useTranslation()
@@ -30,7 +32,7 @@ export default function SettingsPage() {
             onClick={() => setActiveTab('system')}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
-              borderRadius: 8, background: activeTab === 'system' ? 'var(--color-primary-light)' : 'transparent',
+              borderRadius: 2, background: activeTab === 'system' ? 'var(--color-primary-light)' : 'transparent',
               color: activeTab === 'system' ? 'var(--color-primary)' : 'var(--text-secondary)',
               fontWeight: activeTab === 'system' ? 700 : 500, fontSize: 14,
               border: 'none', cursor: 'pointer', textAlign: 'right', transition: 'all 0.2s',
@@ -42,7 +44,7 @@ export default function SettingsPage() {
             onClick={() => setActiveTab('users')}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
-              borderRadius: 8, background: activeTab === 'users' ? 'var(--color-primary-light)' : 'transparent',
+              borderRadius: 2, background: activeTab === 'users' ? 'var(--color-primary-light)' : 'transparent',
               color: activeTab === 'users' ? 'var(--color-primary)' : 'var(--text-secondary)',
               fontWeight: activeTab === 'users' ? 700 : 500, fontSize: 14,
               border: 'none', cursor: 'pointer', textAlign: 'right', transition: 'all 0.2s', marginTop: 4,
@@ -54,13 +56,25 @@ export default function SettingsPage() {
             onClick={() => setActiveTab('audit')}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
-              borderRadius: 8, background: activeTab === 'audit' ? 'var(--color-primary-light)' : 'transparent',
+              borderRadius: 2, background: activeTab === 'audit' ? 'var(--color-primary-light)' : 'transparent',
               color: activeTab === 'audit' ? 'var(--color-primary)' : 'var(--text-secondary)',
               fontWeight: activeTab === 'audit' ? 700 : 500, fontSize: 14,
               border: 'none', cursor: 'pointer', textAlign: 'right', transition: 'all 0.2s', marginTop: 4,
             }}
           >
             <Activity size={18}/> {t('settings.tabs.audit')}
+          </button>
+          <button
+            onClick={() => setActiveTab('lookups')}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
+              borderRadius: 2, background: activeTab === 'lookups' ? 'var(--color-primary-light)' : 'transparent',
+              color: activeTab === 'lookups' ? 'var(--color-primary)' : 'var(--text-secondary)',
+              fontWeight: activeTab === 'lookups' ? 700 : 500, fontSize: 14,
+              border: 'none', cursor: 'pointer', textAlign: 'right', transition: 'all 0.2s', marginTop: 4,
+            }}
+          >
+            <Activity size={18}/> إدارة القوائم المنسدلة
           </button>
         </div>
 
@@ -80,6 +94,11 @@ export default function SettingsPage() {
             {activeTab === 'audit' && (
               <motion.div key="audit" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <AuditLogsTab />
+              </motion.div>
+            )}
+            {activeTab === 'lookups' && (
+              <motion.div key="lookups" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <LookupsTab />
               </motion.div>
             )}
           </AnimatePresence>
@@ -329,7 +348,7 @@ function AuditLogsTab() {
                   </td>
                   <td style={{ fontFamily: 'var(--font-latin)' }}>{log.table_name}</td>
                   <td>
-                    <details style={{ cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font-latin)', background: 'var(--bg-page)', padding: 4, borderRadius: 4 }}>
+                    <details style={{ cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font-latin)', background: 'var(--bg-page)', padding: 4, borderRadius: 2 }}>
                       <summary style={{ outline: 'none' }}>{t('settings.audit.showDetails')}</summary>
                       <pre style={{ margin: 0, marginTop: 4, whiteSpace: 'pre-wrap', color: 'var(--text-secondary)' }}>
                         {JSON.stringify(log.new_values || log.old_values, null, 2)}

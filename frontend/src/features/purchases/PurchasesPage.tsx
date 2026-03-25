@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { Plus, Download, Trash2 } from 'lucide-react'
+import { Plus, Download, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api } from '../../lib/api'
@@ -20,12 +20,12 @@ const schema = z.object({
   invoice_number: z.string().min(1),
   invoice_date:   z.string().min(1),
   supplier_id:    z.coerce.number().positive(i18n.t('purchases.validation.supplierRequired')),
-  category:       z.enum(['مواد غذائية', 'خضار', 'بلاستيكيات', 'مشروبات', 'خبز', 'معدات مطبخ', 'مياه']),
+  category:       z.string().min(1, i18n.t('validation.required') || 'مطلوب'),
   item_name:      z.string().min(1),
   quantity:       z.coerce.number().positive(),
   unit_price:     z.coerce.number().positive(),
   discount:       z.coerce.number().min(0).default(0),
-  payment_method: z.enum(['كاش', 'بنك', 'آجل']),
+  payment_method: z.string().min(1, i18n.t('validation.required') || 'مطلوب'),
   is_asset:       z.boolean().default(false),
   notes:          z.string().optional(),
 })
@@ -46,6 +46,16 @@ export default function PurchasesPage() {
   const { data: purchases, isLoading } = useQuery({
     queryKey: ['purchases'],
     queryFn:  () => api.get('/purchases').then(r => r.data.data),
+  })
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['lookups', 'category'],
+    queryFn: () => api.get('/lookups?type=category').then(r => r.data.data),
+  })
+  
+  const { data: paymentMethods = [] } = useQuery({
+    queryKey: ['lookups', 'payment_method'],
+    queryFn: () => api.get('/lookups?type=payment_method').then(r => r.data.data),
   })
 
   const { register, handleSubmit, watch, setValue, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -105,10 +115,10 @@ export default function PurchasesPage() {
         [i18n.t('purchases.exportCols.date')]: formatDate(p.invoice_date),
         [i18n.t('purchases.exportCols.supplier')]: supplier?.name_ar || p.supplier_id,
         [i18n.t('purchases.exportCols.item')]: p.item_name,
-        [i18n.t('purchases.exportCols.category')]: i18n.t(`purchases.categories.${p.category}`),
+        [i18n.t('purchases.exportCols.category')]: p.category,
         [i18n.t('purchases.exportCols.qty')]: p.quantity,
         [i18n.t('purchases.exportCols.price')]: p.unit_price,
-        [i18n.t('purchases.exportCols.paymentMethod')]: i18n.t(`purchases.paymentMethods.${p.payment_method === 'كاش' ? 'cash' : p.payment_method === 'بنك' ? 'bank' : 'credit'}`),
+        [i18n.t('purchases.exportCols.paymentMethod')]: p.payment_method,
         [i18n.t('purchases.exportCols.subtotal')]: p.subtotal,
         [i18n.t('purchases.exportCols.vat')]: p.vat_amount,
         [i18n.t('purchases.exportCols.total')]: p.total_amount
@@ -130,12 +140,39 @@ export default function PurchasesPage() {
         </button>
       </div>
 
+      {/* Summary KPI Cards */}
+      {(() => {
+        const totalAmt = (purchases ?? []).reduce((s: number, p: any) => s + Number(p.total_amount), 0)
+        const totalVat = (purchases ?? []).reduce((s: number, p: any) => s + Number(p.vat_amount), 0)
+        const count    = (purchases ?? []).length
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
+            <div className="card kpi-card-primary" style={{ padding: '16px 20px' }}>
+              <div className="kpi-label">إجمالي المشتريات</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-primary)' }}>{totalAmt.toLocaleString('ar-SA', {style:'currency', currency:'SAR', maximumFractionDigits: 0})}</div>
+            </div>
+            <div className="card kpi-card-warning" style={{ padding: '16px 20px' }}>
+              <div className="kpi-label">ضريبة القيمة المضافة</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-warning)' }}>{totalVat.toLocaleString('ar-SA', {style:'currency', currency:'SAR', maximumFractionDigits: 0})}</div>
+            </div>
+            <div className="card kpi-card-info" style={{ padding: '16px 20px' }}>
+              <div className="kpi-label">عدد الفواتير</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-info)' }}>{count}</div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Form */}
       {showForm && (
         <motion.div
           initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
           className="card" style={{ marginBottom: 24 }}
         >
+          <div className="form-card-header">
+            <span className="form-card-header-title">➕ {t('purchases.newInvoice')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق"><X size={16}/></button>
+          </div>
           <form onSubmit={handleSubmit(onSubmit)} dir="rtl">
             {/* Section 1 */}
             <div className="form-section-header">
@@ -163,8 +200,9 @@ export default function PurchasesPage() {
               <div className="form-field has-value">
                 <label>{t('purchases.fields.category')}</label>
                 <select {...register('category')} className={`form-select ${errors.category ? 'is-error' : ''}`}>
-                  {['مواد غذائية','خضار','بلاستيكيات','مشروبات','خبز','معدات مطبخ','مياه'].map(c => (
-                    <option key={c} value={c}>{c}</option>
+                  <option value="">{t('purchases.fields.category')}</option>
+                  {categories.map((c: any) => (
+                    <option key={c.id} value={c.name_ar}>{i18n.language === 'ar' ? c.name_ar : c.name_en}</option>
                   ))}
                 </select>
               </div>
@@ -222,9 +260,10 @@ export default function PurchasesPage() {
               <div className="form-field has-value">
                 <label>{t('purchases.section3')}</label>
                 <select {...register('payment_method')} className={`form-select ${errors.payment_method ? 'is-error' : ''}`}>
-                  <option value="كاش">{t("purchases.paymentMethods.cash")}</option>
-                  <option value="بنك">{t("purchases.paymentMethods.bank")}</option>
-                  <option value="آجل">{t("purchases.paymentMethods.credit")}</option>
+                  <option value="">طريقة الدفع...</option>
+                  {paymentMethods.map((pm: any) => (
+                    <option key={pm.id} value={pm.name_ar}>{i18n.language === 'ar' ? pm.name_ar : pm.name_en}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-field has-value" style={{ display: 'flex', alignItems: 'center', paddingTop: 12 }}>
@@ -281,8 +320,8 @@ export default function PurchasesPage() {
                   <td>{p.supplier_id}</td>
                   <td>{p.item_name}</td>
                   <td>
-                    <span className={`badge ${p.payment_method === 'آجل' ? 'badge-warning' : p.payment_method === 'بنك' ? 'badge-info' : 'badge-success'}`}>
-                      {t(`purchases.paymentMethods.${p.payment_method === 'كاش' ? 'cash' : p.payment_method === 'بنك' ? 'bank' : 'credit'}`)}
+                    <span className="badge badge-neutral">
+                      {p.payment_method}
                     </span>
                   </td>
                   <td className="amount">{formatSAR(p.subtotal)}</td>

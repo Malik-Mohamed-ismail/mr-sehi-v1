@@ -115,7 +115,7 @@ const ReportCardComponent = ({ report, onNavigate, dateRange, t }: any) => {
       style={{
         background: colors.bg,
         border: `1px solid ${colors.border}`,
-        borderRadius: 12,
+        borderRadius: 2,
         padding: 24,
         cursor: 'pointer',
         overflow: 'hidden',
@@ -146,7 +146,7 @@ const ReportCardComponent = ({ report, onNavigate, dateRange, t }: any) => {
           <div style={{
             width: 48,
             height: 48,
-            borderRadius: 10,
+            borderRadius: 2,
             background: `${colors.icon}20`,
             display: 'flex',
             alignItems: 'center',
@@ -160,7 +160,7 @@ const ReportCardComponent = ({ report, onNavigate, dateRange, t }: any) => {
               fontSize: 11,
               fontWeight: 700,
               padding: '4px 10px',
-              borderRadius: 4,
+              borderRadius: 2,
               background: `${colors.icon}20`,
               color: colors.icon,
               textTransform: 'uppercase',
@@ -202,7 +202,7 @@ const ReportCardComponent = ({ report, onNavigate, dateRange, t }: any) => {
             marginBottom: 16,
             padding: '8px 12px',
             background: 'rgba(255,255,255,0.03)',
-            borderRadius: 8,
+            borderRadius: 2,
             width: 'fit-content',
           }}>
             <Filter size={14} />
@@ -391,7 +391,7 @@ export default function ReportsHubPage() {
             <div style={{
               width: 48,
               height: 48,
-              borderRadius: 12,
+              borderRadius: 2,
               background: 'linear-gradient(135deg, rgba(212,168,83,0.20) 0%, rgba(212,168,83,0.05) 100%)',
               display: 'flex',
               alignItems: 'center',
@@ -430,7 +430,7 @@ export default function ReportsHubPage() {
             padding: 20,
             background: 'rgba(212,168,83,0.05)',
             border: '1px solid rgba(212,168,83,0.15)',
-            borderRadius: 12,
+            borderRadius: 2,
             flexWrap: 'wrap',
             alignItems: 'center',
           }}>
@@ -445,7 +445,7 @@ export default function ReportsHubPage() {
                 onChange={(e) => setDateRange(r => ({ ...r, from: e.target.value }))}
                 style={{
                   padding: '8px 12px',
-                  borderRadius: 8,
+                  borderRadius: 2,
                   border: '1px solid var(--border-color)',
                   background: 'var(--bg-surface)',
                   color: 'var(--text-primary)',
@@ -461,7 +461,7 @@ export default function ReportsHubPage() {
                 onChange={(e) => setDateRange(r => ({ ...r, to: e.target.value }))}
                 style={{
                   padding: '8px 12px',
-                  borderRadius: 8,
+                  borderRadius: 2,
                   border: '1px solid var(--border-color)',
                   background: 'var(--bg-surface)',
                   color: 'var(--text-primary)',
@@ -514,7 +514,7 @@ export default function ReportsHubPage() {
             padding: 32,
             background: 'linear-gradient(135deg, rgba(212,168,83,0.08) 0%, rgba(212,168,83,0.03) 100%)',
             border: '1px solid rgba(212,168,83,0.15)',
-            borderRadius: 12,
+            borderRadius: 2,
             textAlign: 'center',
           }}
         >
@@ -543,7 +543,7 @@ export default function ReportsHubPage() {
               }}
               style={{
                 padding: '12px 24px',
-                borderRadius: 8,
+                borderRadius: 2,
                 background: 'var(--color-primary)',
                 color: 'white',
                 border: '1px solid rgba(43,146,37,0.30)',
@@ -572,7 +572,7 @@ export default function ReportsHubPage() {
               onClick={() => navigate('/dashboard')}
               style={{
                 padding: '12px 24px',
-                borderRadius: 8,
+                borderRadius: 2,
                 background: 'transparent',
                 color: 'var(--color-primary)',
                 border: '1px solid rgba(43,146,37,0.25)',

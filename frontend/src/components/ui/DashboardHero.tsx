@@ -23,7 +23,7 @@ export function DashboardHero({ totalRevenue, netProfit, from, to, onRangeChange
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
       style={{
-        borderRadius: 20, padding: '36px 40px', marginBottom: 28,
+        borderRadius: 2, padding: '36px 40px', marginBottom: 28,
         position: 'relative', overflow: 'hidden', minHeight: 200,
         background: 'linear-gradient(160deg, #132E11 0%, #1A3D18 40%, #2B6B27 100%)',
       }}
@@ -47,7 +47,7 @@ export function DashboardHero({ totalRevenue, netProfit, from, to, onRangeChange
               {t('dashboard.totalRevenue')}
             </h2>
             {isLoading ? (
-              <div className="skeleton" style={{ height: 56, width: 200, borderRadius: 8 }}/>
+              <div className="skeleton" style={{ height: 56, width: 200, borderRadius: 2 }}/>
             ) : (
               <div style={{ fontSize: 52, fontFamily: 'var(--font-display)', fontWeight: 400, color: '#E8F5E7', letterSpacing: '-0.02em', lineHeight: 1 }}>
                 <AnimatedNumber value={totalRevenue} suffix="" decimals={2} />
@@ -62,7 +62,7 @@ export function DashboardHero({ totalRevenue, netProfit, from, to, onRangeChange
           <div>
             <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 2 }}>{t('dashboard.netProfit')}</span>
             {isLoading
-              ? <div className="skeleton" style={{ height: 22, width: 100, borderRadius: 4 }}/>
+              ? <div className="skeleton" style={{ height: 22, width: 100, borderRadius: 2 }}/>
               : <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'var(--font-latin)', color: netProfit >= 0 ? 'rgba(29,184,123,0.9)' : 'rgba(232,56,77,0.9)', direction: 'ltr' }}>
                   <AnimatedNumber value={netProfit} suffix="" decimals={2} />
                 </div>
@@ -72,7 +72,7 @@ export function DashboardHero({ totalRevenue, netProfit, from, to, onRangeChange
           <div>
             <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 2 }}>{t('dashboard.profitMargin')}</span>
             {isLoading
-              ? <div className="skeleton" style={{ height: 22, width: 60, borderRadius: 4 }}/>
+              ? <div className="skeleton" style={{ height: 22, width: 60, borderRadius: 2 }}/>
               : <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'var(--font-latin)', color: margin >= 20 ? 'rgba(29,184,123,0.9)' : margin >= 10 ? 'rgba(245,166,35,0.9)' : 'rgba(232,56,77,0.9)', direction: 'ltr' }}>
                   <AnimatedNumber value={margin} suffix="%" decimals={1} />
                 </div>

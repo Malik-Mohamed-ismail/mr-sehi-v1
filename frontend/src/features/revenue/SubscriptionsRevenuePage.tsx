@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus, Download } from 'lucide-react'
+import { Plus, Download, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
@@ -25,6 +25,11 @@ export default function SubscriptionsRevenuePage() {
   const { data: revenues } = useQuery({
     queryKey: ['revenue-subscriptions'],
     queryFn: () => api.get('/revenue/subscriptions').then(r => r.data.data),
+  })
+
+  const { data: paymentMethods = [] } = useQuery({
+    queryKey: ['lookups', 'payment_method'],
+    queryFn: () => api.get('/lookups?type=payment_method').then(r => r.data.data),
   })
 
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm({
@@ -61,7 +66,7 @@ export default function SubscriptionsRevenuePage() {
     const exportData = (revenues ?? []).map((r: any) => ({
       [i18n.t('subscriptions.table.date')]: formatDate(r.revenue_date),
       [i18n.t('subscriptions.table.amount')]: r.amount,
-      [i18n.t('subscriptions.fields.paymentMethod')]: i18n.t(`purchases.paymentMethods.${r.payment_method === 'كاش' ? 'cash' : r.payment_method === 'بنك' ? 'bank' : 'credit'}`),
+      [i18n.t('subscriptions.fields.paymentMethod')]: r.payment_method,
       [i18n.t('subscriptions.fields.notes')]: r.notes || '-'
     }))
     exportToExcel(exportData, i18n.t('subscriptions.exportTitle'))
@@ -82,13 +87,17 @@ export default function SubscriptionsRevenuePage() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: '16px 20px', marginBottom: 24 }}>
+      <div className="card kpi-card-primary" style={{ padding: '16px 20px', marginBottom: 24 }}>
         <div className="kpi-label">{t('subscriptions.kpi.totalRevenue')}</div>
         <div className="kpi-value" style={{ color: 'var(--color-success)', fontSize: 28 }}>{formatSAR(total)}</div>
       </div>
 
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
+          <div className="form-card-header">
+            <span className="form-card-header-title">➕ {t('subscriptions.newRevenue')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق"><X size={16}/></button>
+          </div>
           <form onSubmit={handleSubmit((d) => {
             createMutation.mutate({
               ...d,
@@ -101,7 +110,10 @@ export default function SubscriptionsRevenuePage() {
               <div className="form-field has-value">
                 <label>{t('subscriptions.fields.paymentMethod')}</label>
                 <select {...register('payment_method')} className="form-select">
-                  <option value="كاش">{t("purchases.paymentMethods.cash")}</option><option value="بنك">{t("purchases.paymentMethods.bank")}</option><option value="آجل">{t("purchases.paymentMethods.credit")}</option>
+                  <option value="">طريقة الدفع...</option>
+                  {paymentMethods.map((pm: any) => (
+                    <option key={pm.id} value={pm.name_ar}>{i18n.language === 'ar' ? pm.name_ar : pm.name_en}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -122,7 +134,7 @@ export default function SubscriptionsRevenuePage() {
               <motion.tr key={r.id} variants={staggerItem}>
                 <td className="amount">{formatDate(r.revenue_date)}</td>
                 <td className="amount" style={{ fontWeight: 700, color: 'var(--color-success)' }}>{formatSAR(r.amount)}</td>
-                <td><span className="badge badge-neutral">{t(`purchases.paymentMethods.${r.payment_method === 'كاش' ? 'cash' : r.payment_method === 'بنك' ? 'bank' : 'credit'}`)}</span></td>
+                <td><span className="badge badge-neutral">{r.payment_method}</span></td>
                 <td style={{ color: 'var(--text-secondary)' }}>{r.notes ?? '—'}</td>
                 <td>
                   {user?.role === 'admin' && (
