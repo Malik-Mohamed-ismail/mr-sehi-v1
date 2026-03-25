@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts'
+import { AreaChart, Area, ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts'
 import { Activity, TrendingUp, DollarSign } from 'lucide-react'
 import { api } from '../../lib/api'
 import { formatSAR } from '../../lib/utils'
@@ -99,37 +99,35 @@ export default function PerformancePage() {
             </div>
           </div>
 
-          {/* Area Chart */}
-          <div className="card" style={{ height: 450, padding: '24px 24px 40px 24px', marginBottom: 24 }} dir="ltr" /* chart stays LTR often, but wait, if it's LTR it might be ok, let's keep it LTR or change to i18n.dir() */>
+          <div className="card" style={{ height: 450, padding: '24px 24px 40px 24px', marginBottom: 24 }} dir="ltr">
             <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 24, textAlign: 'right' }}>{t('performance.chart.title')}</h3>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trends} margin={{ top: 10, right: 30, left: 30, bottom: 0 }}>
+              <ComposedChart data={trends} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#34d399" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#34d399" stopOpacity={0}/>
+                  <linearGradient id="barRevPerf" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#cf9c3e" stopOpacity={0.9}/>
+                    <stop offset="95%" stopColor="#cf9c3e" stopOpacity={0.4}/>
                   </linearGradient>
-                  <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f87171" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#f87171" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorProf" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2B9225" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#2B9225" stopOpacity={0}/>
+                  <linearGradient id="barExpPerf" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#e8384d" stopOpacity={0.9}/>
+                    <stop offset="95%" stopColor="#e8384d" stopOpacity={0.4}/>
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="date" stroke="var(--text-secondary)" tick={{ fontFamily: 'var(--font-latin)', fontSize: 12 }} />
-                <YAxis stroke="var(--text-secondary)" tick={{ fontFamily: 'var(--font-latin)', fontSize: 12 }} />
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                <XAxis dataKey="date" stroke="var(--text-secondary)" tick={{ fontFamily: 'var(--font-latin)', fontSize: 12 }} tickLine={false} axisLine={false} dy={10} />
+                <YAxis stroke="var(--text-secondary)" tick={{ fontFamily: 'var(--font-latin)', fontSize: 12 }} tickLine={false} axisLine={false} dx={-10} />
                 <Tooltip 
-                  contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 2, fontFamily: 'var(--font-latin)' }}
-                  itemStyle={{ fontFamily: 'var(--font-latin)' }}
+                  cursor={{ fill: 'var(--bg-surface-2)', opacity: 0.4 }}
+                  contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 6, padding: '12px', fontFamily: 'var(--font-latin)' }}
+                  itemStyle={{ color: 'var(--text-primary)', fontWeight: 500 }}
+                  formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س`} 
                 />
-                <Legend wrapperStyle={{ paddingTop: 20, fontFamily: i18n.dir() === 'rtl' ? 'var(--font-arabic)' : 'var(--font-latin)' }} />
-                <Area type="monotone" dataKey="revenue" name={t('performance.chart.revenue')} stroke="#34d399" fillOpacity={1} fill="url(#colorRev)" strokeWidth={3} />
-                <Area type="monotone" dataKey="expenses" name={t('performance.chart.expenses')} stroke="#f87171" fillOpacity={1} fill="url(#colorExp)" strokeWidth={3} />
-                <Area type="monotone" dataKey="profit" name={t('performance.chart.profit')} stroke="#2B9225" fillOpacity={1} fill="url(#colorProf)" strokeWidth={3} />
-              </AreaChart>
+                <Legend wrapperStyle={{ paddingTop: 20, fontFamily: i18n.dir() === 'rtl' ? 'var(--font-arabic)' : 'var(--font-latin)' }} iconType="circle" />
+                
+                <Bar dataKey="revenue" name={t('performance.chart.revenue')} fill="url(#barRevPerf)" barSize={16} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="expenses" name={t('performance.chart.expenses')} fill="url(#barExpPerf)" barSize={16} radius={[4, 4, 0, 0]} />
+                <Line type="monotone" dataKey="profit" name={t('performance.chart.profit')} stroke="#1db87b" strokeWidth={3} activeDot={{ r: 6 }} dot={false} />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </>

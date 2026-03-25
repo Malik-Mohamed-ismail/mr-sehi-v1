@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
-  BarChart, Bar
+  BarChart, Bar, LineChart, Line, ComposedChart
 } from 'recharts'
 import { useTranslation } from 'react-i18next'
 import {
@@ -186,9 +186,9 @@ export default function DashboardPage() {
 
   // Channel data
   const channels = [
-    { name: 'Delivery', value: delivery, color: '#D4A853' },
-    { name: 'Restaurant', value: restaurant, color: '#1db87b' },
-    { name: 'Subscriptions', value: subscriptions, color: '#3b82f6' },
+    { name: t('dashboard.delivery') || 'Delivery', value: delivery, color: '#D4A853' },
+    { name: t('dashboard.restaurant') || 'Restaurant', value: restaurant, color: '#1db87b' },
+    { name: t('dashboard.subscriptions') || 'Subscriptions', value: subscriptions, color: '#3b82f6' },
   ].filter(c => c.value > 0)
 
   // Remove the loading block - show content with defaults instead
@@ -274,94 +274,112 @@ export default function DashboardPage() {
 
         {/* Charts Section */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 32 }}>
-          {/* Revenue Trend Area Chart */}
+          {/* Revenue Trend Area Chart (Now a crisp Bar/Line hybrid) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
             style={{
-              background: 'rgba(212,168,83,0.05)',
-              border: '1px solid rgba(212,168,83,0.10)',
-              borderRadius: 2,
+              background: 'linear-gradient(180deg, var(--bg-surface) 0%, rgba(59,130,246,0.02) 100%)',
+              border: '1px solid rgba(59,130,246,0.15)',
+              borderRadius: 8,
               padding: 24,
               overflow: 'hidden',
             }}
-            whileHover={{ boxShadow: '0 0 20px rgba(212,168,83,0.15)' }}
+            whileHover={{ boxShadow: '0 0 25px rgba(59,130,246,0.1)' }}
           >
-            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 20, color: 'var(--text-primary)' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
               💹 {t('dashboard.performanceAnalysis') || 'Revenue Trend'}
             </h3>
             <div style={{ height: 320 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+                <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="colorRev_dashboard" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#D4A853" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#D4A853" stopOpacity={0} />
+                    <linearGradient id="barRev_clean" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.3} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="date" stroke="var(--text-secondary)" tick={{ fontSize: 12, fontFamily: 'var(--font-latin)' }} />
-                  <YAxis stroke="var(--text-secondary)" tick={{ fontSize: 12, fontFamily: 'var(--font-latin)' }} width={50} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                  <XAxis dataKey="date" stroke="var(--text-secondary)" tick={{ fontSize: 12, fontFamily: 'var(--font-latin)' }} axisLine={false} tickLine={false} dy={10} />
+                  <YAxis stroke="var(--text-secondary)" tick={{ fontSize: 12, fontFamily: 'var(--font-latin)' }} axisLine={false} tickLine={false} width={60} />
                   <Tooltip
+                    cursor={{ fill: 'var(--bg-surface-2)', opacity: 0.4 }}
                     contentStyle={{
                       background: 'var(--bg-surface)',
-                      border: '1px solid rgba(212,168,83,0.2)',
-                      borderRadius: 2,
+                      border: '1px solid rgba(59,130,246,0.3)',
+                      borderRadius: 8,
+                      padding: '12px 16px',
                       fontFamily: 'var(--font-latin)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                     }}
-                    itemStyle={{ fontFamily: 'var(--font-latin)' }}
+                    itemStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
+                    formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 0 })} ر.س`}
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#D4A853"
-                    fillOpacity={1}
-                    fill="url(#colorRev_dashboard)"
-                    strokeWidth={3}
-                  />
-                </AreaChart>
+                  <Bar dataKey="revenue" fill="url(#barRev_clean)" radius={[4, 4, 0, 0]} barSize={24} name="الإيرادات" />
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </motion.div>
 
-          {/* Profit vs Revenue Bar Chart */}
+          {/* Profit vs Revenue (Now a stunning minimalist Line Chart) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
             style={{
-              background: 'rgba(29,184,123,0.05)',
-              border: '1px solid rgba(29,184,123,0.10)',
-              borderRadius: 2,
+              background: 'linear-gradient(180deg, var(--bg-surface) 0%, rgba(29,184,123,0.02) 100%)',
+              border: '1px solid rgba(29,184,123,0.15)',
+              borderRadius: 8,
               padding: 24,
               overflow: 'hidden',
             }}
-            whileHover={{ boxShadow: '0 0 20px rgba(29,184,123,0.15)' }}
+            whileHover={{ boxShadow: '0 0 25px rgba(29,184,123,0.1)' }}
           >
-            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 20, color: 'var(--text-primary)' }}>
-              📊 {t('dashboard.profitMargin')} - {profitMargin.toFixed(1)}%
+            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              📊 {t('dashboard.profitMargin')} <span style={{ color: '#1db87b', background: 'rgba(29,184,123,0.1)', padding: '2px 8px', borderRadius: 4, fontSize: 13, marginLeft: 8 }}>{profitMargin.toFixed(1)}%</span>
             </h3>
             <div style={{ height: 320 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="date" stroke="var(--text-secondary)" tick={{ fontSize: 12, fontFamily: 'var(--font-latin)' }} />
-                  <YAxis stroke="var(--text-secondary)" tick={{ fontSize: 12, fontFamily: 'var(--font-latin)' }} width={50} />
+                <LineChart data={chartData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="4" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                  <XAxis dataKey="date" stroke="var(--text-secondary)" tick={{ fontSize: 12, fontFamily: 'var(--font-latin)' }} axisLine={false} tickLine={false} dy={10} />
+                  <YAxis stroke="var(--text-secondary)" tick={{ fontSize: 12, fontFamily: 'var(--font-latin)' }} axisLine={false} tickLine={false} width={60} />
                   <Tooltip
+                    cursor={{ stroke: 'rgba(29,184,123,0.4)', strokeWidth: 1, strokeDasharray: '4 4' }}
                     contentStyle={{
                       background: 'var(--bg-surface)',
-                      border: '1px solid rgba(29,184,123,0.2)',
-                      borderRadius: 2,
+                      border: '1px solid rgba(29,184,123,0.3)',
+                      borderRadius: 8,
+                      padding: '12px 16px',
                       fontFamily: 'var(--font-latin)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                     }}
-                    itemStyle={{ fontFamily: 'var(--font-latin)' }}
+                    itemStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
+                    formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 0 })} ر.س`}
                   />
-                  <Bar dataKey="profit" fill="#1db87b" radius={[8, 8, 0, 0]} />
-                  <Bar dataKey="expenses" fill="#e8384d" radius={[8, 8, 0, 0]} />
-                </BarChart>
+                  <Line 
+                    type="monotone" 
+                    dataKey="profit" 
+                    stroke="#1db87b" 
+                    strokeWidth={4} 
+                    dot={{ r: 0 }} 
+                    activeDot={{ r: 6, fill: 'var(--bg-surface)', stroke: '#1db87b', strokeWidth: 3 }} 
+                    filter="url(#glow)"
+                    name="الربح"
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </motion.div>
@@ -383,41 +401,59 @@ export default function DashboardPage() {
           whileHover={{ boxShadow: '0 0 20px rgba(59,130,246,0.15)' }}
         >
           <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, marginBottom: 20, color: 'var(--text-primary)' }}>
-            🛒 {t('dashboard.revenueChannels')} Breakdown
+            🛒 {t('dashboard.revenueChannels')}
           </h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
-            {channels.map((channel, i) => (
-              <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }}>
-                <div style={{
-                  padding: 16,
-                  borderRadius: 2,
-                  background: `${channel.color}10`,
-                  border: `1px solid ${channel.color}20`,
-                  textAlign: 'center',
-                }}>
-                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0, marginBottom: 8 }}>
-                    {channel.name}
-                  </p>
-                  <p style={{
-                    fontSize: 20,
-                    fontWeight: 700,
-                    color: channel.color,
-                    fontFamily: 'var(--font-latin)',
-                    margin: 0,
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) minmax(200px, 1fr)', gap: 32, alignItems: 'center' }}>
+            {/* Donut Chart */}
+            <div style={{ height: 260 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={channels} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={4} stroke="none">
+                    {channels.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} style={{ outline: 'none' }} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 0 })} ر.س`}
+                    contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 6, padding: '8px 12px', fontFamily: 'var(--font-latin)' }}
+                    itemStyle={{ color: 'var(--text-primary)', fontWeight: 500 }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Legend Cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {channels.map((channel, i) => (
+                <motion.div key={i} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}>
+                  <div style={{
+                    padding: '12px 16px',
+                    borderRadius: 6,
+                    background: `${channel.color}08`,
+                    border: `1px solid ${channel.color}20`,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                   }}>
-                    {(channel.value / 1000).toFixed(1)}K
-                  </p>
-                  <p style={{
-                    fontSize: 11,
-                    color: 'var(--text-secondary)',
-                    margin: '8px 0 0',
-                  }}>
-                    {((channel.value / totalRevenue) * 100).toFixed(1)}% of total
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ width: 10, height: 10, borderRadius: '50%', background: channel.color }} />
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
+                        {channel.name}
+                      </span>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-latin)', margin: 0 }}>
+                        {(channel.value / 1000).toFixed(1)}K
+                      </p>
+                      <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0, fontFamily: 'var(--font-latin)' }}>
+                        {((channel.value / totalRevenue) * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </motion.div>
 

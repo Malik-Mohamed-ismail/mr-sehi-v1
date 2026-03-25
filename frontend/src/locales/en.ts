@@ -996,6 +996,19 @@ export default {
     auditLog: {
       title: 'Audit Log',
       description: 'Track all operations, modifications, and users'
-    }
+    },
+    channelDesc: 'Analyze revenue across Delivery platforms, Restaurant, and Subscriptions',
+    revenueShare: 'Revenue Share',
+    channelComparison: 'Channel Comparison',
+    channel: 'Channel',
+    revenue: 'Revenue',
+    share: 'Share',
+    transactions: 'Transactions',
+    avgPerDay: 'Avg / Day'
+  },
+  channels: {
+    delivery: 'Delivery',
+    restaurant: 'Restaurant',
+    subscriptions: 'Subscriptions'
   }
 }

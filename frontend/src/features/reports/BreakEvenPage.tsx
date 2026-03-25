@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { RefreshCw, Target } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { DateRangePicker } from '../../components/ui/DateRangePicker'
@@ -88,29 +88,53 @@ export default function BreakEvenPage() {
               </motion.div>
             </div>
 
-            {/* Progress to break-even */}
-            <motion.div variants={staggerItem} className="card">
-              <h3 style={{ fontWeight: 600, marginBottom: 16 }}>{t('breakeven.progress')}</h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>
-                <span>0</span>
-                <span>{t('breakeven.breakeven')}: {Number(data.breakEvenSales ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
-                <span>{t('breakeven.current')}: {Number(data.currentRevenue ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
-              </div>
-              <div style={{ height: 20, borderRadius: 2, background: 'var(--bg-surface-2)', overflow: 'hidden', position: 'relative' }}>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(100, (data.currentRevenue / data.breakEvenSales) * 100)}%` }}
-                  transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                  style={{
-                    height: '100%', borderRadius: 2,
-                    background: isBeyond ? 'var(--gradient-success)' : 'var(--gradient-danger)',
-                  }}
-                />
-              </div>
-              <div style={{ textAlign: 'center', fontSize: 13, marginTop: 8, color: 'var(--text-secondary)' }}>
-                {((data.currentRevenue / data.breakEvenSales) * 100).toFixed(1)}% {t('breakeven.ofBreakeven')}
-              </div>
-            </motion.div>
+            {/* Chart: Sales vs Breakeven Target */}
+            {data.series?.length > 0 && (
+              <motion.div variants={staggerItem} className="card">
+                <h3 style={{ fontWeight: 600, marginBottom: 16 }}>{t('breakeven.progress')} (مسار المبيعات التراكمي)</h3>
+                <ResponsiveContainer width="100%" height={260}>
+                  <AreaChart data={data.series}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fontFamily: 'var(--font-latin)' }} />
+                    <YAxis tick={{ fontSize: 11, fontFamily: 'var(--font-latin)' }} />
+                    <Tooltip formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`} />
+                    <Area type="step" dataKey="target" stroke="var(--color-danger)" fill="transparent" strokeWidth={2} strokeDasharray="5 5" name={t('breakeven.breakevenSales')} />
+                    <Area type="monotone" dataKey="cumulative" stroke="var(--color-primary)" fill="var(--color-primary-light)" strokeWidth={2} name={t('breakeven.currentRevenue')} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </motion.div>
+            )}
+
+            {/* Fixed Costs Breakdown */}
+            {data.fixedCostsList?.length > 0 && (
+              <motion.div variants={staggerItem} className="card">
+                <h3 style={{ fontWeight: 600, marginBottom: 16 }}>تفاصيل التكاليف الثابتة</h3>
+                <div style={{ overflow: 'auto', width: '100%', maxHeight: '400px' }}>
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>التاريخ</th>
+                        <th>البند / الحساب</th>
+                        <th>طريقة الدفع</th>
+                        <th style={{ textAlign: 'start' }}>المبلغ</th>
+                        <th>البيان</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.fixedCostsList.map((item: any, i: number) => (
+                        <tr key={i}>
+                          <td className="number">{item.expense_date?.split('T')[0] ?? item.expense_date}</td>
+                          <td>{item.category}</td>
+                          <td>{item.payment_method}</td>
+                          <td className="number">{Number(item.amount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                          <td>{item.notes}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         ) : (
           <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-secondary)' }}>{t('common.noData')}</div>

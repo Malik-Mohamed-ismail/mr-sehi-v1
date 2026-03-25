@@ -16,7 +16,7 @@ const fromDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toI
 const COLORS = ['#2B9225', '#4A90E2', '#1DB87B', '#E8384D', '#F5A623', '#9B59B6']
 
 export default function ChannelAnalysisPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [from, setFrom] = useState(fromDay)
   const [to, setTo]     = useState(toDay)
 
@@ -28,7 +28,10 @@ export default function ChannelAnalysisPage() {
     },
   })
 
-  const channels = data?.channels ?? []
+  const channels = (data?.channels ?? []).map((ch: any) => ({
+    ...ch,
+    displayName: t(`channels.${ch.channel.toLowerCase()}`) || ch.channel
+  }))
 
   return (
     <PageTransition>
@@ -59,11 +62,15 @@ export default function ChannelAnalysisPage() {
                 </h3>
                 <ResponsiveContainer width="100%" height={260}>
                   <RechartsPie>
-                    <Pie data={channels} dataKey="total" nameKey="channel" cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={3}>
-                      {channels.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    <Pie data={channels} dataKey="total" nameKey="displayName" cx="50%" cy="50%" innerRadius={65} outerRadius={95} paddingAngle={4} stroke="none">
+                      {channels.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} style={{ outline: 'none' }} />)}
                     </Pie>
-                    <Tooltip formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`} />
-                    <Legend />
+                    <Tooltip 
+                      formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س`} 
+                      contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 6, padding: '8px 12px', fontFamily: 'var(--font-latin)' }}
+                      itemStyle={{ color: 'var(--text-primary)', fontWeight: 500 }}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ paddingTop: 20, fontFamily: i18n.dir() === 'rtl' ? 'var(--font-arabic)' : 'var(--font-latin)' }} />
                   </RechartsPie>
                 </ResponsiveContainer>
               </motion.div>
@@ -71,13 +78,25 @@ export default function ChannelAnalysisPage() {
               <motion.div variants={staggerItem} className="card">
                 <h3 style={{ fontWeight: 600, marginBottom: 16 }}>{t('reports.channelComparison')}</h3>
                 <ResponsiveContainer width="100%" height={260}>
-                  <BarChart data={channels}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                    <XAxis dataKey="channel" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11, fontFamily: 'var(--font-latin)' }} />
-                    <Tooltip formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`} />
-                    <Bar dataKey="total" radius={[6, 6, 0, 0]}>
-                      {channels.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  <BarChart data={channels} margin={{ top: 20, right: 10, left: 10, bottom: 0 }}>
+                    <defs>
+                      {channels.map((_: any, i: number) => (
+                        <linearGradient key={`grad-${i}`} id={`colorCh-${i}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={COLORS[i % COLORS.length]} stopOpacity={0.9}/>
+                          <stop offset="95%" stopColor={COLORS[i % COLORS.length]} stopOpacity={0.2}/>
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                    <XAxis dataKey="displayName" tick={{ fontSize: 12, fill: 'var(--text-secondary)', fontFamily: i18n.dir() === 'rtl' ? 'var(--font-arabic)' : 'var(--font-latin)' }} tickLine={false} axisLine={false} dy={10} />
+                    <YAxis tick={{ fontSize: 12, fill: 'var(--text-secondary)', fontFamily: 'var(--font-latin)' }} tickLine={false} axisLine={false} dx={-10} />
+                    <Tooltip 
+                      cursor={{ fill: 'var(--bg-surface-2)', opacity: 0.5 }}
+                      formatter={(v: any) => `${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`} 
+                      contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 6, padding: '8px 12px', fontFamily: 'var(--font-latin)' }}
+                    />
+                    <Bar dataKey="total" radius={[6, 6, 0, 0]} barSize={40}>
+                      {channels.map((_: any, i: number) => <Cell key={i} fill={`url(#colorCh-${i})`} />)}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -101,9 +120,9 @@ export default function ChannelAnalysisPage() {
                   {channels.map((ch: any, i: number) => (
                     <tr key={ch.channel}>
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>
                           <span style={{ width: 10, height: 10, borderRadius: '50%', background: COLORS[i % COLORS.length], flexShrink: 0 }}/>
-                          {ch.channel}
+                          {ch.displayName}
                         </div>
                       </td>
                       <td className="number">{Number(ch.total).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>

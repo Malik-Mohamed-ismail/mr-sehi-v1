@@ -9,6 +9,7 @@ import { exportToExcel } from '../../lib/export'
 import { useTranslation } from 'react-i18next'
 import i18n from '../../lib/i18n'
 import { PageTransition } from '../../components/ui/PageTransition'
+import { SearchInput } from '../../components/ui/SearchInput'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 
 const TYPE_LABELS: Record<string, { label: string; badge: string }> = {
@@ -22,6 +23,7 @@ const TYPE_LABELS: Record<string, { label: string; badge: string }> = {
 export default function AccountsPage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
 
   const { data: accounts, isLoading } = useQuery({
@@ -143,6 +145,10 @@ export default function AccountsPage() {
         </motion.div>
       )}
 
+      <div style={{ marginBottom: 16 }}>
+        <SearchInput value={search} onChange={setSearch} placeholder={t('common.search') || 'بحث...'} />
+      </div>
+
       {isLoading ? (
         <div>{[...Array(6)].map((_, i) => <div key={i} className="skeleton" style={{ height: 40, marginBottom: 8 }}/>)}</div>
       ) : (
@@ -164,7 +170,7 @@ export default function AccountsPage() {
             <table className="data-table">
                 <thead><tr><th>{t('accounts.table.code')}</th><th>{t('accounts.table.nameAr')}</th><th>{t('accounts.table.nameEn')}</th><th>{t('accounts.table.level')}</th><th>{t('accounts.table.isSystem')}</th></tr></thead>
                 <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
-                  {items.map((a: any) => (
+                  {items.filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((a: any) => (
                     <motion.tr key={a.code} variants={staggerItem}
                       style={{ paddingRight: a.level > 1 ? (a.level - 1) * 16 : 0 }}>
                       <td style={{ fontFamily: 'var(--font-latin)', fontWeight: 600, color: 'var(--color-primary)' }}>{a.code}</td>

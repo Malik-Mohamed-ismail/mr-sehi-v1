@@ -19,7 +19,7 @@ export function authenticate(req: Request, _res: Response, next: NextFunction): 
       throw new AppError('UNAUTHORIZED', 401)
     }
     const token   = authHeader.split(' ')[1]
-    const payload = jwt.verify(token, env.JWT_SECRET) as JWTPayload
+    const payload = jwt.verify(token, env.JWT_SECRET) as unknown as JWTPayload
     req.user = { id: payload.sub, role: payload.role, username: payload.username }
     next()
   } catch (err) {

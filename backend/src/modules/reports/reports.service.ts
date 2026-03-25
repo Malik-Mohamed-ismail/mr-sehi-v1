@@ -106,19 +106,33 @@ export async function getDashboard(from?: string, to?: string) {
 
 // ── Break-Even ────────────────────────────────────────────────────────────
 export async function getBreakevenAnalysis(from: string, to: string) {
-  const [income, fixedExpenses] = await Promise.all([
+  const [income, fixedExpenses, trends] = await Promise.all([
     getIncomeStatement(from, to),
     db.execute(sql.raw(`
-      SELECT COALESCE(SUM(amount), 0) AS total
+      SELECT account_code, expense_date, category, payment_method, amount, notes, vat_amount
       FROM expenses
       WHERE is_deleted = false AND expense_date >= '${from}' AND expense_date <= '${to}'
         AND expense_type = 'ثابت'
-    `))
+    `)),
+    getPerformanceTrends(from, to)
   ])
-  const fixedCosts = Number((fixedExpenses.rows[0] as any)?.total ?? 0)
+  const fixedCostsList = fixedExpenses.rows as any[]
+  const fixedCosts = fixedCostsList.reduce((s, r) => s + Number(r.amount), 0)
   const breakeven  = calculateBreakEven(income.revenue.total, income.cogs, fixedCosts)
 
-  return { period: { from, to }, income_statement: income, ...breakeven }
+  // Add cumulative revenue for target curve
+  let cumulative = 0
+  const series = trends.map(t => {
+    cumulative += Number(t.revenue)
+    return {
+      date: t.date,
+      revenue: t.revenue,
+      cumulative,
+      target: breakeven.breakEvenSales
+    }
+  })
+
+  return { period: { from, to }, income_statement: income, ...breakeven, fixedCostsList, series }
 }
 
 // ── VAT Summary ───────────────────────────────────────────────────────────
@@ -238,7 +252,7 @@ export async function getWasteAnalysis(from: string, to: string) {
       SUM(produced_kg) as total_kg,
       SUM(waste_grams) as waste_g,
       SUM(waste_value) as waste_value
-    FROM daily_production
+    FROM production
     WHERE is_deleted = false AND production_date >= '${from}' AND production_date <= '${to}'
     GROUP BY product_name
     ORDER BY SUM(waste_value) DESC
@@ -287,13 +301,27 @@ export async function getCashFlow(from: string, to: string) {
     outflow: Math.max(0, t.expenses)
   }))
 
+  const operatingDetails: any[] = []
+  
+  if (income.revenue.restaurant > 0) operatingDetails.push({ description: 'إيرادات مطعم محلي', amount: income.revenue.restaurant })
+  if (income.revenue.delivery > 0) operatingDetails.push({ description: 'إيرادات تطبيقات التوصيل', amount: income.revenue.delivery })
+  if (income.revenue.subscriptions > 0) operatingDetails.push({ description: 'إيرادات الاشتراكات', amount: income.revenue.subscriptions })
+  
+  if (income.cogs > 0) operatingDetails.push({ description: 'تكلفة البضاعة المباعة (مشتريات مواد)', amount: -income.cogs })
+  
+  income.expenses.forEach((e: any) => {
+    if (Number(e.total) > 0) {
+      operatingDetails.push({ description: `مصروفات تشغيلية (${e.account_code})`, amount: -Number(e.total) })
+    }
+  })
+
   return {
     period: { from, to },
     operatingActivities: opTotal,
     investingActivities: invTotal,
     financingActivities: finTotal,
-    operating: { details: [{ description: 'صافي الربح التشغيلي (نقدي)', amount: opTotal }] },
-    investing: { details: [{ description: 'شراء أصول ثابتة', amount: invTotal }] },
+    operating: { details: operatingDetails },
+    investing: { details: [{ description: 'شراء أصول ثابتة (معدات تقنية ومطابخ)', amount: invTotal }] },
     financing: { details: [] },
     dailySeries
   }

@@ -6,6 +6,7 @@ import { Plus, Download, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
+import { SearchInput } from '../../components/ui/SearchInput'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
@@ -19,6 +20,7 @@ export default function ProductionPage() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
+  const [search, setSearch] = useState('')
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
   const { data: records, isLoading } = useQuery({
@@ -147,12 +149,16 @@ export default function ProductionPage() {
         </div>
       )}
 
+      <div style={{ marginBottom: 16 }}>
+        <SearchInput value={search} onChange={setSearch} placeholder={t('common.search') || 'بحث...'} />
+      </div>
+
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
             <table className="data-table">
           <thead><tr><th>{t('production.table.date')}</th><th>{t('production.table.product')}</th><th>{t('production.table.productionKg')}</th><th>{t('production.table.wasteGrams')}</th><th>{t('production.table.wasteValue')}</th><th style={{ width: 60 }}></th></tr></thead>
           <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
-            {(records ?? []).map((r: any) => (
+            {(records ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((r: any) => (
               <motion.tr key={r.id} variants={staggerItem}>
                 <td className="amount">{formatDate(r.production_date)}</td>
                 <td style={{ fontWeight: 600 }}>{r.product_name}</td>

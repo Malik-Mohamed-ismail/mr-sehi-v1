@@ -93,8 +93,8 @@ export default function AuditLogPage() {
                 <tbody>
                   {rows.map((log: any) => (
                     <tr key={log.id}>
-                      <td className="number" style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                        {new Date(log.created_at).toLocaleString('en-GB')}
+                      <td className="number" style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                        {new Date(log.created_at).toLocaleString('ar-EG', { hour12: true })}
                       </td>
                       <td style={{ fontWeight: 600 }}>{log.username ?? log.user_id ?? '—'}</td>
                       <td>

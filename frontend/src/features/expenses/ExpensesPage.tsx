@@ -6,6 +6,7 @@ import { Plus, Download, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
+import { SearchInput } from '../../components/ui/SearchInput'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
@@ -31,6 +32,7 @@ export default function ExpensesPage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
   const { user } = useAuthStore()
+  const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
@@ -188,13 +190,17 @@ export default function ExpensesPage() {
         </motion.div>
       )}
 
+      <div style={{ marginBottom: 16 }}>
+        <SearchInput value={search} onChange={setSearch} placeholder={t('common.search') || 'بحث...'} />
+      </div>
+
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {isLoading ? <div style={{ padding: 24 }}>{[...Array(4)].map((_, i) => <div key={i} className="skeleton" style={{ height: 40, marginBottom: 8 }}/>)}</div> : (
           <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
             <table className="data-table">
             <thead><tr><th>{t('expenses.table.date')}</th><th>{t('expenses.table.description')}</th><th>{t('expenses.table.type')}</th><th>{t('expenses.fields.paymentMethod')}</th><th>{t('expenses.table.amount')}</th><th>{t('expenses.table.vat')}</th><th>{t('expenses.table.total')}</th><th style={{ width: 60 }}></th></tr></thead>
             <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
-              {(expenses ?? []).map((e: any) => (
+              {(expenses ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((e: any) => (
                 <motion.tr key={e.id} variants={staggerItem}>
                   <td className="amount">{formatDate(e.expense_date)}</td>
                   <td>{e.description}</td>

@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
+import { SearchInput } from '../../components/ui/SearchInput'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
@@ -39,6 +40,7 @@ export default function SubscribersPage() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
+  const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<string>('all')
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
@@ -237,6 +239,10 @@ export default function SubscribersPage() {
         ))}
       </div>
 
+      <div style={{ marginBottom: 16 }}>
+        <SearchInput value={search} onChange={setSearch} placeholder={t('common.search') || 'بحث...'} />
+      </div>
+
       {/* Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
@@ -253,7 +259,7 @@ export default function SubscribersPage() {
             </tr>
           </thead>
           <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
-            {(filtered ?? []).map((s: any) => (
+            {(filtered ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((s: any) => (
               <motion.tr key={s.id} variants={staggerItem}>
                 <td style={{ fontWeight: 600 }}>{s.name}</td>
                 <td className="amount">{s.phone ?? '—'}</td>

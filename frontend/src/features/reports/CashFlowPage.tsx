@@ -32,9 +32,9 @@ export default function CashFlowPage() {
   const netChange  = operating + investing + financing
 
   const sections = [
-    { label: t('cashFlow.operating'),  value: operating,  color: 'var(--color-success)' },
-    { label: t('cashFlow.investing'),  value: investing,  color: 'var(--color-info)' },
-    { label: t('cashFlow.financing'),  value: financing,  color: 'var(--color-warning)' },
+    { label: t('cashFlow.operating'),  id: 'operating', value: operating,  color: 'var(--color-success)' },
+    { label: t('cashFlow.investing'),  id: 'investing', value: investing,  color: 'var(--color-info)' },
+    { label: t('cashFlow.financing'),  id: 'financing', value: financing,  color: 'var(--color-warning)' },
   ]
 
   return (
@@ -63,7 +63,7 @@ export default function CashFlowPage() {
             {/* KPI Row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
               {sections.map(s => (
-                <motion.div key={s.label} variants={staggerItem} className="card" style={{ borderTop: `3px solid ${s.color}` }}>
+                <motion.div key={s.id} variants={staggerItem} className="card" style={{ borderTop: `3px solid ${s.color}` }}>
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>{s.label}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     {s.value >= 0 ? <TrendingUp size={16} color="var(--color-success)" /> : <TrendingDown size={16} color="var(--color-danger)" />}
@@ -96,13 +96,13 @@ export default function CashFlowPage() {
 
             {/* Details */}
             {sections.map(s => (
-              data[s.label.toLowerCase()]?.details?.length > 0 && (
-                <motion.div key={s.label} variants={staggerItem} className="card" style={{ marginTop: 16 }}>
+              data[s.id]?.details?.length > 0 && (
+                <motion.div key={s.id} variants={staggerItem} className="card" style={{ marginTop: 16 }}>
                   <h3 style={{ fontWeight: 600, marginBottom: 12, color: s.color }}>{s.label}</h3>
                   <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
             <table className="data-table">
                     <tbody>
-                      {data[s.label.toLowerCase()]?.details?.map((item: any, i: number) => (
+                      {data[s.id]?.details?.map((item: any, i: number) => (
                         <tr key={i}>
                           <td>{item.description}</td>
                           <td className="number" style={{ textAlign: 'end', fontWeight: 600, color: item.amount >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>

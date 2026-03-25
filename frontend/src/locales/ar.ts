@@ -996,6 +996,19 @@ export default {
     auditLog: {
       title: 'سجل المراجعة',
       description: 'تتبع جميع العمليات والتعديلات والمستخدمين'
-    }
+    },
+    channelDesc: 'تحليل الإيرادات عبر منصات التوصيل وداخل المطعم والاشتراكات',
+    revenueShare: 'حصة الإيرادات',
+    channelComparison: 'مقارنة القنوات',
+    channel: 'القناة',
+    revenue: 'الإيراد',
+    share: 'الحصة',
+    transactions: 'العمليات',
+    avgPerDay: 'متوسط يومي'
+  },
+  channels: {
+    delivery: 'التوصيل',
+    restaurant: 'المطعم',
+    subscriptions: 'الاشتراكات'
   }
 }

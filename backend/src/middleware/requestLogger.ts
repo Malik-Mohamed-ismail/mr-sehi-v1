@@ -1,7 +1,7 @@
 import pinoHttp from 'pino-http'
 import { logger } from '../config/logger.js'
 
-export const requestLogger = pinoHttp({
+export const requestLogger = (pinoHttp as any)({
   logger,
   customLogLevel: (_req: any, res: any) => {
     if (res.statusCode >= 500) return 'error'

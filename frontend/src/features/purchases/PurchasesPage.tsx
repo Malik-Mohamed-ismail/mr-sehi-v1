@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
+import { SearchInput } from '../../components/ui/SearchInput'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
@@ -35,6 +36,7 @@ export default function PurchasesPage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
   const { user } = useAuthStore()
+  const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
@@ -284,6 +286,10 @@ export default function PurchasesPage() {
         </motion.div>
       )}
 
+      <div style={{ marginBottom: 16 }}>
+        <SearchInput value={search} onChange={setSearch} placeholder={t('common.search') || 'بحث...'} />
+      </div>
+
       {/* Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -313,7 +319,7 @@ export default function PurchasesPage() {
               </tr>
             </thead>
             <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
-              {(purchases ?? []).map((p: any) => (
+              {(purchases ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((p: any) => (
                 <motion.tr key={p.id} variants={staggerItem}>
                   <td style={{ fontFamily: 'var(--font-latin)', fontWeight: 600 }}>{p.invoice_number}</td>
                   <td className="amount">{formatDate(p.invoice_date)}</td>

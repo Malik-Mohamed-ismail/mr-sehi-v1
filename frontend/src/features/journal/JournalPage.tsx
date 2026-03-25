@@ -6,6 +6,7 @@ import { Plus, Minus, RotateCcw, CheckCircle, XCircle, Download, X } from 'lucid
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
+import { SearchInput } from '../../components/ui/SearchInput'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
@@ -21,6 +22,7 @@ export default function JournalPage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
   const { user } = useAuthStore()
+  const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [reverseId, setReverseId] = useState<number | null>(null)
   const [reverseReason, setReverseReason] = useState('')
@@ -206,6 +208,10 @@ export default function JournalPage() {
         </motion.div>
       )}
 
+      <div style={{ marginBottom: 16 }}>
+        <SearchInput value={search} onChange={setSearch} placeholder={t('common.search') || 'بحث...'} />
+      </div>
+
       {/* Entries table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
@@ -230,7 +236,7 @@ export default function JournalPage() {
                 </tr>
               </thead>
               <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
-                {(entries ?? []).map((e: any) => (
+                {(entries ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((e: any) => (
                   <motion.tr key={e.id} variants={staggerItem}
                     style={{ opacity: e.is_reversed ? 0.5 : 1 }}>
                     <td style={{ fontFamily: 'var(--font-latin)', fontWeight: 600, color: 'var(--color-primary)' }}>{e.entry_number}</td>
