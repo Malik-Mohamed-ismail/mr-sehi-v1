@@ -114,11 +114,11 @@ export default function ExpensesPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
             <div className="card kpi-card-danger" style={{ padding: '16px 20px' }}>
               <div className="kpi-label">إجمالي المصروفات</div>
-              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-danger)' }}>{(expenses ?? []).reduce((s: number, e: any) => s + Number(e.amount), 0).toLocaleString('ar-SA', {style:'currency', currency:'SAR'})}</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-danger)' }}>{(expenses ?? []).reduce((s: number, e: any) => s + Number(e.amount), 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} SAR</div>
             </div>
             <div className="card kpi-card-warning" style={{ padding: '16px 20px' }}>
               <div className="kpi-label">ضريبة القيمة المضافة</div>
-              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-warning)' }}>{vat.toLocaleString('ar-SA', {style:'currency', currency:'SAR'})}</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-warning)' }}>{vat.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} SAR</div>
             </div>
             <div className="card kpi-card-info" style={{ padding: '16px 20px' }}>
               <div className="kpi-label">عدد السجلات</div>

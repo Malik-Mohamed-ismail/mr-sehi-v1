@@ -149,11 +149,11 @@ export default function PurchasesPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
             <div className="card kpi-card-primary" style={{ padding: '16px 20px' }}>
               <div className="kpi-label">إجمالي المشتريات</div>
-              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-primary)' }}>{totalAmt.toLocaleString('ar-SA', {style:'currency', currency:'SAR', maximumFractionDigits: 0})}</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-primary)' }}>{totalAmt.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} SAR</div>
             </div>
             <div className="card kpi-card-warning" style={{ padding: '16px 20px' }}>
               <div className="kpi-label">ضريبة القيمة المضافة</div>
-              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-warning)' }}>{totalVat.toLocaleString('ar-SA', {style:'currency', currency:'SAR', maximumFractionDigits: 0})}</div>
+              <div className="kpi-value" style={{ fontSize: 22, color: 'var(--color-warning)' }}>{totalVat.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} SAR</div>
             </div>
             <div className="card kpi-card-info" style={{ padding: '16px 20px' }}>
               <div className="kpi-label">عدد الفواتير</div>
