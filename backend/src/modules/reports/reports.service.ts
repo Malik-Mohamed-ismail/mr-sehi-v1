@@ -64,6 +64,26 @@ export async function getBalanceSheet(date: string) {
   const liabilities = rows.filter(r => r.type === 'liability')
   const equity      = rows.filter(r => r.type === 'equity')
 
+  // Calculate dynamic Net Income (Revenue - Expenses) to date, because closing entries might not exist
+  const netIncomeRes = await db.execute(sql.raw(`
+    SELECT COALESCE(SUM(jel.credit_amount) - SUM(jel.debit_amount), 0) AS net_income
+    FROM journal_entry_lines jel
+    JOIN journal_entries je ON je.id = jel.entry_id
+    JOIN accounts a ON a.code = jel.account_code
+    WHERE je.entry_date <= '${date}' AND je.is_balanced = true
+      AND (a.type = 'revenue' OR a.type = 'expense')
+  `))
+  
+  const currentYearEarnings = Number((netIncomeRes.rows as any[])?.[0]?.net_income ?? 0)
+  if (currentYearEarnings !== 0) {
+    equity.push({
+      code: '3102', // Virtual or real Retained Earnings code
+      name_ar: 'أرباح مبقاة (أرباح الفترة المتراكمة)',
+      type: 'equity',
+      balance: currentYearEarnings
+    })
+  }
+
   const totalAssets      = assets.reduce((s, r) => s + Number(r.balance), 0)
   const totalLiabilities = liabilities.reduce((s, r) => s + Number(r.balance), 0)
   const totalEquity      = equity.reduce((s, r) => s + Number(r.balance), 0)

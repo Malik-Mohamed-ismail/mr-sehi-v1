@@ -197,9 +197,9 @@ export default function SuppliersPage() {
                 <th style={{ width: 60 }}></th>
               </tr>
             </thead>
-            <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+            <tbody>
               {(suppliers ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((s: any) => (
-                <motion.tr key={s.id} variants={staggerItem}>
+                <tr key={s.id}>
                   <td style={{ fontWeight: 600 }}>{s.name_ar}</td>
                   <td>{s.category ? <span className="badge badge-info">{s.category}</span> : '—'}</td>
                   <td className="amount" style={{ fontSize: 12 }}>{s.vat_number ?? '—'}</td>
@@ -236,12 +236,12 @@ export default function SuppliersPage() {
                       )}
                     </div>
                   </td>
-                </motion.tr>
+                </tr>
               ))}
               {!suppliers?.length && (
                 <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('suppliers.table.empty')}</td></tr>
               )}
-            </motion.tbody>
+            </tbody>
           </table>
           </div>
         )}

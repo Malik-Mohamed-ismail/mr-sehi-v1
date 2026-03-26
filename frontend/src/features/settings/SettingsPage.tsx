@@ -280,9 +280,9 @@ function UsersManagementTab() {
                 <th>{t('settings.users.table.status')}</th>
               </tr>
             </thead>
-            <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+            <tbody>
               {(users ?? []).map((u: any) => (
-                <motion.tr key={u.id} variants={staggerItem}>
+                <tr key={u.id}>
                   <td style={{ fontWeight: 600 }}>{u.full_name}</td>
                   <td style={{ fontFamily: 'var(--font-latin)' }}>{u.username}</td>
                   <td style={{ fontFamily: 'var(--font-latin)', color: 'var(--text-secondary)' }}>{u.email}</td>
@@ -292,9 +292,9 @@ function UsersManagementTab() {
                       ? <span className="badge badge-success">{t('settings.users.status.active')}</span> 
                       : <span className="badge badge-danger">{t('settings.users.status.inactive')}</span>}
                   </td>
-                </motion.tr>
+                </tr>
               ))}
-            </motion.tbody>
+            </tbody>
           </table>
           </div>
         )}
@@ -338,9 +338,9 @@ function AuditLogsTab() {
                 <th style={{ minWidth: 200 }}>{t('settings.audit.table.details')}</th>
               </tr>
             </thead>
-            <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+            <tbody>
               {(logs ?? []).map((log: any) => (
-                <motion.tr key={log.id} variants={staggerItem}>
+                <tr key={log.id}>
                   <td style={{ fontFamily: 'var(--font-latin)' }}>
                     {new Date(log.created_at).toLocaleString('ar-SA')}
                   </td>
@@ -359,9 +359,9 @@ function AuditLogsTab() {
                       </pre>
                     </details>
                   </td>
-                </motion.tr>
+                </tr>
               ))}
-            </motion.tbody>
+            </tbody>
           </table>
           </div>
         </div>

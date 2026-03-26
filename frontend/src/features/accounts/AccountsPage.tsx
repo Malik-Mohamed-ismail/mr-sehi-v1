@@ -169,18 +169,18 @@ export default function AccountsPage() {
               <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
             <table className="data-table">
                 <thead><tr><th>{t('accounts.table.code')}</th><th>{t('accounts.table.nameAr')}</th><th>{t('accounts.table.nameEn')}</th><th>{t('accounts.table.level')}</th><th>{t('accounts.table.isSystem')}</th></tr></thead>
-                <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+                <tbody>
                   {items.filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((a: any) => (
-                    <motion.tr key={a.code} variants={staggerItem}
+                    <tr key={a.code}
                       style={{ paddingRight: a.level > 1 ? (a.level - 1) * 16 : 0 }}>
                       <td style={{ fontFamily: 'var(--font-latin)', fontWeight: 600, color: 'var(--color-primary)' }}>{a.code}</td>
                       <td style={{ paddingRight: a.level > 1 ? (a.level - 1) * 16 + 16 : 16 }}>{a.name_ar}</td>
                       <td style={{ color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'var(--font-latin)' }}>{a.name_en ?? '—'}</td>
                       <td className="amount">{a.level}</td>
                       <td>{a.is_system ? <span className="badge badge-warning">{t('accounts.table.isSystem')}</span> : '—'}</td>
-                    </motion.tr>
+                    </tr>
                   ))}
-                </motion.tbody>
+                </tbody>
               </table>
           </div>
             </div>

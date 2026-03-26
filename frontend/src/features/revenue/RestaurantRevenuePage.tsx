@@ -136,9 +136,9 @@ export default function RestaurantRevenuePage() {
         <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
             <table className="data-table">
           <thead><tr><th>{t('restaurant.table.date')}</th><th>{t('restaurant.table.amount')}</th><th>{t('restaurant.table.covers')}</th><th>{t('restaurant.fields.paymentMethod')}</th><th style={{ width: 60 }}></th></tr></thead>
-          <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+          <tbody>
             {(revenues ?? []).map((r: any) => (
-              <motion.tr key={r.id} variants={staggerItem}>
+              <tr key={r.id}>
                 <td className="amount">{formatDate(r.revenue_date)}</td>
                 <td className="amount" style={{ fontWeight: 700, color: 'var(--color-success)' }}>{formatSAR(r.amount)}</td>
                 <td className="amount">{r.covers ?? '—'}</td>
@@ -148,10 +148,10 @@ export default function RestaurantRevenuePage() {
                     <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => setDeleteId(r.id)} title={t("purchases.delete.aria") || 'حذف'}><Trash2 size={14}/></button>
                   )}
                 </td>
-              </motion.tr>
+              </tr>
             ))}
             {!revenues?.length && <tr><td colSpan={5} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('restaurant.table.empty')}</td></tr>}
-          </motion.tbody>
+          </tbody>
         </table>
           </div>
       </div>

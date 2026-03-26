@@ -8,7 +8,7 @@ import {
   Users, UserCheck, Factory,
   BookOpen, BookMarked, Scale, DollarSign,
   ChevronLeft, ChevronRight, ChevronDown,
-  BarChart2, Leaf, Target, Receipt, Shield, UserCog,
+  BarChart2, Leaf, Target, Receipt, Shield, UserCog, Building,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../../store/authStore'
@@ -59,6 +59,7 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/suppliers',   icon: <Users size={18}/>,    label: 'pages.suppliers' },
       { to: '/subscribers', icon: <UserCheck size={18}/>,label: 'pages.subscribers' },
       { to: '/production',  icon: <Factory size={18}/>,  label: 'pages.production' },
+      { to: '/fixed-assets', icon: <Building size={18}/>, label: 'pages.fixedAssets' },
     ],
   },
   {

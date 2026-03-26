@@ -15,6 +15,20 @@
       "when": 1774460976852,
       "tag": "0001_flaky_tyrannus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1774540113272,
+      "tag": "0002_striped_ezekiel_stane",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1774542358386,
+      "tag": "0003_cuddly_greymalkin",
+      "breakpoints": true
     }
   ]
 }

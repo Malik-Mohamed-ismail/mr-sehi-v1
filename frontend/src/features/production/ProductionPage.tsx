@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus, Download, Trash2, X } from 'lucide-react'
+import { Plus, Download, Trash2, X, Calculator } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
@@ -17,6 +18,7 @@ import { useAuthStore } from '../../store/authStore'
 
 export default function ProductionPage() {
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const { t } = useTranslation()
   const { user } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
@@ -86,6 +88,9 @@ export default function ProductionPage() {
           <button className="btn btn-secondary" onClick={handleExport} disabled={!records?.length}>
             <Download size={16}/> تصدير Excel
           </button>
+          <button className="btn btn-ghost" style={{ background: 'var(--color-primary-bg)', color: 'var(--color-primary)' }} onClick={() => navigate('/production/summary')}>
+            <Calculator size={16}/> {t('production.section1')}
+          </button>
           <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> {t('production.newProduction')}</button>
         </div>
       </div>
@@ -121,33 +126,7 @@ export default function ProductionPage() {
         </motion.div>
       )}
 
-      {/* Summary */}
-      {summary?.length > 0 && (
-        <div className="card" style={{ marginBottom: 24, padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border-color)', fontWeight: 600 }}>{t('production.section1')}</div>
-          <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
-            <style>{`.summary-table th, .summary-table td { border: 1px solid var(--border-color); }`}</style>
-            <table className="data-table summary-table">
-            <thead><tr><th>{t('production.table.product')}</th><th>{t('production.table.productionKg')}</th><th>{t('production.table.wasteGrams')}</th><th>{t('production.table.wasteValue')}</th><th>{t('production.table.wastePct')}</th></tr></thead>
-            <tbody>
-              {(summary ?? []).map((s: any) => (
-                <tr key={s.product_name}>
-                  <td style={{ fontWeight: 600 }}>{s.product_name}</td>
-                  <td className="amount">{Number(s.total_kg).toFixed(2)}</td>
-                  <td className="amount">{Number(s.total_waste_grams).toFixed(0)}</td>
-                  <td className="amount" style={{ color: 'var(--color-danger)' }}>{formatSAR(s.total_waste_value)}</td>
-                  <td className="amount">
-                    <span className={`badge ${Number(s.waste_pct) > 5 ? 'badge-danger' : 'badge-success'}`}>
-                      {Number(s.waste_pct).toFixed(1)}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </div>
-        </div>
-      )}
+      {/* The inline summary has been moved to its own dedicated page */}
 
       <div style={{ marginBottom: 16 }}>
         <SearchInput value={search} onChange={setSearch} placeholder={t('common.search') || 'بحث...'} />
@@ -157,9 +136,9 @@ export default function ProductionPage() {
         <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
             <table className="data-table">
           <thead><tr><th>{t('production.table.date')}</th><th>{t('production.table.product')}</th><th>{t('production.table.productionKg')}</th><th>{t('production.table.wasteGrams')}</th><th>{t('production.table.wasteValue')}</th><th style={{ width: 60 }}></th></tr></thead>
-          <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+          <tbody>
             {(records ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((r: any) => (
-              <motion.tr key={r.id} variants={staggerItem}>
+              <tr key={r.id}>
                 <td className="amount">{formatDate(r.production_date)}</td>
                 <td style={{ fontWeight: 600 }}>{r.product_name}</td>
                 <td className="amount">{Number(r.produced_kg).toFixed(3)}</td>
@@ -170,10 +149,10 @@ export default function ProductionPage() {
                     <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => setDeleteId(r.id)} title={t("purchases.delete.aria") || 'حذف'}><Trash2 size={14}/></button>
                   )}
                 </td>
-              </motion.tr>
+              </tr>
             ))}
             {!records?.length && <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('production.table.empty')}</td></tr>}
-          </motion.tbody>
+          </tbody>
         </table>
           </div>
       </div>

@@ -258,9 +258,9 @@ export default function SubscribersPage() {
               <th>{t('subscribers.table.action')}</th>
             </tr>
           </thead>
-          <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+          <tbody>
             {(filtered ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((s: any) => (
-              <motion.tr key={s.id} variants={staggerItem}>
+              <tr key={s.id}>
                 <td style={{ fontWeight: 600 }}>{s.name}</td>
                 <td className="amount">{s.phone ?? '—'}</td>
                 <td>{s.plan_name ?? '—'}</td>
@@ -294,12 +294,12 @@ export default function SubscribersPage() {
                     </button>
                   )}
                 </td>
-              </motion.tr>
+              </tr>
             ))}
             {!filtered?.length && (
               <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('subscribers.table.empty')}</td></tr>
             )}
-          </motion.tbody>
+          </tbody>
         </table>
           </div>
       </div>

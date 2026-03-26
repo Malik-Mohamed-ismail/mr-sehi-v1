@@ -1,7 +1,7 @@
 import { desc, like } from 'drizzle-orm'
 import { journalEntries } from '../db/schema/journal.js'
 
-export type EntryPrefix = 'P' | 'R' | 'E' | 'M' | 'REV'
+export type EntryPrefix = 'P' | 'R' | 'E' | 'M' | 'REV' | 'FA'
 
 /**
  * Generates sequential entry numbers in format: {PREFIX}-{YEAR}-{SEQ:04d}

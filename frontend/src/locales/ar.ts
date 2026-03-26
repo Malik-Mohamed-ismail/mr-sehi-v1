@@ -698,6 +698,73 @@ export default {
       aria: 'حذف الفاتورة'
     }
   },
+  fixedAssets: {
+    messages: {
+      createSuccess: 'تم إضافة الأصل بنجاح',
+      deleteSuccess: 'تم حذف الأصل بنجاح',
+      depreciateSuccess: 'تم احتساب وطباعة قيد الإهلاك بنجاح',
+      error: 'حدث خطأ غير متوقع'
+    },
+    exportTitle: 'سجل_الأصول_الثابتة',
+    pageTitle: 'إدارة الأصول الثابتة',
+    pageSubtitle: 'إنشاء ومتابعة وإهلاك الأصول',
+    newAsset: 'أصل جديد',
+    kpi: {
+      totalCost: 'إجمالي التكلفة الأصلية',
+      totalDepreciation: 'إجمالي مجمع الإهلاك',
+      netBookValue: 'صافي القيمة الدفترية',
+      totalVat: 'إجمالي ضريبة القيمة المضافة',
+      totalAssets: 'إجمالي الأصول'
+    },
+    section1: 'بيانات الأصل الأساسية',
+    section2: 'البيانات المالية والإهلاك',
+    fields: {
+      date: 'تاريخ الشراء',
+      assetName: 'اسم الأصل',
+      assetType: 'نوع الأصل',
+      selectType: 'اختر نوع الأصل',
+      cost: 'التكلفة الإجمالية (شامل الضريبة إن وجدت)',
+      includesVat: 'يشمل ضريبة القيمة المضافة 15%',
+      vat: 'الضريبة (15%)',
+      paymentMethod: 'طريقة الدفع',
+      usefulLife: 'العمر الإنتاجي (سنوات)',
+      description: 'الوصف أو الموديل',
+      notes: 'ملاحظات إضافية'
+    },
+    types: {
+      equipment: 'معدات',
+      furniture: 'أثاث',
+      vehicles: 'مركبات',
+      technology: 'تقنية',
+      other: 'أصول أخرى'
+    },
+    buttons: {
+      cancel: 'إلغاء',
+      saving: 'جارٍ الحفظ...',
+      save: '💾 حفظ الأصل',
+      depreciate: 'إهلاك الدفعة المجمعة'
+    },
+    table: {
+      title: 'سجل الأصول',
+      export: 'تصدير Excel',
+      empty: 'لا توجد أصول مسجلة',
+      date: 'التاريخ',
+      asset: 'الأصل',
+      name: 'اسم الأصل',
+      account: 'حساب الأصل',
+      usefulLife: 'العمر الإنتاجي',
+      type: 'النوع',
+      cost: 'التكلفة',
+      vat: 'الضريبة',
+      depreciation: 'مجمع الإهلاك',
+      netValue: 'القيمة الصافية'
+    },
+    delete: {
+      title: 'حذف الأصل',
+      message: 'سيتم حذف الأصل وجميع قيوده المحاسبية المتعلقة به. هل أنت متأكد؟',
+      aria: 'حذف الأصل'
+    }
+  },
   auth: {
     invalidEmail: 'البريد الإلكتروني غير صحيح',
     passwordRequired: 'كلمة المرور مطلوبة',
@@ -797,6 +864,7 @@ export default {
     incomeStatement: 'قائمة الدخل',
     performance: 'التحليل المالي',
     reports: 'التقارير',
+    fixedAssets: 'إدارة الأصول',
     balanceSheet: 'الميزانية العمومية',
     cashFlow: 'التدفقات النقدية',
     channelAnalysis: 'تحليل القنوات',

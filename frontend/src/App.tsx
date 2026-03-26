@@ -17,8 +17,10 @@ const SuppliersPage            = lazy(() => import('./features/suppliers/Supplie
 const SupplierLedgerPage       = lazy(() => import('./features/suppliers/SupplierLedgerPage'))
 const JournalPage              = lazy(() => import('./features/journal/JournalPage'))
 const ExpensesPage             = lazy(() => import('./features/expenses/ExpensesPage'))
+const FixedAssetsPage          = lazy(() => import('./features/fixed-assets/FixedAssetsPage'))
 const PettyCashPage            = lazy(() => import('./features/petty-cash/PettyCashPage'))
 const ProductionPage           = lazy(() => import('./features/production/ProductionPage'))
+const ProductionSummaryPage    = lazy(() => import('./features/production/ProductionSummaryPage').then(m => ({ default: m.ProductionSummaryPage })))
 const AccountsPage             = lazy(() => import('./features/accounts/AccountsPage'))
 const IncomeStatementPage      = lazy(() => import('./features/reports/IncomeStatementPage'))
 const PerformancePage          = lazy(() => import('./features/reports/PerformancePage'))
@@ -76,11 +78,13 @@ export default function App() {
             <Route path="revenue/subscriptions" element={<PageSuspense><SubscriptionsRevenuePage /></PageSuspense>} />
             <Route path="purchases"             element={<PageSuspense><PurchasesPage /></PageSuspense>} />
             <Route path="expenses"              element={<PageSuspense><ExpensesPage /></PageSuspense>} />
+            <Route path="fixed-assets"          element={<PageSuspense><FixedAssetsPage /></PageSuspense>} />
             <Route path="petty-cash"            element={<PageSuspense><PettyCashPage /></PageSuspense>} />
             <Route path="suppliers"             element={<PageSuspense><SuppliersPage /></PageSuspense>} />
             <Route path="suppliers/:id/ledger"  element={<PageSuspense><SupplierLedgerPage /></PageSuspense>} />
             <Route path="subscribers"           element={<PageSuspense><SubscribersPage /></PageSuspense>} />
             <Route path="production"            element={<PageSuspense><ProductionPage /></PageSuspense>} />
+            <Route path="production/summary"    element={<PageSuspense><ProductionSummaryPage /></PageSuspense>} />
             <Route path="accounts"              element={<PageSuspense><AccountsPage /></PageSuspense>} />
             <Route path="journal"               element={<PageSuspense><JournalPage /></PageSuspense>} />
             <Route path="ledger"                element={<PageSuspense><LedgerPage /></PageSuspense>} />

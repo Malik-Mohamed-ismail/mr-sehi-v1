@@ -187,7 +187,7 @@ export default function JournalPage() {
               {isBalanced
                 ? <CheckCircle size={16} color="var(--color-success)"/>
                 : <XCircle size={16} color="var(--color-danger)"/>}
-              <span style={{ fontSize: 13, fontFamily: 'var(--font-arabic)' }}>
+              <span style={{ fontSize: 14, fontFamily: 'var(--font-arabic)', fontWeight: 700, color: isBalanced ? 'var(--color-success)' : 'var(--color-danger)' }}>
                 {isBalanced
                   ? t('journal.balance.balanced')
                   : `${t('journal.balance.unbalanced')} ${diff.toFixed(4)} ${t('journal.balance.currency')}`}
@@ -235,9 +235,9 @@ export default function JournalPage() {
                   {user?.role === 'admin' && <th>{t('journal.table.reverse')}</th>}
                 </tr>
               </thead>
-              <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+              <tbody>
                 {(entries ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((e: any) => (
-                  <motion.tr key={e.id} variants={staggerItem}
+                  <tr key={e.id}
                     style={{ opacity: e.is_reversed ? 0.5 : 1 }}>
                     <td style={{ fontFamily: 'var(--font-latin)', fontWeight: 600, color: 'var(--color-primary)' }}>{e.entry_number}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{formatDate(e.entry_date)}</td>
@@ -268,12 +268,12 @@ export default function JournalPage() {
                         )}
                       </td>
                     )}
-                  </motion.tr>
+                  </tr>
                 ))}
                 {!entries?.length && (
                   <tr><td colSpan={9} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('journal.table.empty')}</td></tr>
                 )}
-              </motion.tbody>
+              </tbody>
             </table>
           </div>
         )}

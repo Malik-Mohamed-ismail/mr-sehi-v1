@@ -698,6 +698,73 @@ export default {
       aria: 'Delete Invoice'
     }
   },
+  fixedAssets: {
+    messages: {
+      createSuccess: 'Asset created successfully',
+      deleteSuccess: 'Asset deleted successfully',
+      depreciateSuccess: 'Depreciation journal calculated and posted successfully',
+      error: 'An unexpected error occurred'
+    },
+    exportTitle: 'Fixed_Assets_Register',
+    pageTitle: 'Manage Fixed Assets',
+    pageSubtitle: 'Create, track, and depreciate fixed assets',
+    newAsset: 'New Asset',
+    kpi: {
+      totalCost: 'Total Original Cost',
+      totalDepreciation: 'Total Accumulated Depreciation',
+      netBookValue: 'Net Book Value',
+      totalVat: 'Total VAT',
+      totalAssets: 'Total Assets'
+    },
+    section1: 'Basic Asset Details',
+    section2: 'Financial & Depreciation Data',
+    fields: {
+      date: 'Purchase Date',
+      assetName: 'Asset Name',
+      assetType: 'Asset Type',
+      selectType: 'Select Asset Type',
+      cost: 'Total Cost (Including VAT if applicable)',
+      includesVat: 'Includes 15% VAT',
+      vat: 'VAT (15%)',
+      paymentMethod: 'Payment Method',
+      usefulLife: 'Useful Life (Years)',
+      description: 'Description or Model',
+      notes: 'Additional Notes'
+    },
+    types: {
+      equipment: 'Equipment',
+      furniture: 'Furniture',
+      vehicles: 'Vehicles',
+      technology: 'Technology',
+      other: 'Other Assets'
+    },
+    buttons: {
+      cancel: 'Cancel',
+      saving: 'Saving...',
+      save: '💾 Save Asset',
+      depreciate: 'Run Accumulated Depreciation'
+    },
+    table: {
+      title: 'Assets Register',
+      export: 'Export Excel',
+      empty: 'No assets found',
+      date: 'Date',
+      asset: 'Asset',
+      name: 'Asset Name',
+      account: 'Account',
+      usefulLife: 'Useful Life',
+      type: 'Type',
+      cost: 'Cost',
+      vat: 'VAT',
+      depreciation: 'Accumulated Depreciation',
+      netValue: 'Net Book Value'
+    },
+    delete: {
+      title: 'Delete Asset',
+      message: 'This will delete the asset and reverse related journal entries. Are you sure?',
+      aria: 'Delete Asset'
+    }
+  },
   auth: {
     invalidEmail: 'Invalid email address',
     passwordRequired: 'Password is required',
@@ -797,6 +864,7 @@ export default {
     incomeStatement: 'Income Statement',
     performance: 'Financial Analysis',
     reports: 'Reports',
+    fixedAssets: 'Fixed Assets',
     balanceSheet: 'Balance Sheet',
     cashFlow: 'Cash Flow Statement',
     channelAnalysis: 'Channel Analysis',

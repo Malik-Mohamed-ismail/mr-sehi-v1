@@ -269,8 +269,8 @@ export default function PurchasesPage() {
                 </select>
               </div>
               <div className="form-field has-value" style={{ display: 'flex', alignItems: 'center', paddingTop: 12 }}>
-                <label style={{ position: 'static', transform: 'none', fontSize: 14, padding: 0, marginLeft: 8 }}>
-                  <input {...register('is_asset')} type="checkbox" style={{ marginLeft: 6 }}/>
+                <label style={{ position: 'static', transform: 'none', fontSize: 14, padding: 0, marginLeft: 8, pointerEvents: 'auto', cursor: 'pointer' }}>
+                  <input {...register('is_asset')} type="checkbox" style={{ marginInlineEnd: 8, cursor: 'pointer' }}/>
                   أصل ثابت (معدات / أثاث)
                 </label>
               </div>
@@ -318,9 +318,9 @@ export default function PurchasesPage() {
                 <th></th>
               </tr>
             </thead>
-            <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+            <tbody>
               {(purchases ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((p: any) => (
-                <motion.tr key={p.id} variants={staggerItem}>
+                <tr key={p.id}>
                   <td style={{ fontFamily: 'var(--font-latin)', fontWeight: 600 }}>{p.invoice_number}</td>
                   <td className="amount">{formatDate(p.invoice_date)}</td>
                   <td>{p.supplier_id}</td>
@@ -345,12 +345,12 @@ export default function PurchasesPage() {
                       </button>
                     )}
                   </td>
-                </motion.tr>
+                </tr>
               ))}
               {!purchases?.length && (
                 <tr><td colSpan={9} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('purchases.table.empty')}</td></tr>
               )}
-            </motion.tbody>
+            </tbody>
           </table>
           </div>
         )}

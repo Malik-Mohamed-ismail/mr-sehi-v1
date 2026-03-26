@@ -235,9 +235,9 @@ export default function DeliveryRevenuePage() {
                 <th style={{ width: 60 }}></th>
               </tr>
             </thead>
-            <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+            <tbody>
               {(revenues ?? []).map((r: any) => (
-                <motion.tr key={r.id} variants={staggerItem}>
+                <tr key={r.id}>
                   <td className="amount">{formatDate(r.revenue_date)}</td>
                   <td>
                     <span className="badge" style={{ background: (PLATFORM_COLORS[r.platform] || '#6b7280') + '22', color: PLATFORM_COLORS[r.platform] || '#6b7280' }}>
@@ -253,12 +253,12 @@ export default function DeliveryRevenuePage() {
                       <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => setDeleteId(r.id)} title={t("purchases.delete.aria") || 'حذف'}><Trash2 size={14}/></button>
                     )}
                   </td>
-                </motion.tr>
+                </tr>
               ))}
               {!revenues?.length && (
                 <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('delivery.table.empty')}</td></tr>
               )}
-            </motion.tbody>
+            </tbody>
           </table>
           </div>
         )}

@@ -115,9 +115,9 @@ export function LookupsTab() {
                   <th style={{ width: 80 }}>الإجراء</th>
                 </tr>
               </thead>
-              <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+              <tbody>
                 {(lookups ?? []).map((item: any) => (
-                  <motion.tr key={item.id} variants={staggerItem}>
+                  <tr key={item.id}>
                     <td style={{ fontWeight: 600 }}>{item.name_ar}</td>
                     <td style={{ fontFamily: 'var(--font-latin)', color: 'var(--text-secondary)' }}>{item.name_en}</td>
                     <td>
@@ -133,12 +133,12 @@ export function LookupsTab() {
                         <Trash2 size={14}/>
                       </button>
                     </td>
-                  </motion.tr>
+                  </tr>
                 ))}
                 {!lookups?.length && (
                   <tr><td colSpan={3} style={{ textAlign: 'center', padding: 30, color: 'var(--text-secondary)' }}>لا توجد بيانات مسجلة</td></tr>
                 )}
-              </motion.tbody>
+              </tbody>
             </table>
           </div>
         )}

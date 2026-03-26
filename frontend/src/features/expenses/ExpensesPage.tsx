@@ -170,8 +170,8 @@ export default function ExpensesPage() {
               <div className="form-field has-value" style={{ gridColumn: '1 / -1' }}><label>{t('expenses.fields.description')}</label><input {...register('description')} className="form-input"/></div>
               <div className="form-field has-value"><label>{t('expenses.fields.amount')}</label><input {...register('amount')} type="number" step="0.01" className="form-input"/></div>
               <div className="form-field has-value" style={{ display: 'flex', alignItems: 'center', paddingTop: 12 }}>
-                <label style={{ position: 'static', transform: 'none', fontSize: 14, padding: 0 }}>
-                  <input {...register('has_vat')} type="checkbox" style={{ marginLeft: 8 }}/>
+                <label style={{ position: 'static', transform: 'none', fontSize: 14, padding: 0, pointerEvents: 'auto', cursor: 'pointer' }}>
+                  <input {...register('has_vat')} type="checkbox" style={{ marginInlineEnd: 8, cursor: 'pointer' }}/>
                   يشمل ضريبة القيمة المضافة 15%
                 </label>
               </div>
@@ -199,9 +199,9 @@ export default function ExpensesPage() {
           <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
             <table className="data-table">
             <thead><tr><th>{t('expenses.table.date')}</th><th>{t('expenses.table.description')}</th><th>{t('expenses.table.type')}</th><th>{t('expenses.fields.paymentMethod')}</th><th>{t('expenses.table.amount')}</th><th>{t('expenses.table.vat')}</th><th>{t('expenses.table.total')}</th><th style={{ width: 60 }}></th></tr></thead>
-            <motion.tbody variants={staggerContainer} initial="initial" animate="animate">
+            <tbody>
               {(expenses ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((e: any) => (
-                <motion.tr key={e.id} variants={staggerItem}>
+                <tr key={e.id}>
                   <td className="amount">{formatDate(e.expense_date)}</td>
                   <td>{e.description}</td>
                   <td><span className="badge badge-warning">{t(`expenses.types.${e.expense_type === 'ثابت' ? 'fixed' : e.expense_type === 'متغير' ? 'variable' : e.expense_type === 'تشغيلي' ? 'operational' : 'emergency'}`)}</span></td>
@@ -214,10 +214,10 @@ export default function ExpensesPage() {
                       <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => setDeleteId(e.id)} title={t("purchases.delete.aria") || 'حذف'}><Trash2 size={14}/></button>
                     )}
                   </td>
-                </motion.tr>
+                </tr>
               ))}
               {!expenses?.length && <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('expenses.table.empty')}</td></tr>}
-            </motion.tbody>
+            </tbody>
           </table>
           </div>
         )}
