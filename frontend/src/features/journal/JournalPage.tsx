@@ -190,11 +190,11 @@ export default function JournalPage() {
               <span style={{ fontSize: 14, fontFamily: 'var(--font-arabic)', fontWeight: 700, color: isBalanced ? 'var(--color-success)' : 'var(--color-danger)' }}>
                 {isBalanced
                   ? t('journal.balance.balanced')
-                  : `${t('journal.balance.unbalanced')} ${diff.toFixed(4)} ${t('journal.balance.currency')}`}
+                  : `${t('journal.balance.unbalanced')} ${diff.toFixed(2)} ${t('journal.balance.currency')}`}
               </span>
               <div style={{ marginRight: 'auto', display: 'flex', gap: 16, fontFamily: 'var(--font-latin)', fontSize: 13 }}>
-                <span>{t('journal.balance.totalDebit')} {totalDebit.toFixed(2)}</span>
-                <span>{t('journal.balance.totalCredit')} {totalCredit.toFixed(2)}</span>
+                <span style={{ fontSize: 14, fontFamily: 'var(--font-arabic)', fontWeight: 700, color: isBalanced ? 'var(--color-success)' : 'var(--color-danger)' }}>{t('journal.balance.totalDebit')} {totalDebit.toFixed(2)}</span>
+                <span style={{ fontSize: 14, fontFamily: 'var(--font-arabic)', fontWeight: 700, color: isBalanced ? 'var(--color-success)' : 'var(--color-danger)' }}>{t('journal.balance.totalCredit')} {totalCredit.toFixed(2)}</span>
               </div>
             </div>
 
