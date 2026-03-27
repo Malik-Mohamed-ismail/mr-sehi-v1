@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus, Download, X } from 'lucide-react'
+import { Plus, Download, Trash2, X, Edit2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -15,7 +15,6 @@ import i18n from '../../lib/i18n'
 import { exportToExcel } from '../../lib/export'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { useAuthStore } from '../../store/authStore'
-import { Trash2 } from 'lucide-react'
 
 const schema = z.object({
   revenue_date:     z.string().min(1, i18n.t('delivery.validation.dateRequired')),
@@ -35,7 +34,9 @@ export default function DeliveryRevenuePage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
   const { user } = useAuthStore()
+  const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [editingItem, setEditingItem] = useState<any>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { data: revenues, isLoading } = useQuery({
@@ -70,7 +71,19 @@ export default function DeliveryRevenuePage() {
       qc.invalidateQueries({ queryKey: ['revenue-delivery'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       qc.invalidateQueries({ queryKey: ['journal'] })
-      reset(); setShowForm(false)
+      reset(); setShowForm(false); setEditingItem(null)
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('delivery.messages.error')),
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: any }) => api.put(`/revenue/delivery/${id}`, data),
+    onSuccess: () => {
+      toast.success(t('common.updateSuccess'))
+      qc.invalidateQueries({ queryKey: ['revenue-delivery'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
+      reset(); setShowForm(false); setEditingItem(null)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('delivery.messages.error')),
   })
@@ -95,7 +108,11 @@ export default function DeliveryRevenuePage() {
   })
 
   const onSubmit = (data: FormData) => {
-    createMutation.mutate({ ...data, commission_amount: commAmount })
+    if (editingItem) {
+      updateMutation.mutate({ id: editingItem.id, data: { ...data, commission_amount: commAmount } })
+    } else {
+      createMutation.mutate({ ...data, commission_amount: commAmount })
+    }
   }
 
   const totals = (revenues ?? []).reduce(
@@ -153,8 +170,8 @@ export default function DeliveryRevenuePage() {
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
           <div className="form-card-header">
-            <span className="form-card-header-title">➕ {t('delivery.newRevenue')}</span>
-            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق"><X size={16}/></button>
+            <span className="form-card-header-title">{editingItem ? <Edit2 size={16}/> : '➕'} {editingItem ? 'تعديل الإيراد' : t('delivery.newRevenue')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false); setEditingItem(null); }} title="إغلاق"><X size={16}/></button>
           </div>
           <form onSubmit={handleSubmit(onSubmit)} dir={i18n.dir()}>
             <div className="form-section-header">
@@ -243,25 +260,24 @@ export default function DeliveryRevenuePage() {
               </tr>
             </thead>
             <tbody>
-              {(revenues ?? []).map((r: any) => (
-                <tr key={r.id}>
-                  <td className="amount">{formatDate(r.revenue_date)}</td>
-                  <td>
-                    <span className="badge" style={{ background: (PLATFORM_COLORS[r.platform] || '#6b7280') + '22', color: PLATFORM_COLORS[r.platform] || '#6b7280' }}>
-                      {r.platform}
-                    </span>
-                  </td>
-                  <td><span className="badge badge-neutral">{r.payment_method}</span></td>
-                  <td className="amount">{formatSAR(r.gross_amount)}</td>
-                  <td className="amount" style={{ color: 'var(--color-danger)' }}>{formatSAR(r.commission_amount)}</td>
-                  <td className="amount" style={{ fontWeight: 700, color: 'var(--color-success)' }}>{formatSAR(r.net_amount)}</td>
-                  <td>
-                    {user?.role === 'admin' && (
-                      <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => setDeleteId(r.id)} title={t("purchases.delete.aria") || 'حذف'}><Trash2 size={14}/></button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                {(revenues ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((r: any) => (
+                  <motion.tr key={r.id} variants={staggerItem}>
+                    <td className="amount">{formatDate(r.revenue_date)}</td>
+                    <td style={{ fontWeight: 600 }}>{r.platform}</td>
+                    <td><span className="badge badge-neutral">{i18n.language === 'ar' ? paymentMethods.find((p: any) => p.name_ar === r.payment_method)?.name_ar || r.payment_method : paymentMethods.find((p: any) => p.name_ar === r.payment_method)?.name_en || r.payment_method}</span></td>
+                    <td className="amount" style={{ color: 'var(--text-primary)' }}>{formatSAR(r.gross_amount)}</td>
+                    <td className="amount" style={{ color: 'var(--color-danger)' }}>{formatSAR(r.commission_amount)} <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>({(r.commission_rate * 100).toFixed(0)}%)</span></td>
+                    <td className="amount" style={{ fontWeight: 700, color: 'var(--color-success)' }}>{formatSAR(r.net_amount)}</td>
+                    <td>
+                      {user?.role === 'admin' && (
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-primary)' }} onClick={() => { setEditingItem(r); reset({ revenue_date: r.revenue_date, platform: r.platform, gross_amount: r.gross_amount, commission_rate: r.commission_rate, payment_method: r.payment_method, notes: r.notes }); setShowForm(true); window.scrollTo({ top: 0, behavior: 'smooth' }) }}><Edit2 size={14}/></button>
+                          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => setDeleteId(r.id)}><Trash2 size={14}/></button>
+                        </div>
+                      )}
+                    </td>
+                  </motion.tr>
+                ))}
               {!revenues?.length && (
                 <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('delivery.table.empty')}</td></tr>
               )}

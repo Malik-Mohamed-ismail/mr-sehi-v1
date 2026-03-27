@@ -7,15 +7,16 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-// ── Request interceptor — inject access token + CSRF ─────────────────────
+// ── Request interceptor — inject access token + CSRF header ──────────────
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken
   if (token) config.headers.Authorization = `Bearer ${token}`
 
-  // CSRF: read from cookie, inject as header on mutations
-  if (['post','put','patch','delete'].includes(config.method ?? '')) {
-    const csrf = document.cookie.split('; ')
-      .find(c => c.startsWith('csrftoken='))
+  // CSRF double-submit: read the `csrf-token` cookie set by the server on login
+  if (['post', 'put', 'patch', 'delete'].includes(config.method ?? '')) {
+    const csrf = document.cookie
+      .split('; ')
+      .find(c => c.startsWith('csrf-token='))
       ?.split('=')[1]
     if (csrf) config.headers['X-CSRFToken'] = csrf
   }
@@ -24,7 +25,7 @@ api.interceptors.request.use((config) => {
 
 // ── Response interceptor — auto-refresh on 401 ────────────────────────────
 let isRefreshing = false
-let failedQueue:  Array<{ resolve: (v: string) => void; reject: (e: any) => void }> = []
+let failedQueue: Array<{ resolve: (v: string) => void; reject: (e: any) => void }> = []
 
 function processQueue(error: any, token: string | null = null) {
   failedQueue.forEach(p => error ? p.reject(error) : p.resolve(token!))

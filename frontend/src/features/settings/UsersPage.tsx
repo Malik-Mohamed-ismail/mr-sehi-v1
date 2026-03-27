@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Plus, RefreshCw, Users, CheckCircle, XCircle, Loader2, X } from 'lucide-react'
+import { Plus, RefreshCw, Users, CheckCircle, XCircle, Loader2, X, Edit2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -16,9 +16,9 @@ const ROLES = ['admin', 'accountant', 'cashier'] as const
 
 const schema = z.object({
   full_name: z.string().min(2),
-  email:     z.string().email(),
-  username:  z.string().min(3),
-  password:  z.string().min(8),
+  email:     z.string().email().optional().or(z.literal('')),
+  username:  z.string().min(3).optional().or(z.literal('')),
+  password:  z.string().min(8).optional().or(z.literal('')),
   role:      z.enum(ROLES),
 })
 type FormData = z.infer<typeof schema>
@@ -28,6 +28,7 @@ export default function UsersPage() {
   const qc          = useQueryClient()
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [editingUser, setEditingUser] = useState<any>(null)
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['users'],
@@ -48,6 +49,18 @@ export default function UsersPage() {
       qc.invalidateQueries({ queryKey: ['users'] })
       toast.success(t('users.created'))
       setShowForm(false)
+      reset()
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('common.error')),
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: Partial<FormData> }) => api.put(`/auth/users/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] })
+      toast.success(t('users.updated') || 'تم التحديث بنجاح')
+      setShowForm(false)
+      setEditingUser(null)
       reset()
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('common.error')),
@@ -94,17 +107,22 @@ export default function UsersPage() {
         {showForm && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 20 }}>
             <div className="form-card-header">
-              <span className="form-card-header-title">➕ {t('users.newUser')}</span>
-              <button type="button" className="form-close-btn" onClick={() => { setShowForm(false); reset() }} title="إغلاق"><X size={16}/></button>
+              <span className="form-card-header-title">
+                {editingUser ? <Edit2 size={16}/> : '➕'} {editingUser ? (t('users.editUser') || 'تعديل المستخدم') : t('users.newUser')}
+              </span>
+              <button type="button" className="form-close-btn" onClick={() => { setShowForm(false); setEditingUser(null); reset() }} title="إغلاق"><X size={16}/></button>
             </div>
-            <form onSubmit={handleSubmit(d => createMutation.mutate(d))}>
+            <form onSubmit={handleSubmit(d => {
+              if (editingUser) updateMutation.mutate({ id: editingUser.id, data: { full_name: d.full_name, role: d.role } })
+              else createMutation.mutate(d)
+            })}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
                 {[
                   { field: 'full_name', label: t('users.fullName'),  type: 'text' },
-                  { field: 'email',     label: t('auth.email'),      type: 'email' },
-                  { field: 'username',  label: t('users.username'),  type: 'text' },
-                  { field: 'password',  label: t('auth.password'),   type: 'password' },
-                ].map(f => (
+                  !editingUser && { field: 'email',     label: t('auth.email'),      type: 'email' },
+                  !editingUser && { field: 'username',  label: t('users.username'),  type: 'text' },
+                  !editingUser && { field: 'password',  label: t('auth.password'),   type: 'password' },
+                ].filter(Boolean).map((f: any) => (
                   <div key={f.field} className="form-field has-value">
                     <label style={{ top: -8, fontSize: 12 }}>{f.label}</label>
                     <input {...register(f.field as any)} type={f.type} className={`form-input ${errors[f.field as keyof FormData] ? 'is-error' : ''}`} />
@@ -118,9 +136,9 @@ export default function UsersPage() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => { setShowForm(false); reset() }}>{t('common.cancel')}</button>
-                <button type="submit" className="btn btn-primary" disabled={isSubmitting} style={{ gap: 6 }}>
-                  {isSubmitting ? <Loader2 size={14} className="spin" /> : <Plus size={14} />} {t('common.save')}
+                <button type="button" className="btn btn-secondary" onClick={() => { setShowForm(false); setEditingUser(null); reset() }}>{t('common.cancel')}</button>
+                <button type="submit" className="btn btn-primary" disabled={isSubmitting || updateMutation.isPending} style={{ gap: 6 }}>
+                  {(isSubmitting || updateMutation.isPending) ? <Loader2 size={14} className="spin" /> : (editingUser ? <CheckCircle size={14} /> : <Plus size={14} />)} {t('common.save')}
                 </button>
               </div>
             </form>
@@ -152,14 +170,29 @@ export default function UsersPage() {
                 <span className="badge" style={{ background: `${ROLE_COLORS[user.role]}20`, color: ROLE_COLORS[user.role] }}>
                   {t(`sidebar.roles.${user.role}`)}
                 </span>
-                <button
-                  className={`btn btn-sm ${user.is_active ? 'btn-ghost' : 'btn-secondary'}`}
-                  style={{ gap: 4, color: user.is_active ? 'var(--color-success)' : 'var(--color-danger)' }}
-                  onClick={() => toggleActive.mutate({ id: user.id, is_active: !user.is_active })}
-                >
-                  {user.is_active ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                  {user.is_active ? t('users.active') : t('users.inactive')}
-                </button>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    className="btn btn-sm btn-ghost"
+                    style={{ color: 'var(--color-primary)' }}
+                    onClick={() => {
+                      setEditingUser(user)
+                      reset({ full_name: user.full_name, role: user.role })
+                      setShowForm(true)
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                    title={t('common.edit') || 'تعديل'}
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                  <button
+                    className={`btn btn-sm ${user.is_active ? 'btn-ghost' : 'btn-secondary'}`}
+                    style={{ gap: 4, color: user.is_active ? 'var(--color-success)' : 'var(--color-danger)' }}
+                    onClick={() => toggleActive.mutate({ id: user.id, is_active: !user.is_active })}
+                    title={user.is_active ? (t('users.active') || 'نشط') : (t('users.inactive') || 'غير نشط')}
+                  >
+                    {user.is_active ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                  </button>
+                </div>
               </motion.div>
             ))}
             {users.length === 0 && <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('common.noData')}</div>}

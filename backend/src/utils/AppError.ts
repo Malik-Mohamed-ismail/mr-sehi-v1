@@ -8,6 +8,7 @@ export type ErrorCode =
   | 'NOT_FOUND'
   | 'ENTRY_LOCKED'
   | 'INTERNAL_ERROR'
+  | 'RATE_LIMITED'
 
 export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   VALIDATION_ERROR:   'بيانات غير صحيحة',
@@ -19,6 +20,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   NOT_FOUND:          'السجل غير موجود',
   ENTRY_LOCKED:       'لا يمكن تعديل قيد مُعكوس',
   INTERNAL_ERROR:     'حدث خطأ غير متوقع',
+  RATE_LIMITED:       'محاولات كثيرة — حاول لاحقاً',
 }
 
 export class AppError extends Error {

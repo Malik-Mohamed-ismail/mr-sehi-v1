@@ -91,7 +91,8 @@ export default function JournalPage() {
       [i18n.t('journal.table.description')]: e.description,
       [i18n.t('journal.table.source')]: SOURCE_LABELS[e.source_type] ?? e.source_type,
       [i18n.t('journal.table.reference')]: e.reference || '-',
-      [i18n.t('journal.table.amount')]: Number(e.amount) || 0,
+      [i18n.t('journal.fields.debit')]: Number(e.amount) || 0,
+      [i18n.t('journal.fields.credit')]: Number(e.amount) || 0,
       [i18n.t('journal.table.isBalanced')]: e.is_balanced ? i18n.t('journal.table.yes') : i18n.t('journal.table.no'),
       [i18n.t('journal.table.status')]: e.is_reversed ? i18n.t('journal.table.reversed') : i18n.t('journal.table.active')
     }))
@@ -229,7 +230,8 @@ export default function JournalPage() {
                   <th>{t('journal.table.description')}</th>
                   <th>{t('journal.table.source')}</th>
                   <th>{t('journal.table.reference')}</th>
-                  <th>{t('journal.table.amount')}</th>
+                  <th>{t('journal.fields.debit')}</th>
+                  <th>{t('journal.fields.credit')}</th>
                   <th>{t('journal.table.isBalanced')}</th>
                   <th>{t('journal.table.status')}</th>
                   {user?.role === 'admin' && <th>{t('journal.table.reverse')}</th>}
@@ -244,7 +246,8 @@ export default function JournalPage() {
                     <td style={{ minWidth: 200, whiteSpace: 'normal', lineHeight: 1.5 }}>{e.description}</td>
                     <td><span className="badge badge-info">{SOURCE_LABELS[e.source_type] ?? e.source_type}</span></td>
                     <td style={{ fontFamily: 'var(--font-latin)' }}>{e.reference || '-'}</td>
-                    <td className="amount" style={{ fontWeight: 600 }}>{formatSAR(Number(e.amount) || 0)}</td>
+                    <td className="amount" style={{ fontWeight: 600, color: 'var(--color-success)' }}>{formatSAR(Number(e.amount) || 0)}</td>
+                    <td className="amount" style={{ fontWeight: 600, color: 'var(--color-danger)' }}>{formatSAR(Number(e.amount) || 0)}</td>
                     <td>
                       {e.is_balanced
                         ? <CheckCircle size={15} color="var(--color-success)"/>
@@ -271,7 +274,7 @@ export default function JournalPage() {
                   </tr>
                 ))}
                 {!entries?.length && (
-                  <tr><td colSpan={9} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('journal.table.empty')}</td></tr>
+                  <tr><td colSpan={10} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('journal.table.empty')}</td></tr>
                 )}
               </tbody>
             </table>

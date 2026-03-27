@@ -141,11 +141,11 @@ export function Sidebar() {
 
       {/* ── Logo bar ──────────────────────────────────────────────────── */}
       <div style={{
-        height: 64, padding: '0 16px',
+        height: 56, padding: '0 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        borderBottom: '1px solid rgba(212,168,83,0.1)',
+        borderBottom: '1px solid #DDE8DC',
         flexShrink: 0, gap: 8,
-        background: 'linear-gradient(180deg, rgba(212,168,83,0.08) 0%, transparent 100%)',
+        background: '#FFFFFF',
       }}>
         {/* Logo + name (hidden when collapsed) */}
         <AnimatePresence initial={false}>
@@ -161,11 +161,11 @@ export function Sidebar() {
               <img src="/logo_icon_only.png" alt="logo"
                 style={{ width: 38, height: 38, objectFit: 'contain', flexShrink: 0 }} />
               <div style={{ overflow: 'hidden' }}>
-                <div style={{ color: '#EDE9E0', fontWeight: 700, fontSize: 15, lineHeight: 1.2,
+                <div style={{ color: '#D4A853', fontWeight: 700, fontSize: 16, lineHeight: 1.2,
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {t('layout.title')}
                 </div>
-                <div style={{ color: '#D4A853', fontSize: 10, opacity: 0.8, whiteSpace: 'nowrap', fontWeight: 600 }}>
+                <div style={{ color: '#5A6B58', fontSize: 10, opacity: 0.8, whiteSpace: 'nowrap', fontWeight: 600 }}>
                   {t('sidebar.systemName')}
                 </div>
               </div>
@@ -186,19 +186,21 @@ export function Sidebar() {
           style={{
             flexShrink: 0,
             width: 26, height: 26,
-            borderRadius: 2, border: 'none', cursor: 'pointer',
-            background: 'rgba(212,168,83,0.12)',
+            borderRadius: 2, border: '1px solid #DDE8DC', cursor: 'pointer',
+            background: 'transparent',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#D4A853',
+            color: '#5A6B58',
             transition: 'all 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
           onMouseEnter={e => {
-            (e.currentTarget.style.background = 'rgba(212,168,83,0.25)');
-            (e.currentTarget.style.boxShadow = '0 0 12px rgba(212,168,83,0.2)');
+            (e.currentTarget.style.background = '#E8F5E7');
+            (e.currentTarget.style.borderColor = '#2B9225');
+            (e.currentTarget.style.color = '#2B9225');
           }}
           onMouseLeave={e => {
-            (e.currentTarget.style.background = 'rgba(212,168,83,0.12)');
-            (e.currentTarget.style.boxShadow = 'none');
+            (e.currentTarget.style.background = 'transparent');
+            (e.currentTarget.style.borderColor = '#DDE8DC');
+            (e.currentTarget.style.color = '#5A6B58');
           }}
         >
           {/* In RTL: right arrow means "expand towards right", swap icons */}
@@ -243,8 +245,8 @@ export function Sidebar() {
                     fontSize: 10, fontWeight: 700,
                     letterSpacing: '0.8px',
                     textTransform: 'uppercase',
-                    color: sectionHasActive ? '#D4A853' : '#8B7F7F',
-                    opacity: sectionHasActive ? 1 : 0.6,
+                    color: sectionHasActive ? '#D4A853' : 'rgba(255,255,255,0.7)',
+                    opacity: sectionHasActive ? 1 : 0.8,
                     transition: 'color 0.2s, opacity 0.2s',
                   }}>
                     {t(section.title)}
@@ -296,7 +298,7 @@ export function Sidebar() {
                             borderRadius:   expanded ? 8 : 0,
                             textDecoration: 'none',
                             background:     active ? 'rgba(212,168,83,0.15)' : 'transparent',
-                            color:          active ? '#D4A853' : '#8B7F7F',
+                            color:          active ? '#D4A853' : '#FFFFFF',
                             fontSize:       13,
                             fontWeight:     active ? 600 : 500,
                             borderInlineStart: (active && expanded)
@@ -307,14 +309,14 @@ export function Sidebar() {
                           }}
                           onMouseEnter={e => {
                             if (!active) {
-                              e.currentTarget.style.background = 'rgba(212,168,83,0.08)';
-                              e.currentTarget.style.color = '#D4A853';
+                              e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                              e.currentTarget.style.color = '#FFFFFF';
                             }
                           }}
                           onMouseLeave={e => {
                             if (!active) {
                               e.currentTarget.style.background = 'transparent';
-                              e.currentTarget.style.color = '#8B7F7F';
+                              e.currentTarget.style.color = '#FFFFFF';
                             }
                           }}
                         >

@@ -3,14 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { Plus, RefreshCw, AlertTriangle, Users, Download, Trash2, X } from 'lucide-react'
+import { Plus, RefreshCw, AlertTriangle, Users, Download, Trash2, X, Edit2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { SearchInput } from '../../components/ui/SearchInput'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
-import { staggerContainer, staggerItem } from '../../lib/animations'
 import { formatSAR, formatDate } from '../../lib/utils'
 import { exportToExcel } from '../../lib/export'
 import { useTranslation } from 'react-i18next'
@@ -31,18 +30,19 @@ type FormData = z.infer<typeof schema>
 
 const STATUS_STYLES: Record<string, { label: string; badge: string }> = {
   active:    { label: i18n.t('subscribers.status.active'),    badge: 'badge-success' },
-  expired:   { label: i18n.t('subscribers.status.expired'), badge: 'badge-danger' },
-  cancelled: { label: i18n.t('subscribers.status.cancelled'),  badge: 'badge-neutral' },
+  expired:   { label: i18n.t('subscribers.status.expired'),   badge: 'badge-danger' },
+  cancelled: { label: i18n.t('subscribers.status.cancelled'), badge: 'badge-neutral' },
 }
 
 export default function SubscribersPage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
   const { user } = useAuthStore()
-  const [showForm, setShowForm] = useState(false)
-  const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<string>('all')
-  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [showForm, setShowForm]               = useState(false)
+  const [editingSubscriber, setEditingSubscriber] = useState<any>(null)
+  const [search, setSearch]                   = useState('')
+  const [filter, setFilter]                   = useState<string>('all')
+  const [deleteId, setDeleteId]               = useState<string | null>(null)
 
   const { data: subscribers, isLoading } = useQuery({
     queryKey: ['subscribers'],
@@ -79,6 +79,17 @@ export default function SubscribersPage() {
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('subscribers.messages.error')),
   })
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: any }) => api.put(`/subscribers/${id}`, data),
+    onSuccess: () => {
+      toast.success(t('common.updateSuccess'))
+      qc.invalidateQueries({ queryKey: ['subscribers'] })
+      qc.invalidateQueries({ queryKey: ['subscribers-stats'] })
+      reset(); setShowForm(false); setEditingSubscriber(null)
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('subscribers.messages.error')),
+  })
+
   const renewMutation = useMutation({
     mutationFn: (id: string) => api.post(`/subscribers/${id}/renew`),
     onSuccess: () => {
@@ -92,10 +103,10 @@ export default function SubscribersPage() {
   const deleteMutation = useMutation({
     onMutate: async (deletedId) => {
       qc.setQueriesData({ type: 'active' }, (old: any) => {
-        if (Array.isArray(old)) return old.filter((item: any) => item?.id !== deletedId);
-        if (old?.data && Array.isArray(old.data)) return { ...old, data: old.data.filter((item: any) => item?.id !== deletedId) };
-        return old;
-      });
+        if (Array.isArray(old)) return old.filter((item: any) => item?.id !== deletedId)
+        if (old?.data && Array.isArray(old.data)) return { ...old, data: old.data.filter((item: any) => item?.id !== deletedId) }
+        return old
+      })
     },
     mutationFn: (id: string) => api.delete(`/subscribers/${id}`),
     onSuccess: () => {
@@ -167,14 +178,13 @@ export default function SubscribersPage() {
         </div>
       </div>
 
-      {/* New subscriber form */}
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
           <div className="form-card-header">
-            <span className="form-card-header-title">➕ {t('subscribers.newSubscriber')}</span>
-            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق"><X size={16}/></button>
+            <span className="form-card-header-title">{editingSubscriber ? <Edit2 size={16}/> : '➕'} {editingSubscriber ? 'تعديل المشترك' : t('subscribers.newSubscriber')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false); setEditingSubscriber(null) }} title="إغلاق"><X size={16}/></button>
           </div>
-          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir={i18n.dir()}>
+          <form onSubmit={handleSubmit((d) => editingSubscriber ? updateMutation.mutate({ id: editingSubscriber.id, data: d }) : createMutation.mutate(d))} dir={i18n.dir()}>
             <div className="form-section-header">
               <div className="form-section-number">١</div>
               <div className="form-section-title">{t('subscribers.section1')}</div>
@@ -219,9 +229,9 @@ export default function SubscribersPage() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>{t('subscribers.buttons.cancel')}</button>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? t('subscribers.buttons.saving') : t('subscribers.buttons.save')}
+              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false); setEditingSubscriber(null) }}>{t('subscribers.buttons.cancel')}</button>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting || updateMutation.isPending}>
+                {(isSubmitting || updateMutation.isPending) ? t('subscribers.buttons.saving') : t('subscribers.buttons.save')}
               </button>
             </div>
           </form>
@@ -253,68 +263,79 @@ export default function SubscribersPage() {
       {/* Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ overflow: 'auto', width: '100%', maxHeight: '500px' }}>
-            <table className="data-table">
-          <thead>
-            <tr>
-              <th>{t('subscribers.table.subscriber')}</th>
-              <th>{t('subscribers.table.phone')}</th>
-              <th>{t('subscribers.table.plan')}</th>
-              <th>{t('subscribers.table.endDate')}</th>
-              <th>{t('subscribers.table.amount')}</th>
-              <th>{t('subscribers.table.status')}</th>
-              <th>{t('subscribers.table.action')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(filtered ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((s: any) => (
-              <tr key={s.id}>
-                <td style={{ fontWeight: 600 }}>{s.name}</td>
-                <td className="amount">{s.phone ?? '—'}</td>
-                <td>{s.plan_name ?? '—'}</td>
-                <td className="amount">{formatDate(s.end_date)}</td>
-                <td className="amount">{formatSAR(s.plan_amount)}</td>
-                <td>
-                  <span className={`badge ${STATUS_STYLES[s.status]?.badge ?? 'badge-neutral'}`}>
-                    {t(`subscribers.status.${s.status}`) ?? s.status}
-                  </span>
-                </td>
-                <td>
-                  {s.status !== 'cancelled' && (
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      style={{ color: 'var(--color-primary)', gap: 4 }}
-                      onClick={() => renewMutation.mutate(s.id)}
-                      disabled={renewMutation.isPending}
-                      title={t("subscribers.buttons.renewTitle")}
-                    >
-                      <RefreshCw size={13}/> {t('subscribers.buttons.renew')}
-                    </button>
-                  )}
-                  {user?.role === 'admin' && (
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      style={{ color: 'var(--color-danger)' }}
-                      onClick={() => setDeleteId(s.id)}
-                      title={t("purchases.delete.aria") || 'حذف'}
-                    >
-                      <Trash2 size={14}/>
-                    </button>
-                  )}
-                </td>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>{t('subscribers.table.subscriber')}</th>
+                <th>{t('subscribers.table.phone')}</th>
+                <th>{t('subscribers.table.plan')}</th>
+                <th>{t('subscribers.table.endDate')}</th>
+                <th>{t('subscribers.table.amount')}</th>
+                <th>{t('subscribers.table.status')}</th>
+                <th>{t('subscribers.table.action')}</th>
               </tr>
-            ))}
-            {!filtered?.length && (
-              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('subscribers.table.empty')}</td></tr>
-            )}
-          </tbody>
-        </table>
-          </div>
+            </thead>
+            <tbody>
+              {(filtered ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((s: any) => (
+                <tr key={s.id}>
+                  <td style={{ fontWeight: 600 }}>{s.name}</td>
+                  <td className="amount">{s.phone ?? '—'}</td>
+                  <td>{s.plan_name ?? '—'}</td>
+                  <td className="amount">{formatDate(s.end_date)}</td>
+                  <td className="amount">{formatSAR(s.plan_amount)}</td>
+                  <td>
+                    <span className={`badge ${STATUS_STYLES[s.status]?.badge ?? 'badge-neutral'}`}>
+                      {t(`subscribers.status.${s.status}`) ?? s.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {s.status !== 'cancelled' && (
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          style={{ color: 'var(--color-primary)', gap: 4 }}
+                          onClick={() => renewMutation.mutate(s.id)}
+                          disabled={renewMutation.isPending}
+                          title={t('subscribers.buttons.renewTitle')}
+                        >
+                          <RefreshCw size={13}/> {t('subscribers.buttons.renew')}
+                        </button>
+                      )}
+                      {user?.role === 'admin' && (
+                        <>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: 'var(--color-primary)' }}
+                            onClick={() => { setEditingSubscriber(s); reset({ name: s.name, phone: s.phone || '', plan_name: s.plan_name || '', plan_amount: Number(s.plan_amount), start_date: s.start_date, end_date: s.end_date, payment_method: s.payment_method, notes: s.notes || '' }); setShowForm(true); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                          >
+                            <Edit2 size={14}/>
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: 'var(--color-danger)' }}
+                            onClick={() => setDeleteId(s.id)}
+                            title={t('purchases.delete.aria') || 'حذف'}
+                          >
+                            <Trash2 size={14}/>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {!filtered?.length && (
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('subscribers.table.empty')}</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <ConfirmDialog
         open={deleteId !== null}
-        title={t("purchases.delete.title") || 'تأكيد الحذف'}
-        message={t("purchases.delete.message") || 'هل أنت متأكد من الحذف؟'}
+        title={t('purchases.delete.title') || 'تأكيد الحذف'}
+        message={t('purchases.delete.message') || 'هل أنت متأكد من الحذف؟'}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
         onCancel={() => setDeleteId(null)}
         loading={deleteMutation.isPending}

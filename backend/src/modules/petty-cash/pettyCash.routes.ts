@@ -40,6 +40,24 @@ export async function getReconciliation(date?: string) {
   return { date: d, ...row, ...reconciliation }
 }
 
+export async function updatePettyCash(id: string, dto: any, userId: string) {
+  const [old] = await db.select().from(pettyCash).where(eq(pettyCash.id, id))
+  if (!old) throw new AppError('NOT_FOUND', 404)
+  const reconciliation = reconcilePettyCash(dto)
+  return db.transaction(async (tx) => {
+    const [row] = await tx.update(pettyCash)
+      .set({
+        ...dto,
+        variance:    String(reconciliation.variance),
+        is_balanced: reconciliation.isBalanced,
+      } as any)
+      .where(eq(pettyCash.id, id))
+      .returning()
+    await writeAuditLog(tx, { userId, action: 'UPDATE', tableName: 'petty_cash', recordId: id, oldValues: old, newValues: row })
+    return row
+  })
+}
+
 export async function deletePettyCash(id: string, userId: string) {
   const [old] = await db.select().from(pettyCash).where(eq(pettyCash.id, id))
   if (!old) throw new AppError('NOT_FOUND', 404)
@@ -81,6 +99,9 @@ async function listCtrl(req: Request, res: Response, next: NextFunction) {
 async function createCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.status(201).json({ success: true, data: await createPettyCash(req.body, req.user.id), message: 'تم حفظ العهدة' }) } catch (e) { next(e) }
 }
+async function updateCtrl(req: Request, res: Response, next: NextFunction) {
+  try { res.json({ success: true, data: await updatePettyCash(req.params.id, req.body, req.user.id), message: 'تم تعديل العهدة بنجاح' }) } catch (e) { next(e) }
+}
 async function reconciliationCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.json({ success: true, data: await getReconciliation(req.query.date as string) }) } catch (e) { next(e) }
 }
@@ -93,6 +114,7 @@ router.use(authenticate)
 router.get ('/',                authorize(...ACCOUNTANT_PLUS), listCtrl)
 router.get ('/reconciliation',  authorize(...ACCOUNTANT_PLUS), reconciliationCtrl)
 router.post('/',                authorize(...ALL_ROLES),       createCtrl)
+router.put ('/:id',             authorize(...ACCOUNTANT_PLUS), updateCtrl)
 router.delete('/:id',           authorize(...ADMIN_ONLY),      removeCtrl)
 
 export default router

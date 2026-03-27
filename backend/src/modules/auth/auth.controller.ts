@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
+import crypto from 'crypto'
 import * as authService from './auth.service.js'
 import { env } from '../../config/env.js'
 
@@ -10,6 +11,17 @@ const COOKIE_OPTIONS = {
   maxAge:   30 * 24 * 60 * 60 * 1000, // 30 days in ms
 }
 
+/**
+ * CSRF double-submit cookie — NOT httpOnly so JS can read & send as X-CSRFToken header.
+ * The backend verifies the header matches the cookie value.
+ */
+const CSRF_COOKIE_OPTIONS = {
+  httpOnly: false,
+  secure:   env.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+  maxAge:   30 * 24 * 60 * 60 * 1000,
+}
+
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await authService.login(
@@ -17,7 +29,9 @@ export async function login(req: Request, res: Response, next: NextFunction) {
       req.ip,
       req.headers['user-agent']
     )
+    const csrfToken = crypto.randomBytes(32).toString('hex')
     res.cookie(COOKIE_NAME, result.refreshToken, COOKIE_OPTIONS)
+    res.cookie('csrf-token', csrfToken, CSRF_COOKIE_OPTIONS)
     res.json({ success: true, data: { accessToken: result.accessToken, user: result.user } })
   } catch (err) { next(err) }
 }
@@ -36,6 +50,7 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
     const token = req.cookies?.[COOKIE_NAME]
     if (token) await authService.logout(token)
     res.clearCookie(COOKIE_NAME)
+    res.clearCookie('csrf-token')
     res.json({ success: true, data: null, message: 'تم تسجيل الخروج' })
   } catch (err) { next(err) }
 }

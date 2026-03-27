@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { Plus, Download, Trash2, X } from 'lucide-react'
+import { Plus, Download, Trash2, X, Edit2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api } from '../../lib/api'
@@ -38,6 +38,7 @@ export default function PurchasesPage() {
   const { user } = useAuthStore()
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [editingPurchase, setEditingPurchase] = useState<any>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { data: suppliers } = useQuery({
@@ -83,10 +84,23 @@ export default function PurchasesPage() {
       qc.invalidateQueries({ queryKey: ['purchases'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       qc.invalidateQueries({ queryKey: ['journal'] })
-      reset(); setShowForm(false)
+      reset(); setShowForm(false); setEditingPurchase(null);
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('purchases.messages.error')),
   })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: any }) => api.put(`/purchases/${id}`, data),
+    onSuccess: () => {
+      toast.success(t('common.updateSuccess'))
+      qc.invalidateQueries({ queryKey: ['purchases'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
+      reset(); setShowForm(false); setEditingPurchase(null);
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('purchases.messages.error')),
+  })
+
 
   const deleteMutation = useMutation({
     onMutate: async (deletedId) => {
@@ -108,12 +122,17 @@ export default function PurchasesPage() {
   })
 
   const onSubmit = (data: FormData) => {
-    createMutation.mutate({
+    const purchaseData = {
       ...data,
       subtotal:     parseFloat(subtotal.toFixed(4)),
       vat_amount:   vatAmt,
       total_amount: parseFloat(total.toFixed(4)),
-    })
+    }
+    if (editingPurchase) {
+      updateMutation.mutate({ id: editingPurchase.id, data: purchaseData })
+    } else {
+      createMutation.mutate(purchaseData)
+    }
   }
 
   const handleExport = () => {
@@ -179,10 +198,10 @@ export default function PurchasesPage() {
           className="card" style={{ marginBottom: 24 }}
         >
           <div className="form-card-header">
-            <span className="form-card-header-title">➕ {t('purchases.newInvoice')}</span>
-            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق"><X size={16}/></button>
+            <span className="form-card-header-title">{editingPurchase ? <Edit2 size={16}/> : '➕'} {editingPurchase ? 'تعديل الفاتورة' : t('purchases.newInvoice')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false); setEditingPurchase(null); }} title="إغلاق"><X size={16}/></button>
           </div>
-          <form onSubmit={handleSubmit(onSubmit)} dir="rtl">
+          <form onSubmit={handleSubmit(onSubmit)} dir={i18n.dir()}>
             {/* Section 1 */}
             <div className="form-section-header">
               <div className="form-section-number">١</div>
@@ -318,46 +337,71 @@ export default function PurchasesPage() {
                 <th>{t('purchases.fields.date')}</th>
                 <th>{t('purchases.fields.supplier')}</th>
                 <th>{t('purchases.fields.item')}</th>
-                <th>{t('purchases.section3')}</th>
-                <th>{t('purchases.fields.subtotal')}</th>
+                <th>{t('purchases.fields.category')}</th>
+                <th>{t('purchases.fields.qty')}</th>
+                <th>{t('purchases.fields.price')}</th>
                 <th>{t('purchases.exportCols.vat')}</th>
                 <th>{t('purchases.fields.total')}</th>
                 <th></th>
               </tr>
             </thead>
-            <tbody>
+            <motion.tbody variants={staggerContainer} initial="hidden" animate="visible">
               {(purchases ?? []).filter((i: any) => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())).map((p: any) => (
-                <tr key={p.id}>
-                  <td style={{ fontFamily: 'var(--font-latin)', fontWeight: 600 }}>{p.invoice_number}</td>
-                  <td className="amount">{formatDate(p.invoice_date)}</td>
-                  <td>{suppliers?.find((s: any) => s.id === p.supplier_id)?.name_ar ?? p.supplier_id}</td>
-                  <td>{p.item_name}</td>
-                  <td>
-                    <span className="badge badge-neutral">
-                      {p.payment_method}
-                    </span>
-                  </td>
-                  <td className="amount">{formatSAR(p.subtotal)}</td>
-                  <td className="amount">{formatSAR(p.vat_amount)}</td>
-                  <td className="amount" style={{ fontWeight: 700 }}>{formatSAR(p.total_amount)}</td>
+                <motion.tr key={p.id} variants={staggerItem}>
+                  <td className="amount" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.invoice_number}</td>
+                  <td className="amount" style={{ color: 'var(--text-secondary)' }}>{formatDate(p.invoice_date)}</td>
+                  <td style={{ fontWeight: 600 }}>{suppliers?.find((s: any) => s.id === p.supplier_id)?.name_ar || p.supplier_id}</td>
+                  <td><span className="badge badge-neutral">{p.item_name}</span></td>
+                  <td>{p.category}</td>
+                  <td className="amount">{p.quantity}</td>
+                  <td className="amount">{formatSAR(p.unit_price)}</td>
+                  <td className="amount" style={{ color: 'var(--color-danger)' }}>{formatSAR(p.vat_amount ?? 0)}</td>
+                  <td className="amount" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{formatSAR(p.total_amount)}</td>
                   <td>
                     {user?.role === 'admin' && (
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        style={{ color: 'var(--color-danger)' }}
-                        onClick={() => setDeleteId(p.id)}
-                        aria-label={t("purchases.delete.aria")}
-                      >
-                        <Trash2 size={14}/>
-                      </button>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          style={{ color: 'var(--color-primary)' }}
+                          onClick={() => {
+                            setEditingPurchase(p);
+                            reset({
+                              invoice_number: p.invoice_number,
+                              invoice_date: p.invoice_date,
+                              supplier_id: p.supplier_id,
+                              category: p.category,
+                              item_name: p.item_name,
+                              quantity: p.quantity,
+                              unit_price: p.unit_price,
+                              discount: p.discount,
+                              payment_method: p.payment_method,
+                              is_asset: p.is_asset,
+                              notes: p.notes
+                            });
+                            setShowForm(true);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          aria-label={t("common.edit")}
+                        >
+                          <Edit2 size={14}/>
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          style={{ color: 'var(--color-danger)' }}
+                          onClick={() => setDeleteId(p.id)}
+                          aria-label={t("purchases.delete.aria")}
+                        >
+                          <Trash2 size={14}/>
+                        </button>
+                      </div>
                     )}
                   </td>
-                </tr>
+                </motion.tr>
               ))}
               {!purchases?.length && (
                 <tr><td colSpan={9} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('purchases.table.empty')}</td></tr>
               )}
-            </tbody>
+            </motion.tbody>
           </table>
           </div>
         )}

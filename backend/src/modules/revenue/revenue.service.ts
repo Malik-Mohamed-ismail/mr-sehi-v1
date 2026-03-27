@@ -74,6 +74,39 @@ export async function createDeliveryRevenue(dto: any, userId: string) {
   })
 }
 
+export async function updateDeliveryRevenue(id: string, dto: any, userId: string) {
+  return db.transaction(async (tx) => {
+    const [row] = await tx.select().from(deliveryRevenue).where(eq(deliveryRevenue.id, id))
+    if (!row) throw new AppError('NOT_FOUND', 404)
+    
+    const net = parseFloat((Number(dto.gross_amount) - Number(dto.commission_amount ?? 0)).toFixed(4))
+    const [updated] = await tx.update(deliveryRevenue).set({
+      ...dto, net_amount: String(net), updated_at: new Date()
+    } as any).where(eq(deliveryRevenue.id, id)).returning()
+    
+    if (row.journal_entry_id) {
+      await tx.update(journalEntries).set({
+        expense_date: dto.revenue_date,
+        description: `إيراد توصيل — ${dto.platform}`
+      } as any).where(eq(journalEntries.id, row.journal_entry_id))
+      
+      await tx.delete(journalEntryLines).where(eq(journalEntryLines.entry_id, row.journal_entry_id))
+      
+      const REVENUE_ACCOUNT   = '410101'
+      const PAYMENT_ACCOUNTS = { 'كاش': '1101', 'بنك': '1104', 'آجل': '1201' }
+      const creditAccount    = PAYMENT_ACCOUNTS[dto.payment_method] ?? '1104'
+      
+      await tx.insert(journalEntryLines).values([
+        { entry_id: row.journal_entry_id, account_code: creditAccount,    debit_amount: net, credit_amount: 0 },
+        { entry_id: row.journal_entry_id, account_code: REVENUE_ACCOUNT,  debit_amount: 0, credit_amount: net },
+      ])
+    }
+    
+    await writeAuditLog(tx, { userId, action: 'UPDATE', tableName: 'delivery_revenue', recordId: id, oldValues: row, newValues: updated })
+    return updated
+  })
+}
+
 export async function listDeliveryRevenue(query: any) {
   const conditions: any[] = [eq(deliveryRevenue.is_deleted, false)]
   if (query.from)     conditions.push(sql`${deliveryRevenue.revenue_date} >= ${query.from}`)
@@ -107,6 +140,39 @@ export async function createRestaurantRevenue(dto: any, userId: string) {
   })
 }
 
+export async function updateRestaurantRevenue(id: string, dto: any, userId: string) {
+  return db.transaction(async (tx) => {
+    const [row] = await tx.select().from(restaurantRevenue).where(eq(restaurantRevenue.id, id))
+    if (!row) throw new AppError('NOT_FOUND', 404)
+    
+    const [updated] = await tx.update(restaurantRevenue).set({
+      ...dto, updated_at: new Date()
+    } as any).where(eq(restaurantRevenue.id, id)).returning()
+    
+    if (row.journal_entry_id) {
+      await tx.update(journalEntries).set({
+        expense_date: dto.revenue_date,
+        description: 'إيراد مطعم'
+      } as any).where(eq(journalEntries.id, row.journal_entry_id))
+      
+      await tx.delete(journalEntryLines).where(eq(journalEntryLines.entry_id, row.journal_entry_id))
+      
+      const REVENUE_ACCOUNT   = '410101'
+      const PAYMENT_ACCOUNTS = { 'كاش': '1101', 'بنك': '1104', 'آجل': '1201' }
+      const creditAccount    = PAYMENT_ACCOUNTS[dto.payment_method] ?? '1104'
+      const amount = Number(dto.amount)
+      
+      await tx.insert(journalEntryLines).values([
+        { entry_id: row.journal_entry_id, account_code: creditAccount,    debit_amount: amount, credit_amount: 0 },
+        { entry_id: row.journal_entry_id, account_code: REVENUE_ACCOUNT,  debit_amount: 0, credit_amount: amount },
+      ])
+    }
+    
+    await writeAuditLog(tx, { userId, action: 'UPDATE', tableName: 'restaurant_revenue', recordId: id, oldValues: row, newValues: updated })
+    return updated
+  })
+}
+
 export async function listRestaurantRevenue(query: any) {
   const conditions: any[] = [eq(restaurantRevenue.is_deleted, false)]
   if (query.from) conditions.push(sql`${restaurantRevenue.revenue_date} >= ${query.from}`)
@@ -134,6 +200,39 @@ export async function createSubscriptionRevenue(dto: any, userId: string) {
     await tx.update(subscriptionRevenue).set({ journal_entry_id: entry.id } as any).where(eq(subscriptionRevenue.id, row.id))
     await writeAuditLog(tx, { userId, action: 'CREATE', tableName: 'subscription_revenue', recordId: row.id, newValues: row })
     return row
+  })
+}
+
+export async function updateSubscriptionRevenue(id: string, dto: any, userId: string) {
+  return db.transaction(async (tx) => {
+    const [row] = await tx.select().from(subscriptionRevenue).where(eq(subscriptionRevenue.id, id))
+    if (!row) throw new AppError('NOT_FOUND', 404)
+    
+    const [updated] = await tx.update(subscriptionRevenue).set({
+      ...dto, updated_at: new Date()
+    } as any).where(eq(subscriptionRevenue.id, id)).returning()
+    
+    if (row.journal_entry_id) {
+      await tx.update(journalEntries).set({
+        expense_date: dto.revenue_date,
+        description: 'إيراد اشتراكات'
+      } as any).where(eq(journalEntries.id, row.journal_entry_id))
+      
+      await tx.delete(journalEntryLines).where(eq(journalEntryLines.entry_id, row.journal_entry_id))
+      
+      const REVENUE_ACCOUNT   = '410101'
+      const PAYMENT_ACCOUNTS = { 'كاش': '1101', 'بنك': '1104', 'آجل': '1201' }
+      const creditAccount    = PAYMENT_ACCOUNTS[dto.payment_method] ?? '1104'
+      const amount = Number(dto.amount)
+      
+      await tx.insert(journalEntryLines).values([
+        { entry_id: row.journal_entry_id, account_code: creditAccount,    debit_amount: amount, credit_amount: 0 },
+        { entry_id: row.journal_entry_id, account_code: REVENUE_ACCOUNT,  debit_amount: 0, credit_amount: amount },
+      ])
+    }
+    
+    await writeAuditLog(tx, { userId, action: 'UPDATE', tableName: 'subscription_revenue', recordId: id, oldValues: row, newValues: updated })
+    return updated
   })
 }
 

@@ -142,6 +142,63 @@ export async function getSummaryByAccount(from?: string, to?: string) {
   return result.rows
 }
 
+export async function updateExpense(id: string, dto: any, userId: string) {
+  return db.transaction(async (tx) => {
+    const expense = await getExpense(id)
+
+    // Recompute VAT and Total
+    const vat = calculateVAT(Number(dto.amount), !!dto.has_vat)
+    const newTotal = vat.total
+    const newVat = vat.vatAmount
+
+    // Update expense record
+    const [updated] = await tx.update(expenses)
+      .set({
+        ...dto,
+        vat_amount:   String(newVat),
+        total_amount: String(newTotal),
+        updated_at:   new Date(),
+      } as any)
+      .where(eq(expenses.id, id))
+      .returning()
+
+    // Sync the Journal Entry
+    if (expense.journal_entry_id) {
+      // 1. Update the Journal Entry header
+      await tx.update(journalEntries)
+        .set({
+          expense_date: dto.expense_date,
+          description:  `مصروف — ${dto.description}`,
+        } as any)
+        .where(eq(journalEntries.id, expense.journal_entry_id))
+
+      // 2. Delete old lines
+      await tx.delete(journalEntryLines)
+        .where(eq(journalEntryLines.entry_id, expense.journal_entry_id))
+
+      // 3. Insert new balanced lines
+      const lines: any[] = [
+        { entry_id: expense.journal_entry_id, account_code: dto.account_code, debit_amount: Number(dto.amount), credit_amount: 0 },
+      ]
+      if (newVat > 0) {
+        lines.push({ entry_id: expense.journal_entry_id, account_code: '1110', debit_amount: newVat, credit_amount: 0 })
+      }
+      const PAYMENT_ACCOUNTS: Record<string, string> = { 'كاش': '1101', 'بنك': '1104', 'آجل': '2101' }
+      const creditCode = PAYMENT_ACCOUNTS[dto.payment_method] || '1101'
+      lines.push({ entry_id: expense.journal_entry_id, account_code: creditCode, debit_amount: 0, credit_amount: newTotal })
+
+      await tx.insert(journalEntryLines).values(lines)
+    }
+
+    await writeAuditLog(tx, {
+      userId, action: 'UPDATE', tableName: 'expenses',
+      recordId: id, oldValues: expense, newValues: updated,
+    })
+
+    return updated
+  })
+}
+
 // ── Controller + Routes ───────────────────────────────────────────────────
 import { Request, Response, NextFunction, Router } from 'express'
 import { authenticate } from '../../middleware/auth.js'
@@ -156,6 +213,9 @@ async function getCtrl(req: Request, res: Response, next: NextFunction) {
 async function createCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.status(201).json({ success: true, data: await createExpense(req.body, req.user.id), message: 'تم حفظ المصروف' }) } catch (e) { next(e) }
 }
+async function updateCtrl(req: Request, res: Response, next: NextFunction) {
+  try { res.json({ success: true, data: await updateExpense(req.params.id, req.body, req.user.id), message: 'تم تعديل المصروف بنجاح' }) } catch (e) { next(e) }
+}
 async function removeCtrl(req: Request, res: Response, next: NextFunction) {
   try { await deleteExpense(req.params.id, req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (e) { next(e) }
 }
@@ -169,6 +229,7 @@ router.get ('/',        authorize(...ACCOUNTANT_PLUS), listCtrl)
 router.get ('/summary', authorize(...ACCOUNTANT_PLUS), summaryCtrl)
 router.get ('/:id',     authorize(...ACCOUNTANT_PLUS), getCtrl)
 router.post('/',        authorize(...ACCOUNTANT_PLUS), createCtrl)
+router.put ('/:id',     authorize(...ACCOUNTANT_PLUS), updateCtrl)
 router.delete('/:id',   authorize(...ADMIN_ONLY),      removeCtrl)
 
 export default router

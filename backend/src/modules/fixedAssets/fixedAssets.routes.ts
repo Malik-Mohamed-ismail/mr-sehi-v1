@@ -171,6 +171,58 @@ export async function deleteAsset(id: string, userId: string) {
   })
 }
 
+export async function updateAsset(id: string, dto: any, userId: string) {
+  return db.transaction(async (tx) => {
+    const asset = await getAsset(id)
+
+    // Recompute amounts (same logic as createAsset)
+    const rawTotal   = Number(dto.cost)
+    const baseAmount = dto.has_vat ? rawTotal / 1.15 : rawTotal
+    const vatAmount  = dto.has_vat ? rawTotal - baseAmount : 0
+    const totalCost  = rawTotal
+    const account_code = dto.account_code || ASSET_ACCOUNTS[dto.asset_type] || '1509'
+
+    const [updated] = await tx.update(fixedAssets)
+      .set({
+        ...dto,
+        account_code,
+        cost:       String(parseFloat(baseAmount.toFixed(4))),
+        vat_amount: String(parseFloat(vatAmount.toFixed(4))),
+        total_cost: String(parseFloat(totalCost.toFixed(4))),
+        updated_at: new Date(),
+      } as any)
+      .where(eq(fixedAssets.id, id))
+      .returning()
+
+    // Re-sync linked Journal Entry
+    if (asset.journal_entry_id) {
+      await tx.update(journalEntries)
+        .set({ description: `أصل ثابت — ${dto.asset_name ?? asset.asset_name}` } as any)
+        .where(eq(journalEntries.id, asset.journal_entry_id))
+
+      await tx.delete(journalEntryLines)
+        .where(eq(journalEntryLines.entry_id, asset.journal_entry_id))
+
+      const lines: any[] = [
+        { entry_id: asset.journal_entry_id, account_code, debit_amount: parseFloat(baseAmount.toFixed(4)), credit_amount: 0 },
+      ]
+      if (vatAmount > 0) {
+        lines.push({ entry_id: asset.journal_entry_id, account_code: '1110', debit_amount: parseFloat(vatAmount.toFixed(4)), credit_amount: 0 })
+      }
+      const creditCode = PAYMENT_ACCOUNTS[dto.payment_method]
+      if (!creditCode) throw new AppError('VALIDATION_ERROR', 422)
+      lines.push({ entry_id: asset.journal_entry_id, account_code: creditCode, debit_amount: 0, credit_amount: parseFloat(totalCost.toFixed(4)) })
+
+      await tx.insert(journalEntryLines).values(lines)
+    }
+
+    await writeAuditLog(tx, {
+      userId, action: 'UPDATE', tableName: 'fixed_assets', recordId: id, oldValues: asset, newValues: updated,
+    })
+    return updated
+  })
+}
+
 export async function runDepreciation(userId: string) {
   return db.transaction(async (tx) => {
     const today = new Date()
@@ -273,12 +325,23 @@ async function depreciateCtrl(req: Request, res: Response, next: NextFunction) {
   } catch (e) { next(e) }
 }
 
+async function updateCtrl(req: Request, res: Response, next: NextFunction) {
+  try {
+    res.json({
+      success: true,
+      data: await updateAsset(req.params.id, req.body, req.user.id),
+      message: 'تم تعديل الأصل وتحديث القيد المحاسبي',
+    })
+  } catch (e) { next(e) }
+}
+
 const router = Router()
 router.use(authenticate)
 router.get ('/',             authorize(...ACCOUNTANT_PLUS), listCtrl)
 router.get ('/:id',          authorize(...ACCOUNTANT_PLUS), getCtrl)
 router.post('/',             authorize(...ACCOUNTANT_PLUS), createCtrl)
 router.post('/depreciate',   authorize(...ACCOUNTANT_PLUS), depreciateCtrl)
+router.put ('/:id',          authorize(...ACCOUNTANT_PLUS), updateCtrl)
 router.delete('/:id',        authorize(...ADMIN_ONLY),      removeCtrl)
 
 export default router

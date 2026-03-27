@@ -1,8 +1,9 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Toaster } from 'sonner'
+import { toast, Toaster } from 'sonner'
 import { AppShell } from './components/layout/AppShell'
+import { RoleRoute } from './components/layout/RoleRoute'
 import { useAuthStore } from './store/authStore'
 import { useAppBootstrap } from './hooks/useAppBootstrap'
 import './index.css'
@@ -35,6 +36,7 @@ const ReportsHubPage           = lazy(() => import('./features/reports/ReportsHu
 const AuditLogPage             = lazy(() => import('./features/settings/AuditLogPage'))
 const UsersPage                = lazy(() => import('./features/settings/UsersPage'))
 const SettingsPage             = lazy(() => import('./features/settings/SettingsPage'))
+const NotFoundPage             = lazy(() => import('./features/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
 const TrialBalancePage         = lazy(() =>
   import('./features/reports/TrialBalancePage').then(m => ({ default: m.TrialBalancePage }))
 )
@@ -42,10 +44,25 @@ const LedgerPage               = lazy(() =>
   import('./features/reports/TrialBalancePage').then(m => ({ default: m.LedgerPage }))
 )
 
+// ── Query Client ──────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, staleTime: 0, refetchOnWindowFocus: true } },
+  defaultOptions: {
+    queries: {
+      retry:               1,
+      // Reference/lookup data: 10 min stale - no need to refetch on every focus
+      staleTime:           2 * 60 * 1000,   // 2 min default
+      refetchOnWindowFocus: false,           // prevent excessive re-fetches on tab switch
+    },
+    mutations: {
+      onError: (error: any) => {
+        const msg = error?.response?.data?.error?.message ?? 'حدث خطأ غير متوقع'
+        toast.error(msg)
+      },
+    },
+  },
 })
 
+// ── Route Guards ──────────────────────────────────────────────────────────
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
@@ -92,24 +109,30 @@ export default function App() {
             <Route path="subscribers"           element={<PageSuspense><SubscribersPage /></PageSuspense>} />
             <Route path="production"            element={<PageSuspense><ProductionPage /></PageSuspense>} />
             <Route path="production/summary"    element={<PageSuspense><ProductionSummaryPage /></PageSuspense>} />
-            <Route path="accounts"              element={<PageSuspense><AccountsPage /></PageSuspense>} />
-            <Route path="journal"               element={<PageSuspense><JournalPage /></PageSuspense>} />
-            <Route path="ledger"                element={<PageSuspense><LedgerPage /></PageSuspense>} />
-            <Route path="trial-balance"         element={<PageSuspense><TrialBalancePage /></PageSuspense>} />
-            <Route path="income-statement"      element={<PageSuspense><IncomeStatementPage /></PageSuspense>} />
-            <Route path="performance"           element={<PageSuspense><PerformancePage /></PageSuspense>} />
-            <Route path="balance-sheet"         element={<PageSuspense><BalanceSheetPage /></PageSuspense>} />
-            <Route path="cash-flow"             element={<PageSuspense><CashFlowPage /></PageSuspense>} />
-            <Route path="channel-analysis"      element={<PageSuspense><ChannelAnalysisPage /></PageSuspense>} />
-            <Route path="waste-analysis"        element={<PageSuspense><WasteAnalysisPage /></PageSuspense>} />
-            <Route path="breakeven"             element={<PageSuspense><BreakEvenPage /></PageSuspense>} />
-            <Route path="vat-summary"           element={<PageSuspense><VATSummaryPage /></PageSuspense>} />
-            <Route path="audit-log"             element={<PageSuspense><AuditLogPage /></PageSuspense>} />
-            <Route path="users"                 element={<PageSuspense><UsersPage /></PageSuspense>} />
-            <Route path="reports"               element={<PageSuspense><ReportsHubPage /></PageSuspense>} />
-            <Route path="settings"              element={<PageSuspense><SettingsPage /></PageSuspense>} />
+
+            {/* Accountant+ routes */}
+            <Route path="accounts"    element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><AccountsPage /></RoleRoute></PageSuspense>} />
+            <Route path="journal"     element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><JournalPage /></RoleRoute></PageSuspense>} />
+            <Route path="ledger"      element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><LedgerPage /></RoleRoute></PageSuspense>} />
+            <Route path="trial-balance" element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><TrialBalancePage /></RoleRoute></PageSuspense>} />
+            <Route path="income-statement" element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><IncomeStatementPage /></RoleRoute></PageSuspense>} />
+            <Route path="performance"      element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><PerformancePage /></RoleRoute></PageSuspense>} />
+            <Route path="balance-sheet"    element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><BalanceSheetPage /></RoleRoute></PageSuspense>} />
+            <Route path="cash-flow"        element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><CashFlowPage /></RoleRoute></PageSuspense>} />
+            <Route path="channel-analysis" element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><ChannelAnalysisPage /></RoleRoute></PageSuspense>} />
+            <Route path="waste-analysis"   element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><WasteAnalysisPage /></RoleRoute></PageSuspense>} />
+            <Route path="breakeven"        element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><BreakEvenPage /></RoleRoute></PageSuspense>} />
+            <Route path="vat-summary"      element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><VATSummaryPage /></RoleRoute></PageSuspense>} />
+            <Route path="reports"          element={<PageSuspense><RoleRoute allowedRoles={['admin','accountant']}><ReportsHubPage /></RoleRoute></PageSuspense>} />
+
+            {/* Admin-only routes */}
+            <Route path="users"     element={<PageSuspense><RoleRoute allowedRoles={['admin']}><UsersPage /></RoleRoute></PageSuspense>} />
+            <Route path="audit-log" element={<PageSuspense><RoleRoute allowedRoles={['admin']}><AuditLogPage /></RoleRoute></PageSuspense>} />
+            <Route path="settings"  element={<PageSuspense><SettingsPage /></PageSuspense>} />
           </Route>
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+          {/* 404 — catch-all */}
+          <Route path="*" element={<PageSuspense><NotFoundPage /></PageSuspense>} />
         </Routes>
       </BrowserRouter>
       <Toaster
@@ -117,9 +140,9 @@ export default function App() {
         richColors
         toastOptions={{
           style: {
-            fontFamily: 'var(--font-arabic)', 
+            fontFamily: 'var(--font-arabic)',
             direction: 'rtl',
-            borderRadius: 2, 
+            borderRadius: 2,
             padding: '16px 20px',
             fontSize: '15px',
             fontWeight: 600,

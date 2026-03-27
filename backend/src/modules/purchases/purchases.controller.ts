@@ -19,6 +19,15 @@ export async function create(req: Request, res: Response, next: NextFunction) {
     })
   } catch (err) { next(err) }
 }
+export async function update(req: Request, res: Response, next: NextFunction) {
+  try {
+    res.json({
+      success: true,
+      data: await svc.updatePurchaseInvoice(req.params.id, req.body, req.user.id),
+      message: 'تم تعديل الفاتورة وتحديث القيد المحاسبي بنجاح',
+    })
+  } catch (err) { next(err) }
+}
 export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     await svc.deletePurchase(req.params.id, req.user.id)

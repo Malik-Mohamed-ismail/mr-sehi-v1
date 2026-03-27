@@ -17,8 +17,8 @@ export default function SupplierLedgerPage() {
   const { t, i18n } = useTranslation()
   const isRTL = i18n.dir() === 'rtl'
   
-  const [from, setFrom] = useState(`${new Date().getFullYear()}-01-01`)
-  const [to, setTo]     = useState(new Date().toISOString().split('T')[0])
+  const [from, setFrom] = useState('')
+  const [to, setTo]     = useState('')
 
   const { data: supplier } = useQuery({
     queryKey: ['supplier', id],

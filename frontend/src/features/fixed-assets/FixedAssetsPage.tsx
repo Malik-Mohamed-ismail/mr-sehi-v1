@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Plus, Download, Trash2, X, Building2, Calculator } from 'lucide-react'
+import { Plus, Download, Trash2, X, Building2, Calculator, Edit2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
@@ -34,11 +34,11 @@ export default function FixedAssetsPage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
   const { user } = useAuthStore()
-  const [search, setSearch]     = useState('')
-  const [showForm, setShowForm] = useState(false)
-  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [search, setSearch]         = useState('')
+  const [showForm, setShowForm]     = useState(false)
+  const [editingAsset, setEditingAsset] = useState<any>(null)
+  const [deleteId, setDeleteId]     = useState<string | null>(null)
 
-  /* ── Data ── */
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ['fixed-assets'],
     queryFn: () => api.get('/fixed-assets').then(r => r.data.data),
@@ -49,19 +49,10 @@ export default function FixedAssetsPage() {
     queryFn: () => api.get('/lookups?type=payment_method').then(r => r.data.data),
   })
 
-  /* ── Form ── */
   const { register, handleSubmit, watch, reset, setValue, formState: { isSubmitting } } = useForm({
     defaultValues: {
-      asset_date: '',
-      asset_name: '',
-      asset_type: 'equipment',
-      account_code: '1501',
-      cost: 0,
-      has_vat: false,
-      payment_method: 'بنك',
-      useful_life_years: 5,
-      description: '',
-      notes: '',
+      asset_date: '', asset_name: '', asset_type: 'equipment', account_code: '1501',
+      cost: 0, has_vat: false, payment_method: 'بنك', useful_life_years: 5, description: '', notes: '',
     },
   })
 
@@ -69,16 +60,13 @@ export default function FixedAssetsPage() {
   const hasVAT  = watch('has_vat')
   const baseAmt = hasVAT ? rawCost / 1.15 : rawCost
   const vatAmt  = hasVAT ? rawCost - baseAmt : 0
-  const total   = hasVAT ? rawCost : rawCost
-
-  // Auto-sync account_code when asset_type changes
   const assetType = watch('asset_type')
+
   const syncAccount = (type: string) => {
     const match = ASSET_ACCOUNTS.find(a => a.type === type)
     if (match) setValue('account_code', match.code)
   }
 
-  /* ── Mutations ── */
   const createMutation = useMutation({
     mutationFn: (data: any) => api.post('/fixed-assets', { ...data, cost: Number(data.cost), useful_life_years: Number(data.useful_life_years) }),
     onSuccess: () => {
@@ -86,8 +74,19 @@ export default function FixedAssetsPage() {
       qc.invalidateQueries({ queryKey: ['fixed-assets'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       qc.invalidateQueries({ queryKey: ['journal'] })
-      reset()
-      setShowForm(false)
+      reset(); setShowForm(false)
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('fixedAssets.messages.error')),
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: any }) => api.put(`/fixed-assets/${id}`, { ...data, cost: Number(data.cost), useful_life_years: Number(data.useful_life_years) }),
+    onSuccess: () => {
+      toast.success(t('common.updateSuccess'))
+      qc.invalidateQueries({ queryKey: ['fixed-assets'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['journal'] })
+      reset(); setShowForm(false); setEditingAsset(null)
     },
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('fixedAssets.messages.error')),
   })
@@ -95,10 +94,10 @@ export default function FixedAssetsPage() {
   const deleteMutation = useMutation({
     onMutate: async (deletedId) => {
       qc.setQueriesData({ type: 'active' }, (old: any) => {
-        if (Array.isArray(old)) return old.filter((item: any) => item?.id !== deletedId);
-        if (old?.data && Array.isArray(old.data)) return { ...old, data: old.data.filter((item: any) => item?.id !== deletedId) };
-        return old;
-      });
+        if (Array.isArray(old)) return old.filter((item: any) => item?.id !== deletedId)
+        if (old?.data && Array.isArray(old.data)) return { ...old, data: old.data.filter((item: any) => item?.id !== deletedId) }
+        return old
+      })
     },
     mutationFn: (id: string) => api.delete(`/fixed-assets/${id}`),
     onSuccess: () => {
@@ -122,7 +121,6 @@ export default function FixedAssetsPage() {
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? t('common.error')),
   })
 
-  /* ── Export ── */
   const handleExport = () => {
     const exportData = (assets ?? []).map((a: any) => ({
       [t('fixedAssets.table.date')]:      formatDate(a.asset_date),
@@ -138,19 +136,16 @@ export default function FixedAssetsPage() {
     exportToExcel(exportData, t('fixedAssets.exportTitle'))
   }
 
-  /* ── KPIs ── */
   const totalCostVal = (assets ?? []).reduce((s: number, a: any) => s + Number(a.cost), 0)
   const totalVatVal  = (assets ?? []).reduce((s: number, a: any) => s + Number(a.vat_amount), 0)
   const assetCount   = (assets ?? []).length
-
-  /* ── Filtered rows ── */
   const filtered = (assets ?? []).filter((a: any) =>
     !search || JSON.stringify(a).toLowerCase().includes(search.toLowerCase())
   )
 
   return (
     <PageTransition>
-      {/* ── Header ── */}
+      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
@@ -180,7 +175,7 @@ export default function FixedAssetsPage() {
         </div>
       </div>
 
-      {/* ── KPI Cards ── */}
+      {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
         <div className="card kpi-card-primary" style={{ padding: '16px 20px' }}>
           <div className="kpi-label">{t('fixedAssets.kpi.totalCost')}</div>
@@ -200,20 +195,19 @@ export default function FixedAssetsPage() {
         </div>
       </div>
 
-      {/* ── Inline Form ── */}
+      {/* Form */}
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ marginBottom: 24 }}>
           <div className="form-card-header">
-            <span className="form-card-header-title">🏢 {t('fixedAssets.section1')}</span>
-            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false) }} title="إغلاق"><X size={16} /></button>
+            <span className="form-card-header-title">{editingAsset ? <Edit2 size={16}/> : '🏢'} {editingAsset ? 'تعديل الأصل' : t('fixedAssets.section1')}</span>
+            <button type="button" className="form-close-btn" onClick={() => { reset(); setShowForm(false); setEditingAsset(null) }} title="إغلاق"><X size={16} /></button>
           </div>
-          <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} dir={i18n.dir()}>
+          <form onSubmit={handleSubmit((d) => editingAsset ? updateMutation.mutate({ id: editingAsset.id, data: d }) : createMutation.mutate(d))} dir={i18n.dir()}>
             <div className="form-section-header">
               <div className="form-section-number">١</div>
               <div className="form-section-title">{t('fixedAssets.section1')}</div>
             </div>
 
-            {/* Row 1: date, name */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div className="form-field has-value">
                 <label>{t('fixedAssets.fields.date')}</label>
@@ -225,7 +219,6 @@ export default function FixedAssetsPage() {
               </div>
             </div>
 
-            {/* Row 2: type, payment */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div className="form-field has-value">
                 <label>{t('fixedAssets.fields.assetType')}</label>
@@ -244,9 +237,7 @@ export default function FixedAssetsPage() {
                 <select {...register('payment_method')} className="form-select">
                   {paymentMethods.length > 0
                     ? paymentMethods.map((pm: any) => (
-                        <option key={pm.id} value={pm.name_ar}>
-                          {i18n.language === 'ar' ? pm.name_ar : pm.name_en}
-                        </option>
+                        <option key={pm.id} value={pm.name_ar}>{i18n.language === 'ar' ? pm.name_ar : pm.name_en}</option>
                       ))
                     : (
                       <>
@@ -260,7 +251,6 @@ export default function FixedAssetsPage() {
               </div>
             </div>
 
-            {/* Row 3: cost, useful life */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div className="form-field has-value">
                 <label>{t('fixedAssets.fields.cost')}</label>
@@ -272,7 +262,6 @@ export default function FixedAssetsPage() {
               </div>
             </div>
 
-            {/* VAT toggle */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div className="form-field has-value" style={{ display: 'flex', alignItems: 'center', paddingTop: 12 }}>
                 <label style={{ position: 'static', transform: 'none', fontSize: 14, padding: 0, pointerEvents: 'auto', cursor: 'pointer' }}>
@@ -294,7 +283,6 @@ export default function FixedAssetsPage() {
               )}
             </div>
 
-            {/* Description */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16, marginBottom: 16 }}>
               <div className="form-field has-value">
                 <label>{t('fixedAssets.fields.description')}</label>
@@ -302,82 +290,87 @@ export default function FixedAssetsPage() {
               </div>
             </div>
 
-            {/* Journal preview banner */}
-            <div style={{
-              background: 'rgba(43,146,37,0.08)',
-              border: '1px solid rgba(43,146,37,0.2)',
-              borderRadius: 8, padding: '10px 16px',
-              marginBottom: 16, fontSize: 13,
-              color: 'var(--color-success)',
-              display: 'flex', alignItems: 'center', gap: 8,
-            }}>
-              📒 {i18n.language === 'ar'
-                ? `عند الحفظ يتم تلقائياً: مدين حساب ${ASSET_ACCOUNTS.find(a => a.type === assetType)?.nameAr ?? 'الأصل'} — دائن حساب الدفع`
-                : `On save: Dr ${t(`fixedAssets.types.${assetType}`)} Account — Cr Payment Account`}
-            </div>
+            {!editingAsset && (
+              <div style={{ background: 'rgba(43,146,37,0.08)', border: '1px solid rgba(43,146,37,0.2)', borderRadius: 8, padding: '10px 16px', marginBottom: 16, fontSize: 13, color: 'var(--color-success)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                📒 {i18n.language === 'ar'
+                  ? `عند الحفظ يتم تلقائياً: مدين حساب ${ASSET_ACCOUNTS.find(a => a.type === assetType)?.nameAr ?? 'الأصل'} — دائن حساب الدفع`
+                  : `On save: Dr ${t(`fixedAssets.types.${assetType}`)} Account — Cr Payment Account`}
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false) }}>
+              <button type="button" className="btn btn-secondary" onClick={() => { reset(); setShowForm(false); setEditingAsset(null) }}>
                 {t('fixedAssets.buttons.cancel')}
               </button>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? t('fixedAssets.buttons.saving') : t('fixedAssets.buttons.save')}
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting || updateMutation.isPending}>
+                {(isSubmitting || updateMutation.isPending) ? t('fixedAssets.buttons.saving') : t('fixedAssets.buttons.save')}
               </button>
             </div>
           </form>
         </motion.div>
       )}
 
-      {/* ── Search ── */}
+      {/* Search */}
       <div style={{ marginBottom: 16 }}>
         <SearchInput value={search} onChange={setSearch} placeholder={t('common.search')} />
       </div>
 
-      {/* ── Table ── */}
+      {/* Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        {isLoading
-          ? (
-            <div style={{ padding: 24 }}>
-              {[...Array(4)].map((_, i) => <div key={i} className="skeleton" style={{ height: 40, marginBottom: 8 }} />)}
-            </div>
-          )
-          : (
-            <div style={{ overflow: 'auto', width: '100%', maxHeight: '520px' }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>{t('fixedAssets.table.date')}</th>
-                    <th>{t('fixedAssets.table.name')}</th>
-                    <th>{t('fixedAssets.table.type')}</th>
-                    <th>{t('fixedAssets.table.account')}</th>
-                    <th>{t('fixedAssets.table.cost')}</th>
-                    <th>{t('fixedAssets.table.vat')}</th>
-                    <th>{t('fixedAssets.table.usefulLife')}</th>
-                    <th>الإهلاك</th>
-                    <th>الصافي</th>
-                    <th style={{ width: 60 }}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((a: any) => (
-                    <tr key={a.id}>
-                      <td className="amount">{formatDate(a.asset_date)}</td>
-                      <td style={{ fontWeight: 600 }}>{a.asset_name}</td>
-                      <td>
-                        <span className={`badge ${TYPE_BADGE_COLOR[a.asset_type] ?? 'badge-neutral'}`}>
-                          {t(`fixedAssets.types.${a.asset_type}`)}
-                        </span>
-                      </td>
-                      <td><span className="badge badge-neutral">{a.account_code}</span></td>
-                      <td className="amount">{formatSAR(a.cost)}</td>
-                      <td className="amount">{formatSAR(a.vat_amount)}</td>
-                      <td className="amount">{a.useful_life_years}</td>
-                      <td className="amount" style={{ color: 'var(--color-danger)' }}>{formatSAR(a.accumulated_depreciation ?? 0)}</td>
-                      <td className="amount" style={{ fontWeight: 700, color: 'var(--color-success)' }}>
-                        {formatSAR(Number(a.cost) - Number(a.accumulated_depreciation ?? 0))}
-                      </td>
-                      <td>
-                        {user?.role === 'admin' && (
+        {isLoading ? (
+          <div style={{ padding: 24 }}>
+            {[...Array(4)].map((_, i) => <div key={i} className="skeleton" style={{ height: 40, marginBottom: 8 }} />)}
+          </div>
+        ) : (
+          <div style={{ overflow: 'auto', width: '100%', maxHeight: '520px' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>{t('fixedAssets.table.date')}</th>
+                  <th>{t('fixedAssets.table.name')}</th>
+                  <th>{t('fixedAssets.table.type')}</th>
+                  <th>{t('fixedAssets.table.account')}</th>
+                  <th>{t('fixedAssets.table.cost')}</th>
+                  <th>{t('fixedAssets.table.vat')}</th>
+                  <th>{t('fixedAssets.table.usefulLife')}</th>
+                  <th>الإهلاك</th>
+                  <th>الصافي</th>
+                  <th style={{ width: 80 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((a: any) => (
+                  <tr key={a.id}>
+                    <td className="amount">{formatDate(a.asset_date)}</td>
+                    <td style={{ fontWeight: 600 }}>{a.asset_name}</td>
+                    <td>
+                      <span className={`badge ${TYPE_BADGE_COLOR[a.asset_type] ?? 'badge-neutral'}`}>
+                        {t(`fixedAssets.types.${a.asset_type}`)}
+                      </span>
+                    </td>
+                    <td><span className="badge badge-neutral">{a.account_code}</span></td>
+                    <td className="amount">{formatSAR(a.cost)}</td>
+                    <td className="amount">{formatSAR(a.vat_amount)}</td>
+                    <td className="amount">{a.useful_life_years}</td>
+                    <td className="amount" style={{ color: 'var(--color-danger)' }}>{formatSAR(a.accumulated_depreciation ?? 0)}</td>
+                    <td className="amount" style={{ fontWeight: 700, color: 'var(--color-success)' }}>
+                      {formatSAR(Number(a.cost) - Number(a.accumulated_depreciation ?? 0))}
+                    </td>
+                    <td>
+                      {user?.role === 'admin' && (
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: 'var(--color-primary)' }}
+                            onClick={() => {
+                              setEditingAsset(a)
+                              reset({ asset_date: a.asset_date, asset_name: a.asset_name, asset_type: a.asset_type, account_code: a.account_code, cost: Number(a.total_cost ?? a.cost), has_vat: Number(a.vat_amount) > 0, payment_method: a.payment_method, useful_life_years: a.useful_life_years, description: a.description, notes: a.notes || '' })
+                              setShowForm(true)
+                              window.scrollTo({ top: 0, behavior: 'smooth' })
+                            }}
+                          >
+                            <Edit2 size={14} />
+                          </button>
                           <button
                             className="btn btn-ghost btn-sm"
                             style={{ color: 'var(--color-danger)' }}
@@ -386,22 +379,22 @@ export default function FixedAssetsPage() {
                           >
                             <Trash2 size={14} />
                           </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                  {!filtered.length && (
-                    <tr>
-                      <td colSpan={10} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>
-                        {t('fixedAssets.table.empty')}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {!filtered.length && (
+                  <tr>
+                    <td colSpan={10} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>
+                      {t('fixedAssets.table.empty')}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <ConfirmDialog

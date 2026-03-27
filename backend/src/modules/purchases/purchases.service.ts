@@ -81,6 +81,80 @@ export async function listPurchases(query: PurchaseQuery) {
   return { data: rows, total: count, page: query.page, limit: query.limit, totalPages: Math.ceil(count / query.limit) }
 }
 
+export async function updatePurchaseInvoice(id: string, dto: any, userId: string) {
+  return db.transaction(async (tx) => {
+    const invoice = await getPurchase(id)
+
+    // 1. Resolve supplier + VAT status (supplier might have changed)
+    const [supplier] = await tx.select().from(suppliers).where(eq(suppliers.id, dto.supplier_id))
+    if (!supplier) throw new AppError('NOT_FOUND', 404, 'المورد غير موجود')
+
+    const vat = calculateVAT(dto.subtotal, supplierHasVAT(supplier.vat_number))
+
+    // 2. Validate submitted amounts
+    if (!validateVATMatch(vat.vatAmount, dto.vat_amount)) {
+      throw new AppError('VALIDATION_ERROR', 400, 'مبلغ الضريبة لا يتطابق مع الحساب')
+    }
+
+    // 3. Update invoice
+    const [updated] = await tx.update(purchaseInvoices).set({
+      invoice_number: dto.invoice_number,
+      invoice_date:   dto.invoice_date,
+      supplier_id:    dto.supplier_id,
+      category:       dto.category,
+      item_name:      dto.item_name,
+      quantity:       String(dto.quantity),
+      unit_price:     String(dto.unit_price),
+      discount:       String(dto.discount),
+      subtotal:       String(vat.subtotal),
+      vat_amount:     String(vat.vatAmount),
+      total_amount:   String(vat.total),
+      payment_method: dto.payment_method,
+      is_asset:       dto.is_asset,
+      notes:          dto.notes,
+      updated_at:     new Date(),
+    } as any).where(eq(purchaseInvoices.id, id)).returning()
+
+    // 4. Sync Journal Entry
+    if (invoice.journal_entry_id) {
+      // Re-create the journal entry lines using the existing helper function logic
+      // We need to re-import or redefine the journal lines array format here
+      await tx.update(journalEntries).set({
+        expense_date: dto.invoice_date,
+        description: `شراء من مورد: ${supplier.name_ar} — ${dto.item_name}`,
+      } as any).where(eq(journalEntries.id, invoice.journal_entry_id))
+
+      await tx.delete(journalEntryLines).where(eq(journalEntryLines.entry_id, invoice.journal_entry_id))
+
+      // Re-insert lines
+      const assetCode = dto.is_asset ? '1201' : '5101' // Assets or Cost of Goods
+      const lines: any[] = [
+        { entry_id: invoice.journal_entry_id, account_code: assetCode, debit_amount: vat.subtotal, credit_amount: 0 }
+      ]
+      if (vat.vatAmount > 0) {
+        lines.push({ entry_id: invoice.journal_entry_id, account_code: '1110', debit_amount: vat.vatAmount, credit_amount: 0 })
+      }
+      const PAYMENT_ACCOUNTS: Record<string, string> = { 'كاش': '1101', 'بنك': '1104', 'آجل': '2101' }
+      const creditCode = PAYMENT_ACCOUNTS[dto.payment_method] || '1101'
+      
+      if (dto.payment_method === 'آجل') {
+        lines.push({ entry_id: invoice.journal_entry_id, account_code: creditCode, debit_amount: 0, credit_amount: vat.total, entity_id: supplier.id, entity_type: 'supplier' })
+      } else {
+        lines.push({ entry_id: invoice.journal_entry_id, account_code: creditCode, debit_amount: 0, credit_amount: vat.total })
+      }
+
+      await tx.insert(journalEntryLines).values(lines)
+    }
+
+    await writeAuditLog(tx, {
+      userId, action: 'UPDATE', tableName: 'purchase_invoices',
+      recordId: id, oldValues: invoice, newValues: updated,
+    })
+
+    return updated
+  })
+}
+
 export async function getPurchase(id: string) {
   const [row] = await db.select().from(purchaseInvoices)
     .where(and(eq(purchaseInvoices.id, id), eq(purchaseInvoices.is_deleted, false)))

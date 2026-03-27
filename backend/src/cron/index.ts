@@ -3,13 +3,16 @@ import { logger } from '../config/logger.js'
 
 let updateAllStatuses: () => Promise<void>
 let rolloverPettyCash: () => Promise<void>
+let purgeTokens: () => Promise<void>
 
 // Lazy-load to avoid circular dependency
 async function loadServices() {
-  const subSvc = await import('../modules/subscribers/subscribers.service.js')
-  const pcSvc  = await import('../modules/petty-cash/pettyCash.routes.js')
+  const subSvc  = await import('../modules/subscribers/subscribers.service.js')
+  const pcSvc   = await import('../modules/petty-cash/pettyCash.routes.js')
+  const authSvc = await import('./purgeExpiredTokens.js')
   updateAllStatuses = subSvc.updateAllStatuses
   rolloverPettyCash = pcSvc.rolloverPettyCash
+  purgeTokens       = authSvc.purgeExpiredTokens
 }
 
 /**
@@ -53,10 +56,27 @@ function startVATFilingReminderJob() {
   }, { timezone: 'Asia/Riyadh' })
 }
 
+/**
+ * Nightly 02:00 UTC — delete revoked/expired refresh tokens older than 1 day.
+ */
+function startTokenPurgeJob() {
+  cron.schedule('0 2 * * *', async () => {
+    logger.info('⏰ [cron] Purging expired/revoked refresh tokens')
+    try {
+      if (!purgeTokens) await loadServices()
+      await purgeTokens()
+      logger.info('✅ [cron] Refresh token purge complete')
+    } catch (err) {
+      logger.error({ err }, '❌ [cron] Refresh token purge failed')
+    }
+  }, { timezone: 'UTC' })
+}
+
 export function startAllCronJobs() {
   loadServices().catch(err => logger.error({ err }, 'Failed to load cron service deps'))
   startSubscriberStatusJob()
   startPettyCashRolloverJob()
   startVATFilingReminderJob()
+  startTokenPurgeJob()
   logger.info('✅ All cron jobs registered')
 }
