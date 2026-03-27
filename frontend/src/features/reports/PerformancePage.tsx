@@ -5,6 +5,7 @@ import { Activity, TrendingUp, DollarSign } from 'lucide-react'
 import { api } from '../../lib/api'
 import { formatSAR } from '../../lib/utils'
 import { useTranslation } from 'react-i18next'
+import { DateRangePicker } from '../../components/ui/DateRangePicker'
 import i18n from '../../lib/i18n'
 import { PageTransition } from '../../components/ui/PageTransition'
 
@@ -43,16 +44,7 @@ export default function PerformancePage() {
         </div>
         
         <div className="card" style={{ display: 'flex', gap: 12, padding: '8px 16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('performance.filter.from')}</span>
-            <input type="date" className="form-input" style={{ padding: '4px 8px', minHeight: 32 }}
-                   value={dateRange.from} onChange={e => setDateRange(r => ({ ...r, from: e.target.value }))} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('performance.filter.to')}</span>
-            <input type="date" className="form-input" style={{ padding: '4px 8px', minHeight: 32 }}
-                   value={dateRange.to} onChange={e => setDateRange(r => ({ ...r, to: e.target.value }))} />
-          </div>
+          <DateRangePicker from={dateRange.from} to={dateRange.to} onChange={(f, tr) => setDateRange({ from: f, to: tr })} />
         </div>
       </div>
 

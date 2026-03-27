@@ -95,7 +95,7 @@ export default function ProductionPage() {
           <button className="btn btn-secondary" onClick={handleExport} disabled={!records?.length}>
             <Download size={16}/> تصدير Excel
           </button>
-          <button className="btn btn-ghost" style={{ background: 'var(--color-primary-bg)', color: 'var(--color-primary)' }} onClick={() => navigate('/production/summary')}>
+          <button className="btn btn-secondary"  onClick={() => navigate('/production/summary')}>
             <Calculator size={16}/> {t('production.section1')}
           </button>
           <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}><Plus size={16}/> {t('production.newProduction')}</button>

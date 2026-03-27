@@ -7,6 +7,7 @@ import { PageTransition } from '../../components/ui/PageTransition'
 import { formatSAR, formatDate } from '../../lib/utils'
 import { exportToExcel } from '../../lib/export'
 import { useTranslation } from 'react-i18next'
+import { DateRangePicker } from '../../components/ui/DateRangePicker'
 import i18n from '../../lib/i18n'
 
 function now() {
@@ -68,14 +69,7 @@ export default function IncomeStatementPage() {
 
       {/* Date range filter */}
       <div className="card" style={{ padding: '16px 20px', marginBottom: 20, display: 'flex', gap: 16, alignItems: 'center' }}>
-        <div className="form-field has-value" style={{ marginBottom: 0 }}>
-          <label>من</label>
-          <input type="date" value={from} onChange={e => setFrom(e.target.value)} className="form-input" style={{ width: 160 }}/>
-        </div>
-        <div className="form-field has-value" style={{ marginBottom: 0 }}>
-          <label>إلى</label>
-          <input type="date" value={to} onChange={e => setTo(e.target.value)} className="form-input" style={{ width: 160 }}/>
-        </div>
+        <DateRangePicker from={from} to={to} onChange={(f, tr) => { setFrom(f); setTo(tr) }} />
         <button className="btn btn-primary btn-sm" onClick={() => refetch()}>{t('incomeStatement.filter.update')}</button>
       </div>
 

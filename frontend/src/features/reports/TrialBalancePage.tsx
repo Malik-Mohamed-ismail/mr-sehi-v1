@@ -6,6 +6,9 @@ import { PageTransition } from '../../components/ui/PageTransition'
 import { formatSAR } from '../../lib/utils'
 import { Download } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { DatePicker } from '../../components/ui/DatePicker'
+import { DateRangePicker } from '../../components/ui/DateRangePicker'
+import { SearchInput } from '../../components/ui/SearchInput'
 import i18n from '../../lib/i18n'
 
 export function TrialBalancePage() {
@@ -49,7 +52,7 @@ export function TrialBalancePage() {
           <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}> {t('trialBalance.pageSubtitle')}</p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="form-input" style={{ width: 160, height: 36 }}/>
+          <DatePicker date={date} onChange={setDate} />
           <button className="btn btn-primary btn-sm" onClick={() => refetch()}>{t('trialBalance.filter.update')}</button>
           <button className="btn btn-secondary btn-sm" onClick={handleExport} disabled={!data?.length}>
             <Download size={14}/> تصدير Excel
@@ -110,23 +113,33 @@ export function TrialBalancePage() {
 
 export function LedgerPage() {
   const { t } = useTranslation()
-  const [from, setFrom] = useState('')
-  const [to, setTo]     = useState('')
-  const [code, setCode] = useState('')
+  const [from, setFrom]     = useState('')
+  const [to, setTo]         = useState('')
+  const [search, setSearch] = useState('')
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['ledger', code, from, to],
+    queryKey: ['ledger', from, to],
     queryFn: () => {
       const params = new URLSearchParams()
       if (from) params.set('from', from)
       if (to)   params.set('to', to)
-      const url = code ? `/ledger/${code}?${params}` : `/ledger?${params}`
-      return api.get(url).then(r => r.data.data)
+      return api.get(`/ledger?${params}`).then(r => r.data.data)
     },
   })
 
+  const filteredData = (data ?? []).filter((r: any) => {
+    if (!search) return true
+    const s = search.toLowerCase()
+    return (
+      (r.account_code || '').toLowerCase().includes(s) ||
+      (r.account_name || '').toLowerCase().includes(s) ||
+      (r.description || '').toLowerCase().includes(s) ||
+      (r.entry_number || '').toLowerCase().includes(s)
+    )
+  })
+
   const handleExport = () => {
-    const exportData = (data ?? []).map((r: any) => ({
+    const exportData = filteredData.map((r: any) => ({
       [i18n.t('ledger.table.date')]: r.entry_date,
       [i18n.t('ledger.table.entryNumber')]: r.entry_number,
       [i18n.t('ledger.table.description')]: r.description,
@@ -135,7 +148,7 @@ export function LedgerPage() {
       [i18n.t('ledger.table.credit')]: Number(r.credit_amount) || 0,
       [i18n.t('ledger.table.balance')]: r.running_balance
     }))
-    exportToExcel(exportData, `${i18n.t('ledger.exportTitle')}_${code}`)
+    exportToExcel(exportData, `${i18n.t('ledger.exportTitle')}${search ? '_Filtered' : ''}`)
   }
 
   return (
@@ -145,25 +158,17 @@ export function LedgerPage() {
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t('ledger.pageTitle')}</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}> {t('ledger.pageSubtitle')}</p>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={handleExport} disabled={!data?.length}>
+        <button className="btn btn-secondary btn-sm" onClick={handleExport} disabled={!filteredData.length}>
           <Download size={14}/> تصدير Excel
         </button>
       </div>
 
       <div className="card" style={{ padding: '16px 20px', marginBottom: 20, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <div className="form-field has-value" style={{ marginBottom: 0 }}>
-          <label>كود الحساب (اختياري)</label>
-          <input value={code} onChange={e => setCode(e.target.value)} className="form-input" style={{ width: 120 }} placeholder={t('ledger.filter.codePlaceholder')}/>
+        <div style={{ width: 220 }}>
+          <SearchInput value={search} onChange={setSearch} placeholder={t('ledger.filter.codePlaceholder') || t('common.search')} />
         </div>
-        <div className="form-field has-value" style={{ marginBottom: 0 }}>
-          <label>من</label>
-          <input type="date" value={from} onChange={e => setFrom(e.target.value)} className="form-input" style={{ width: 160 }}/>
-        </div>
-        <div className="form-field has-value" style={{ marginBottom: 0 }}>
-          <label>إلى</label>
-          <input type="date" value={to} onChange={e => setTo(e.target.value)} className="form-input" style={{ width: 160 }}/>
-        </div>
-        <button className="btn btn-primary btn-sm" onClick={() => refetch()}>{t('ledger.filter.search')}</button>
+        <DateRangePicker from={from} to={to} onChange={(f, tr) => { setFrom(f); setTo(tr) }} />
+        <button className="btn btn-primary btn-sm" onClick={() => refetch()} style={{ height: 36 }}>{t('ledger.filter.search')}</button>
       </div>
 
       {isLoading ? (
@@ -176,7 +181,7 @@ export function LedgerPage() {
               <tr><th>{t('ledger.table.date')}</th><th>{t('ledger.table.entryNumber')}</th><th>{t('ledger.table.description')}</th><th>{t('ledger.table.account')}</th><th>{t('ledger.table.debit')}</th><th>{t('ledger.table.credit')}</th><th>{t('trialBalance.table.balance')}</th></tr>
             </thead>
             <tbody>
-              {(data ?? []).map((r: any, i: number) => (
+              {filteredData.map((r: any, i: number) => (
                 <tr key={i}>
                   <td className="amount">{r.entry_date}</td>
                   <td style={{ fontFamily: 'var(--font-latin)', color: 'var(--color-primary)', fontWeight: 600 }}>{r.entry_number}</td>
@@ -189,7 +194,7 @@ export function LedgerPage() {
                   </td>
                 </tr>
               ))}
-              {!data?.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('ledger.table.empty')}</td></tr>}
+              {!filteredData.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>{t('ledger.table.empty')}</td></tr>}
             </tbody>
           </table>
           </div>

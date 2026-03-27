@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { api } from '../../lib/api'
 import { PageTransition } from '../../components/ui/PageTransition'
 import { AnimatedNumber } from '../../components/ui/AnimatedNumber'
+import { DatePicker } from '../../components/ui/DatePicker'
 import { staggerContainer, staggerItem } from '../../lib/animations'
 
 const today = new Date().toISOString().split('T')[0]
@@ -104,14 +105,8 @@ export default function BalanceSheetPage() {
            </div>
            
            <div style={{ display: 'flex', gap: 12, alignItems: 'center', background: 'var(--glass-bg)', padding: '8px 16px', borderRadius: 2, border: '1px solid var(--border-color)', backdropFilter: 'var(--glass-blur)' }}>
-             <div className="form-field" style={{ marginBottom: 0 }}>
-               <input 
-                 type="date" 
-                 className="form-input" 
-                 value={date} 
-                 onChange={(e) => setDate(e.target.value)}
-                 style={{ height: '38px', borderRadius: 2, border: 'none', background: 'var(--bg-surface)' }} 
-               />
+             <div style={{ marginBottom: 0 }}>
+               <DatePicker date={date} onChange={setDate} />
              </div>
              
              <button className="btn btn-ghost" style={{ height: 38, width: 38, padding: 0, justifyContent: 'center' }} onClick={() => refetch()} title={t('common.refresh')}>

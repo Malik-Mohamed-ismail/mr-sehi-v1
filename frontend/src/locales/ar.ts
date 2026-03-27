@@ -417,6 +417,23 @@ export default {
       exempt: 'معفى',
       export: 'تصدير Excel',
       empty: 'لا يوجد موردون'
+    },
+    ledger: {
+      title: 'كشف حساب مورد:',
+      subtitle: 'تتبع الفواتير والمدفوعات والرصيد المستحق',
+      totalInvoices: 'إجمالي الفواتير',
+      totalVat: 'إجمالي الضريبة (مشتريات)',
+      outstandingBalance: 'الرصيد المستحق (آجل)',
+      invoicesLog: 'سجل الفواتير',
+      table: {
+        invoiceNumber: 'رقم الفاتورة',
+        date: 'التاريخ',
+        description: 'البيان',
+        paymentMethod: 'طريقة الدفع',
+        subtotal: 'الإجمالي قبل الضريبة',
+        vat: 'الضريبة',
+        total: 'الإجمالي'
+      }
     }
   },
   pettyCash: {

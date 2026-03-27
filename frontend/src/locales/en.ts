@@ -417,6 +417,23 @@ export default {
       exempt: 'Exempt',
       export: 'Export Excel',
       empty: 'No suppliers found'
+    },
+    ledger: {
+      title: 'Supplier Ledger:',
+      subtitle: 'Track invoices, payments, and outstanding balance',
+      totalInvoices: 'Total Invoices',
+      totalVat: 'Total VAT (Purchases)',
+      outstandingBalance: 'Outstanding Balance (Credit)',
+      invoicesLog: 'Invoices Log',
+      table: {
+        invoiceNumber: 'Invoice Number',
+        date: 'Date',
+        description: 'Description',
+        paymentMethod: 'Payment Method',
+        subtotal: 'Subtotal before VAT',
+        vat: 'VAT',
+        total: 'Total'
+      }
     }
   },
   pettyCash: {
