@@ -54,7 +54,7 @@ export default function UsersPage() {
   })
 
   const toggleActive = useMutation({
-    mutationFn: ({ id, is_active }: { id: number; is_active: boolean }) =>
+    mutationFn: ({ id, is_active }: { id: string; is_active: boolean }) =>
       api.patch(`/auth/users/${id}`, { is_active }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
   })

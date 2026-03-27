@@ -7,7 +7,7 @@ import { generateEntryNumber } from '../../utils/entryNumberGenerator.js'
 import { writeAuditLog } from '../../utils/auditLogger.js'
 import { AppError } from '../../utils/AppError.js'
 
-export async function createManualEntry(dto: any, userId: number) {
+export async function createManualEntry(dto: any, userId: string) {
   return db.transaction(async (tx) => {
     const { isBalanced } = validateJournalBalance(dto.lines)
     if (!isBalanced) throw new AppError('JOURNAL_UNBALANCED', 422)
@@ -32,7 +32,7 @@ export async function createManualEntry(dto: any, userId: number) {
   })
 }
 
-export async function reverseEntry(entryId: number, reason: string, userId: number) {
+export async function reverseEntry(entryId: string, reason: string, userId: string) {
   return db.transaction(async (tx) => {
     const [original] = await tx.select().from(journalEntries)
       .where(eq(journalEntries.id, entryId))
@@ -113,7 +113,7 @@ export async function listEntries(query: any) {
   return { data: rows, total: count, page, limit, totalPages: Math.ceil(count / limit) }
 }
 
-export async function getEntry(id: number) {
+export async function getEntry(id: string) {
   const [entry] = await db.select().from(journalEntries).where(eq(journalEntries.id, id))
   if (!entry) throw new AppError('NOT_FOUND', 404)
   const lines = await db.select().from(journalEntryLines).where(eq(journalEntryLines.entry_id, id))

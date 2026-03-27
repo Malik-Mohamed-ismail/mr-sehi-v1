@@ -20,7 +20,7 @@ export default function SubscriptionsRevenuePage() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
-  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { data: revenues } = useQuery({
     queryKey: ['revenue-subscriptions'],
@@ -49,7 +49,14 @@ export default function SubscriptionsRevenuePage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.delete(`/revenue/subscriptions/${id}`),
+    onMutate: async (deletedId) => {
+      qc.setQueriesData({ type: 'active' }, (old: any) => {
+        if (Array.isArray(old)) return old.filter((item: any) => item?.id !== deletedId);
+        if (old?.data && Array.isArray(old.data)) return { ...old, data: old.data.filter((item: any) => item?.id !== deletedId) };
+        return old;
+      });
+    },
+    mutationFn: (id: string) => api.delete(`/revenue/subscriptions/${id}`),
     onSuccess: () => {
       toast.success(t('purchases.messages.deleteSuccess') || 'تم الحذف')
       qc.invalidateQueries({ queryKey: ['revenue-subscriptions'] })

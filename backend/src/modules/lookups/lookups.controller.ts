@@ -18,7 +18,7 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
 
 export const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
     const data = await svc.updateLookup(id, req.body);
     res.json({ success: true, data });
   } catch (e) { next(e); }
@@ -26,7 +26,7 @@ export const update = async (req: Request, res: Response, next: NextFunction) =>
 
 export const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
     await svc.deleteLookup(id);
     res.json({ success: true, data: { id } });
   } catch (e) { next(e); }

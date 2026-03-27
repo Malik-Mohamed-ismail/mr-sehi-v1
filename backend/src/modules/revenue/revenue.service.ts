@@ -9,7 +9,7 @@ import { writeAuditLog } from '../../utils/auditLogger.js'
 import { AppError } from '../../utils/AppError.js'
 
 // ── Delivery ─────────────────────────────────────────────────────────────
-async function createRevenueJournalEntry(tx: any, amount: number, description: string, date: string, paymentMethod: string, userId: number) {
+async function createRevenueJournalEntry(tx: any, amount: number, description: string, date: string, paymentMethod: string, userId: string) {
   const REVENUE_ACCOUNT   = '410101'
   const PAYMENT_ACCOUNTS: Record<string, string> = { 'كاش': '1101', 'بنك': '1104', 'آجل': '1201' }
   const creditAccount     = PAYMENT_ACCOUNTS[paymentMethod] ?? '1104'
@@ -29,7 +29,7 @@ async function createRevenueJournalEntry(tx: any, amount: number, description: s
   return entry
 }
 
-async function reverseRevenueJournal(tx: any, entryId: number, userId: number, sourceDesc: string) {
+async function reverseRevenueJournal(tx: any, entryId: string, userId: string, sourceDesc: string) {
   const [originalEntry] = await tx.select().from(journalEntries).where(eq(journalEntries.id, entryId))
   if (!originalEntry || originalEntry.is_reversed) return
 
@@ -61,7 +61,7 @@ async function reverseRevenueJournal(tx: any, entryId: number, userId: number, s
 }
 
 // ── Delivery ─────────────────────────────────────────────────────────────
-export async function createDeliveryRevenue(dto: any, userId: number) {
+export async function createDeliveryRevenue(dto: any, userId: string) {
   return db.transaction(async (tx) => {
     const net = parseFloat((Number(dto.gross_amount) - Number(dto.commission_amount ?? 0)).toFixed(4))
     const [row] = await tx.insert(deliveryRevenue).values({
@@ -84,7 +84,7 @@ export async function listDeliveryRevenue(query: any) {
   return rows
 }
 
-export async function deleteDeliveryRevenue(id: number, userId: number) {
+export async function deleteDeliveryRevenue(id: string, userId: string) {
   const [row] = await db.select().from(deliveryRevenue).where(eq(deliveryRevenue.id, id))
   if (!row) throw new AppError('NOT_FOUND', 404)
   await db.transaction(async (tx) => {
@@ -97,7 +97,7 @@ export async function deleteDeliveryRevenue(id: number, userId: number) {
 }
 
 // ── Restaurant ────────────────────────────────────────────────────────────
-export async function createRestaurantRevenue(dto: any, userId: number) {
+export async function createRestaurantRevenue(dto: any, userId: string) {
   return db.transaction(async (tx) => {
     const [row] = await tx.insert(restaurantRevenue).values({ ...dto, created_by: userId } as any).returning()
     const entry = await createRevenueJournalEntry(tx, Number(dto.amount), 'إيراد مطعم', dto.revenue_date, dto.payment_method, userId)
@@ -114,7 +114,7 @@ export async function listRestaurantRevenue(query: any) {
   return db.select().from(restaurantRevenue).where(and(...conditions)).orderBy(desc(restaurantRevenue.revenue_date))
 }
 
-export async function deleteRestaurantRevenue(id: number, userId: number) {
+export async function deleteRestaurantRevenue(id: string, userId: string) {
   const [row] = await db.select().from(restaurantRevenue).where(eq(restaurantRevenue.id, id))
   if (!row) throw new AppError('NOT_FOUND', 404)
   await db.transaction(async (tx) => {
@@ -127,7 +127,7 @@ export async function deleteRestaurantRevenue(id: number, userId: number) {
 }
 
 // ── Subscriptions ─────────────────────────────────────────────────────────
-export async function createSubscriptionRevenue(dto: any, userId: number) {
+export async function createSubscriptionRevenue(dto: any, userId: string) {
   return db.transaction(async (tx) => {
     const [row] = await tx.insert(subscriptionRevenue).values({ ...dto, created_by: userId } as any).returning()
     const entry = await createRevenueJournalEntry(tx, Number(dto.amount), 'إيراد اشتراكات', dto.revenue_date, dto.payment_method, userId)
@@ -144,7 +144,7 @@ export async function listSubscriptionRevenue(query: any) {
   return db.select().from(subscriptionRevenue).where(and(...conditions)).orderBy(desc(subscriptionRevenue.revenue_date))
 }
 
-export async function deleteSubscriptionRevenue(id: number, userId: number) {
+export async function deleteSubscriptionRevenue(id: string, userId: string) {
   const [row] = await db.select().from(subscriptionRevenue).where(eq(subscriptionRevenue.id, id))
   if (!row) throw new AppError('NOT_FOUND', 404)
   await db.transaction(async (tx) => {

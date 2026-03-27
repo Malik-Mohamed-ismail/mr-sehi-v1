@@ -30,7 +30,7 @@ export async function seedWaste() {
       waste_grams: wasteGrams.toFixed(3),
       waste_value: wasteValue.toFixed(4),
       unit_cost: p.cost.toFixed(4),
-      created_by: 1
+      created_by: '00000000-0000-0000-0000-000000000000'
     })
   }
 

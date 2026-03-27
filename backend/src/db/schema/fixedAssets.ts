@@ -1,12 +1,10 @@
-import {
-  pgTable, serial, varchar, text, boolean,
-  integer, decimal, date, timestamp,
-} from 'drizzle-orm/pg-core'
+import { uuid, pgTable, varchar, text, boolean,
+  integer, decimal, date, timestamp, } from 'drizzle-orm/pg-core'
 import { users } from './users'
 import { journalEntries } from './journal'
 
 export const fixedAssets = pgTable('fixed_assets', {
-  id:                serial('id').primaryKey(),
+  id:                uuid('id').defaultRandom().primaryKey(),
   asset_date:        date('asset_date').notNull(),
   asset_name:        varchar('asset_name', { length: 200 }).notNull(),
   asset_type:        varchar('asset_type', { length: 20 })
@@ -24,9 +22,9 @@ export const fixedAssets = pgTable('fixed_assets', {
   last_depreciation_date: date('last_depreciation_date'),
   description:       varchar('description', { length: 300 }).notNull(),
   notes:             text('notes'),
-  journal_entry_id:  integer('journal_entry_id').references(() => journalEntries.id),
+  journal_entry_id:  uuid('journal_entry_id').references(() => journalEntries.id),
   is_deleted:        boolean('is_deleted').default(false),
-  created_by:        integer('created_by').references(() => users.id),
+  created_by:        uuid('created_by').references(() => users.id),
   created_at:        timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at:        timestamp('updated_at', { withTimezone: true }).defaultNow(),
 })

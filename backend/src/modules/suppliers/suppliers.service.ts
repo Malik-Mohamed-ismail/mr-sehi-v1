@@ -25,13 +25,13 @@ export async function listSuppliers(query: SupplierQuery) {
   return { data: rows, total: count, page: query.page, limit: query.limit }
 }
 
-export async function getSupplier(id: number) {
+export async function getSupplier(id: string) {
   const [row] = await db.select().from(suppliers).where(eq(suppliers.id, id))
   if (!row) throw new AppError('NOT_FOUND', 404)
   return row
 }
 
-export async function createSupplier(dto: CreateSupplierDto, userId: number) {
+export async function createSupplier(dto: CreateSupplierDto, userId: string) {
   const [row] = await db.transaction(async (tx) => {
     const [supplier] = await tx.insert(suppliers).values({
       ...dto, created_by: userId,
@@ -42,7 +42,7 @@ export async function createSupplier(dto: CreateSupplierDto, userId: number) {
   return row
 }
 
-export async function updateSupplier(id: number, dto: UpdateSupplierDto, userId: number) {
+export async function updateSupplier(id: string, dto: UpdateSupplierDto, userId: string) {
   const old = await getSupplier(id)
   const [row] = await db.transaction(async (tx) => {
     const [updated] = await tx.update(suppliers)
@@ -55,7 +55,7 @@ export async function updateSupplier(id: number, dto: UpdateSupplierDto, userId:
   return row
 }
 
-export async function deactivateSupplier(id: number, userId: number) {
+export async function deactivateSupplier(id: string, userId: string) {
   const old = await getSupplier(id)
   const [row] = await db.transaction(async (tx) => {
     const [updated] = await tx.update(suppliers)
@@ -68,7 +68,7 @@ export async function deactivateSupplier(id: number, userId: number) {
   return row
 }
 
-export async function deleteSupplier(id: number, userId: number) {
+export async function deleteSupplier(id: string, userId: string) {
   const old = await getSupplier(id)
 
   const [activeInvoice] = await db.select().from(purchaseInvoices)
@@ -91,7 +91,7 @@ export async function deleteSupplier(id: number, userId: number) {
   return row
 }
 
-export async function getSupplierLedger(id: number, from?: string, to?: string) {
+export async function getSupplierLedger(id: string, from?: string, to?: string) {
   await getSupplier(id) // 404 check
   const conditions: any[] = [eq(purchaseInvoices.supplier_id, id), eq(purchaseInvoices.is_deleted, false)]
   if (from) conditions.push(sql`${purchaseInvoices.invoice_date} >= ${from}`)

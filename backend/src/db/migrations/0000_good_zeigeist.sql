@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS "accounts" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"code" varchar(20) NOT NULL,
 	"name_ar" varchar(150) NOT NULL,
 	"name_en" varchar(150),
@@ -8,18 +8,18 @@ CREATE TABLE IF NOT EXISTS "accounts" (
 	"level" integer DEFAULT 1,
 	"is_active" boolean DEFAULT true,
 	"is_system" boolean DEFAULT false,
-	"created_by" integer,
+	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now(),
 	CONSTRAINT "accounts_code_unique" UNIQUE("code")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "audit_log" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"user_id" integer,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" uuid,
 	"action" varchar(20) NOT NULL,
 	"table_name" varchar(50) NOT NULL,
-	"record_id" integer,
+	"record_id" uuid,
 	"old_values" jsonb,
 	"new_values" jsonb,
 	"ip_address" varchar(45),
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS "audit_log" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "expenses" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"expense_date" date NOT NULL,
 	"account_code" varchar(20) NOT NULL,
 	"expense_type" varchar(20) NOT NULL,
@@ -39,15 +39,37 @@ CREATE TABLE IF NOT EXISTS "expenses" (
 	"payment_method" varchar(10) NOT NULL,
 	"category" varchar(100),
 	"notes" text,
-	"journal_entry_id" integer,
+	"journal_entry_id" uuid,
 	"is_deleted" boolean DEFAULT false,
-	"created_by" integer,
+	"created_by" uuid,
+	"created_at" timestamp with time zone DEFAULT now(),
+	"updated_at" timestamp with time zone DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "fixed_assets" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"asset_date" date NOT NULL,
+	"asset_name" varchar(200) NOT NULL,
+	"asset_type" varchar(20) NOT NULL,
+	"account_code" varchar(20) NOT NULL,
+	"cost" numeric(12, 4) NOT NULL,
+	"vat_amount" numeric(12, 4) DEFAULT '0' NOT NULL,
+	"total_cost" numeric(12, 4) NOT NULL,
+	"payment_method" varchar(10) NOT NULL,
+	"useful_life_years" integer DEFAULT 5,
+	"accumulated_depreciation" numeric(12, 4) DEFAULT '0',
+	"last_depreciation_date" date,
+	"description" varchar(300) NOT NULL,
+	"notes" text,
+	"journal_entry_id" uuid,
+	"is_deleted" boolean DEFAULT false,
+	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "users" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"username" varchar(50) NOT NULL,
 	"email" varchar(150) NOT NULL,
 	"password_hash" varchar(200) NOT NULL,
@@ -61,8 +83,8 @@ CREATE TABLE IF NOT EXISTS "users" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "refresh_tokens" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"user_id" integer,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" uuid,
 	"token_hash" varchar(200) NOT NULL,
 	"expires_at" timestamp with time zone NOT NULL,
 	"revoked" boolean DEFAULT false,
@@ -70,7 +92,7 @@ CREATE TABLE IF NOT EXISTS "refresh_tokens" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "vat_periods" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"period_start" date NOT NULL,
 	"period_end" date NOT NULL,
 	"total_vat_input" numeric(12, 4),
@@ -82,8 +104,17 @@ CREATE TABLE IF NOT EXISTS "vat_periods" (
 	"created_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "settings" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"key" varchar(100) NOT NULL,
+	"value" jsonb NOT NULL,
+	"updated_by" uuid,
+	"updated_at" timestamp with time zone DEFAULT now(),
+	CONSTRAINT "settings_key_unique" UNIQUE("key")
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "suppliers" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name_ar" varchar(150) NOT NULL,
 	"name_en" varchar(150),
 	"vat_number" varchar(30),
@@ -92,31 +123,31 @@ CREATE TABLE IF NOT EXISTS "suppliers" (
 	"category" varchar(50),
 	"is_active" boolean DEFAULT true,
 	"notes" varchar(500),
-	"created_by" integer,
+	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "journal_entries" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"entry_number" varchar(20) NOT NULL,
 	"entry_date" date NOT NULL,
 	"description" text NOT NULL,
 	"reference" varchar(100),
 	"source_type" varchar(30) NOT NULL,
-	"source_id" integer,
+	"source_id" uuid,
 	"is_balanced" boolean DEFAULT false,
 	"is_reversed" boolean DEFAULT false,
-	"reversed_by" integer,
-	"created_by" integer,
+	"reversed_by" uuid,
+	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now(),
 	CONSTRAINT "journal_entries_entry_number_unique" UNIQUE("entry_number")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "journal_entry_lines" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"entry_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"entry_id" uuid NOT NULL,
 	"account_code" varchar(20) NOT NULL,
 	"debit_amount" numeric(12, 4) DEFAULT '0' NOT NULL,
 	"credit_amount" numeric(12, 4) DEFAULT '0' NOT NULL,
@@ -125,10 +156,10 @@ CREATE TABLE IF NOT EXISTS "journal_entry_lines" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "purchase_invoices" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"invoice_number" varchar(50) NOT NULL,
 	"invoice_date" date NOT NULL,
-	"supplier_id" integer NOT NULL,
+	"supplier_id" uuid NOT NULL,
 	"category" varchar(50) NOT NULL,
 	"item_name" varchar(200) NOT NULL,
 	"quantity" numeric(10, 3) DEFAULT '1' NOT NULL,
@@ -140,15 +171,15 @@ CREATE TABLE IF NOT EXISTS "purchase_invoices" (
 	"payment_method" varchar(10) NOT NULL,
 	"is_asset" boolean DEFAULT false,
 	"notes" text,
-	"journal_entry_id" integer,
+	"journal_entry_id" uuid,
 	"is_deleted" boolean DEFAULT false,
-	"created_by" integer,
+	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "delivery_revenue" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"revenue_date" date NOT NULL,
 	"platform" varchar(30) NOT NULL,
 	"gross_amount" numeric(12, 4) NOT NULL,
@@ -157,43 +188,43 @@ CREATE TABLE IF NOT EXISTS "delivery_revenue" (
 	"net_amount" numeric(12, 4) NOT NULL,
 	"payment_method" varchar(10) NOT NULL,
 	"notes" text,
-	"journal_entry_id" integer,
+	"journal_entry_id" uuid,
 	"is_deleted" boolean DEFAULT false,
-	"created_by" integer,
+	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "restaurant_revenue" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"revenue_date" date NOT NULL,
 	"amount" numeric(12, 4) NOT NULL,
 	"payment_method" varchar(10) NOT NULL,
 	"covers" integer,
 	"notes" text,
-	"journal_entry_id" integer,
+	"journal_entry_id" uuid,
 	"is_deleted" boolean DEFAULT false,
-	"created_by" integer,
+	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "subscription_revenue" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"revenue_date" date NOT NULL,
-	"subscriber_id" integer,
+	"subscriber_id" uuid,
 	"amount" numeric(12, 4) NOT NULL,
 	"payment_method" varchar(10) NOT NULL,
 	"notes" text,
-	"journal_entry_id" integer,
+	"journal_entry_id" uuid,
 	"is_deleted" boolean DEFAULT false,
-	"created_by" integer,
+	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "subscribers" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" varchar(150) NOT NULL,
 	"phone" varchar(20),
 	"plan_name" varchar(100),
@@ -204,13 +235,13 @@ CREATE TABLE IF NOT EXISTS "subscribers" (
 	"payment_method" varchar(10),
 	"notes" text,
 	"is_deleted" boolean DEFAULT false,
-	"created_by" integer,
+	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "petty_cash" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"transaction_date" date NOT NULL,
 	"opening_balance" numeric(12, 4) DEFAULT '0' NOT NULL,
 	"cashier_replenishment" numeric(12, 4) DEFAULT '0' NOT NULL,
@@ -220,13 +251,13 @@ CREATE TABLE IF NOT EXISTS "petty_cash" (
 	"variance" numeric(12, 4) DEFAULT '0' NOT NULL,
 	"is_balanced" boolean DEFAULT false,
 	"notes" text,
-	"created_by" integer,
+	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "production" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"production_date" date NOT NULL,
 	"product_name" varchar(150) NOT NULL,
 	"produced_kg" numeric(10, 3) NOT NULL,
@@ -235,9 +266,18 @@ CREATE TABLE IF NOT EXISTS "production" (
 	"unit_cost" numeric(12, 4),
 	"notes" text,
 	"is_deleted" boolean DEFAULT false,
-	"created_by" integer,
+	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "lookups" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"type" varchar(50) NOT NULL,
+	"name_en" varchar(150) NOT NULL,
+	"name_ar" varchar(150) NOT NULL,
+	"is_active" boolean DEFAULT true,
+	"created_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
 DO $$ BEGIN
@@ -265,7 +305,25 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
+ ALTER TABLE "fixed_assets" ADD CONSTRAINT "fixed_assets_journal_entry_id_journal_entries_id_fk" FOREIGN KEY ("journal_entry_id") REFERENCES "public"."journal_entries"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "fixed_assets" ADD CONSTRAINT "fixed_assets_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
  ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "settings" ADD CONSTRAINT "settings_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

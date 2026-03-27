@@ -24,7 +24,7 @@ export default function JournalPage() {
   const { user } = useAuthStore()
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const [reverseId, setReverseId] = useState<number | null>(null)
+  const [reverseId, setReverseId] = useState<string | null>(null)
   const [reverseReason, setReverseReason] = useState('')
 
   const { data: entries, isLoading } = useQuery({
@@ -65,7 +65,7 @@ export default function JournalPage() {
   })
 
   const reverseMutation = useMutation({
-    mutationFn: ({ id, reason }: { id: number; reason: string }) =>
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       api.post(`/journal/${id}/reverse`, { reason }),
     onSuccess: () => {
       toast.success(t('journal.messages.reverseSuccess'))

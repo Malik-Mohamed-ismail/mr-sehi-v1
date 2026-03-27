@@ -34,7 +34,7 @@ export default function ExpensesPage() {
   const { user } = useAuthStore()
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { data: expenses, isLoading } = useQuery({
     queryKey: ['expenses'],
@@ -68,7 +68,14 @@ export default function ExpensesPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.delete(`/expenses/${id}`),
+    onMutate: async (deletedId) => {
+      qc.setQueriesData({ type: 'active' }, (old: any) => {
+        if (Array.isArray(old)) return old.filter((item: any) => item?.id !== deletedId);
+        if (old?.data && Array.isArray(old.data)) return { ...old, data: old.data.filter((item: any) => item?.id !== deletedId) };
+        return old;
+      });
+    },
+    mutationFn: (id: string) => api.delete(`/expenses/${id}`),
     onSuccess: () => {
       toast.success(t('purchases.messages.deleteSuccess') || 'تم الحذف')
       qc.invalidateQueries({ queryKey: ['expenses'] })

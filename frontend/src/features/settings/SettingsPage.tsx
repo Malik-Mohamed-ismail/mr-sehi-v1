@@ -344,7 +344,7 @@ function AuditLogsTab() {
                   <td style={{ fontFamily: 'var(--font-latin)' }}>
                     {new Date(log.created_at).toLocaleString('ar-SA')}
                   </td>
-                  <td style={{ fontWeight: 600 }}>ID: {log.user_id}</td>
+                  <td style={{ fontWeight: 600 }}>{log.full_name ?? log.username ?? log.user_id ?? '—'}</td>
                   <td>
                     <span className={`badge ${actionColors[log.action] ?? 'badge-neutral'}`}>
                       {log.action}

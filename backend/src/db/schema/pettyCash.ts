@@ -1,11 +1,9 @@
-import {
-  pgTable, serial, varchar, text, boolean,
-  integer, decimal, date, timestamp,
-} from 'drizzle-orm/pg-core'
+import { uuid, pgTable, varchar, text, boolean,
+  integer, decimal, date, timestamp, } from 'drizzle-orm/pg-core'
 import { users } from './users'
 
 export const pettyCash = pgTable('petty_cash', {
-  id:                    serial('id').primaryKey(),
+  id:                    uuid('id').defaultRandom().primaryKey(),
   transaction_date:      date('transaction_date').notNull(),
   opening_balance:       decimal('opening_balance',       { precision: 12, scale: 4 }).notNull().default('0'),
   cashier_replenishment: decimal('cashier_replenishment', { precision: 12, scale: 4 }).notNull().default('0'),
@@ -16,7 +14,7 @@ export const pettyCash = pgTable('petty_cash', {
   variance:              decimal('variance',              { precision: 12, scale: 4 }).notNull().default('0'),
   is_balanced:           boolean('is_balanced').default(false),
   notes:                 text('notes'),
-  created_by:            integer('created_by').references(() => users.id),
+  created_by:            uuid('created_by').references(() => users.id),
   created_at:            timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at:            timestamp('updated_at', { withTimezone: true }).defaultNow(),
 })

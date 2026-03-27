@@ -14,12 +14,12 @@ export const createLookup = async (data: NewLookup) => {
   return created;
 };
 
-export const updateLookup = async (id: number, data: Partial<NewLookup>) => {
+export const updateLookup = async (id: string, data: Partial<NewLookup>) => {
   const [updated] = await db.update(lookups).set({ ...data, updated_at: undefined } as any).where(eq(lookups.id, id)).returning();
   return updated;
 };
 
-export const deleteLookup = async (id: number) => {
+export const deleteLookup = async (id: string) => {
   const [deleted] = await db.delete(lookups).where(eq(lookups.id, id)).returning();
   return deleted;
 };

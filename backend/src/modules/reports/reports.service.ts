@@ -341,7 +341,11 @@ export async function getCashFlow(from: string, to: string) {
     investingActivities: invTotal,
     financingActivities: finTotal,
     operating: { details: operatingDetails },
-    investing: { details: [{ description: 'شراء أصول ثابتة (معدات تقنية ومطابخ)', amount: invTotal }] },
+    investing: {
+      details: invTotal !== 0
+        ? [{ description: 'شراء أصول ثابتة (معدات تقنية ومطابخ)', amount: invTotal }]
+        : []
+    },
     financing: { details: [] },
     dailySeries
   }

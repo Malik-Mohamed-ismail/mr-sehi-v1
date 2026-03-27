@@ -7,7 +7,7 @@ export async function list(req: Request, res: Response, next: NextFunction) {
   catch (err) { next(err) }
 }
 export async function get(req: Request, res: Response, next: NextFunction) {
-  try { res.json({ success: true, data: await svc.getPurchase(Number(req.params.id)) }) }
+  try { res.json({ success: true, data: await svc.getPurchase(req.params.id) }) }
   catch (err) { next(err) }
 }
 export async function create(req: Request, res: Response, next: NextFunction) {
@@ -21,7 +21,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
 }
 export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
-    await svc.deletePurchase(Number(req.params.id), req.user.id)
+    await svc.deletePurchase(req.params.id, req.user.id)
     res.json({ success: true, data: null, message: 'تم حذف الفاتورة وعكس القيد المحاسبي' })
   } catch (err) { next(err) }
 }

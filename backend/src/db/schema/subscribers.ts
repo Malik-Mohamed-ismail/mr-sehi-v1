@@ -1,11 +1,9 @@
-import {
-  pgTable, serial, varchar, text, boolean,
-  integer, decimal, date, timestamp,
-} from 'drizzle-orm/pg-core'
+import { uuid, pgTable, varchar, text, boolean,
+  integer, decimal, date, timestamp, } from 'drizzle-orm/pg-core'
 import { users } from './users'
 
 export const subscribers = pgTable('subscribers', {
-  id:               serial('id').primaryKey(),
+  id:               uuid('id').defaultRandom().primaryKey(),
   name:             varchar('name', { length: 150 }).notNull(),
   phone:            varchar('phone', { length: 20 }),
   plan_name:        varchar('plan_name', { length: 100 }),
@@ -20,7 +18,7 @@ export const subscribers = pgTable('subscribers', {
                       .$type<'كاش' | 'بنك' | 'آجل'>(),
   notes:            text('notes'),
   is_deleted:       boolean('is_deleted').default(false),
-  created_by:       integer('created_by').references(() => users.id),
+  created_by:       uuid('created_by').references(() => users.id),
   created_at:       timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at:       timestamp('updated_at', { withTimezone: true }).defaultNow(),
 })

@@ -12,7 +12,7 @@ import type { LoginDto, CreateUserDto, UpdateUserDto, ChangePasswordDto } from '
 
 const SALT_ROUNDS = 12
 
-function signAccessToken(user: { id: number; role: string; username: string }): string {
+function signAccessToken(user: { id: string; role: string; username: string }): string {
   return jwt.sign(
     { sub: user.id, role: user.role, username: user.username },
     env.JWT_SECRET,
@@ -94,7 +94,7 @@ export async function logout(refreshToken: string) {
 }
 
 // ── Change Password ───────────────────────────────────────────────────────
-export async function changePassword(userId: number, dto: ChangePasswordDto) {
+export async function changePassword(userId: string, dto: ChangePasswordDto) {
   const [user] = await db.select().from(users).where(eq(users.id, userId))
   if (!user) throw new AppError('NOT_FOUND', 404)
 
@@ -111,7 +111,7 @@ export async function changePassword(userId: number, dto: ChangePasswordDto) {
 }
 
 // ── User CRUD (Admin) ─────────────────────────────────────────────────────
-export async function createUser(dto: CreateUserDto, createdBy: number) {
+export async function createUser(dto: CreateUserDto, createdBy: string) {
   const hash = await bcrypt.hash(dto.password, SALT_ROUNDS)
   const [user] = await db.insert(users).values({
     username:      dto.username,
@@ -128,7 +128,7 @@ export async function listUsers() {
   return rows.map(sanitizeUser)
 }
 
-export async function updateUser(userId: number, dto: UpdateUserDto) {
+export async function updateUser(userId: string, dto: UpdateUserDto) {
   const [updated] = await db.update(users)
     .set({ ...dto } as any)
     .where(eq(users.id, userId))

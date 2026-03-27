@@ -7,7 +7,7 @@ import { AppError } from '../../utils/AppError.js'
 import { authenticate } from '../../middleware/auth.js'
 import { authorize, ADMIN_ONLY, ACCOUNTANT_PLUS, ALL_ROLES } from '../../middleware/authorize.js'
 
-export async function createProduction(dto: any, userId: number) {
+export async function createProduction(dto: any, userId: string) {
   return db.transaction(async (tx) => {
     const [row] = await tx.insert(production).values({ ...dto, created_by: userId } as any).returning()
     await writeAuditLog(tx, { userId, action: 'CREATE', tableName: 'production', recordId: row.id, newValues: row })
@@ -49,7 +49,7 @@ export async function getProductionSummary(from?: string, to?: string) {
   return result.rows
 }
 
-export async function deleteProduction(id: number, userId: number) {
+export async function deleteProduction(id: string, userId: string) {
   const [old] = await db.select().from(production).where(eq(production.id, id))
   if (!old) throw new AppError('NOT_FOUND', 404)
   return db.transaction(async (tx) => {
@@ -69,7 +69,7 @@ async function createCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.status(201).json({ success: true, data: await createProduction(req.body, req.user.id), message: 'تم تسجيل الإنتاج' }) } catch (e) { next(e) }
 }
 async function removeCtrl(req: Request, res: Response, next: NextFunction) {
-  try { await deleteProduction(Number(req.params.id), req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (e) { next(e) }
+  try { await deleteProduction(req.params.id, req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (e) { next(e) }
 }
 async function summaryCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.json({ success: true, data: await getProductionSummary(req.query.from as any, req.query.to as any) }) } catch (e) { next(e) }

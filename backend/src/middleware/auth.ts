@@ -5,7 +5,7 @@ import { AppError } from '../utils/AppError.js'
 import { UserRole } from '../db/schema/users.js'
 
 interface JWTPayload {
-  sub:      number
+  sub:      string
   role:     UserRole
   username: string
   iat:      number

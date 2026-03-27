@@ -8,7 +8,7 @@ export async function getSettingByKey(key: string) {
   return row ? row.value : null
 }
 
-export async function updateSetting(key: string, value: any, userId: number) {
+export async function updateSetting(key: string, value: any, userId: string) {
   const [existing] = await db.select().from(settings).where(eq(settings.key, key))
   
   return db.transaction(async (tx) => {

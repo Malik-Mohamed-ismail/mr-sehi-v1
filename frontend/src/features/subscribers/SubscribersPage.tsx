@@ -42,7 +42,7 @@ export default function SubscribersPage() {
   const [showForm, setShowForm] = useState(false)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<string>('all')
-  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { data: subscribers, isLoading } = useQuery({
     queryKey: ['subscribers'],
@@ -80,7 +80,7 @@ export default function SubscribersPage() {
   })
 
   const renewMutation = useMutation({
-    mutationFn: (id: number) => api.post(`/subscribers/${id}/renew`),
+    mutationFn: (id: string) => api.post(`/subscribers/${id}/renew`),
     onSuccess: () => {
       toast.success(t('subscribers.messages.renewSuccess'))
       qc.invalidateQueries({ queryKey: ['subscribers'] })
@@ -90,7 +90,14 @@ export default function SubscribersPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.delete(`/subscribers/${id}`),
+    onMutate: async (deletedId) => {
+      qc.setQueriesData({ type: 'active' }, (old: any) => {
+        if (Array.isArray(old)) return old.filter((item: any) => item?.id !== deletedId);
+        if (old?.data && Array.isArray(old.data)) return { ...old, data: old.data.filter((item: any) => item?.id !== deletedId) };
+        return old;
+      });
+    },
+    mutationFn: (id: string) => api.delete(`/subscribers/${id}`),
     onSuccess: () => {
       toast.success(t('purchases.messages.deleteSuccess') || 'تم الحذف')
       qc.invalidateQueries({ queryKey: ['subscribers'] })

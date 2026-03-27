@@ -20,7 +20,7 @@ import { useAuthStore } from '../../store/authStore'
 const schema = z.object({
   invoice_number: z.string().min(1),
   invoice_date:   z.string().min(1),
-  supplier_id:    z.coerce.number().positive(i18n.t('purchases.validation.supplierRequired')),
+  supplier_id: z.string().min(1, i18n.t('purchases.validation.supplierRequired')),
   category:       z.string().min(1, i18n.t('validation.required') || 'مطلوب'),
   item_name:      z.string().min(1),
   quantity:       z.coerce.number().positive(),
@@ -38,7 +38,7 @@ export default function PurchasesPage() {
   const { user } = useAuthStore()
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { data: suppliers } = useQuery({
     queryKey: ['suppliers'],
@@ -70,7 +70,7 @@ export default function PurchasesPage() {
   const price    = watch('unit_price') ?? 0
   const discount = watch('discount') ?? 0
   const suppId   = watch('supplier_id')
-  const supplier = suppliers?.find((s: any) => s.id === Number(suppId))
+  const supplier = suppliers?.find((s: any) => s.id === suppId)
   const hasVAT   = !!(supplier?.vat_number?.trim())
   const subtotal = Math.max(0, (qty * price) - discount)
   const vatAmt   = hasVAT ? parseFloat((subtotal * 0.15).toFixed(4)) : 0
@@ -89,7 +89,14 @@ export default function PurchasesPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.delete(`/purchases/${id}`),
+    onMutate: async (deletedId) => {
+      qc.setQueriesData({ type: 'active' }, (old: any) => {
+        if (Array.isArray(old)) return old.filter((item: any) => item?.id !== deletedId);
+        if (old?.data && Array.isArray(old.data)) return { ...old, data: old.data.filter((item: any) => item?.id !== deletedId) };
+        return old;
+      });
+    },
+    mutationFn: (id: string) => api.delete(`/purchases/${id}`),
     onSuccess: () => {
       toast.success(t('purchases.messages.deleteSuccess'))
       qc.invalidateQueries({ queryKey: ['purchases'] })
@@ -323,7 +330,7 @@ export default function PurchasesPage() {
                 <tr key={p.id}>
                   <td style={{ fontFamily: 'var(--font-latin)', fontWeight: 600 }}>{p.invoice_number}</td>
                   <td className="amount">{formatDate(p.invoice_date)}</td>
-                  <td>{p.supplier_id}</td>
+                  <td>{suppliers?.find((s: any) => s.id === p.supplier_id)?.name_ar ?? p.supplier_id}</td>
                   <td>{p.item_name}</td>
                   <td>
                     <span className="badge badge-neutral">

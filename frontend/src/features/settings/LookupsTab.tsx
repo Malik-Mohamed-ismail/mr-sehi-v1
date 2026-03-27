@@ -45,7 +45,14 @@ export function LookupsTab() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.delete(`/lookups/${id}`),
+    onMutate: async (deletedId) => {
+      qc.setQueriesData({ type: 'active' }, (old: any) => {
+        if (Array.isArray(old)) return old.filter((item: any) => item?.id !== deletedId);
+        if (old?.data && Array.isArray(old.data)) return { ...old, data: old.data.filter((item: any) => item?.id !== deletedId) };
+        return old;
+      });
+    },
+    mutationFn: (id: string) => api.delete(`/lookups/${id}`),
     onSuccess: () => {
       toast.success('تم الحذف بنجاح')
       qc.invalidateQueries({ queryKey: ['lookups', activeType] })

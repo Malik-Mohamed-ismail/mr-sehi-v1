@@ -8,7 +8,7 @@ import { calculateVAT } from '../../utils/vat.js'
 import { writeAuditLog } from '../../utils/auditLogger.js'
 import { AppError } from '../../utils/AppError.js'
 
-async function createExpenseJournalEntry(tx: any, invoice: any, userId: number) {
+async function createExpenseJournalEntry(tx: any, invoice: any, userId: string) {
   const lines: any[] = [
     { account_code: invoice.account_code, debit_amount: Number(invoice.amount), credit_amount: 0 },
   ]
@@ -32,7 +32,7 @@ async function createExpenseJournalEntry(tx: any, invoice: any, userId: number) 
   return entry
 }
 
-export async function createExpense(dto: any, userId: number) {
+export async function createExpense(dto: any, userId: string) {
   return db.transaction(async (tx) => {
     const vat = calculateVAT(Number(dto.amount), !!dto.has_vat)
     const [row] = await tx.insert(expenses).values({
@@ -64,14 +64,14 @@ export async function listExpenses(query: any) {
   return { data: rows, total: count, page, limit }
 }
 
-export async function getExpense(id: number) {
+export async function getExpense(id: string) {
   const [row] = await db.select().from(expenses)
     .where(and(eq(expenses.id, id), eq(expenses.is_deleted, false)))
   if (!row) throw new AppError('NOT_FOUND', 404)
   return row
 }
 
-export async function deleteExpense(id: number, userId: number) {
+export async function deleteExpense(id: string, userId: string) {
   const expense = await getExpense(id)
 
   await db.transaction(async (tx) => {
@@ -151,13 +151,13 @@ async function listCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.json({ success: true, ...(await listExpenses(req.query)) }) } catch (e) { next(e) }
 }
 async function getCtrl(req: Request, res: Response, next: NextFunction) {
-  try { res.json({ success: true, data: await getExpense(Number(req.params.id)) }) } catch (e) { next(e) }
+  try { res.json({ success: true, data: await getExpense(req.params.id) }) } catch (e) { next(e) }
 }
 async function createCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.status(201).json({ success: true, data: await createExpense(req.body, req.user.id), message: 'تم حفظ المصروف' }) } catch (e) { next(e) }
 }
 async function removeCtrl(req: Request, res: Response, next: NextFunction) {
-  try { await deleteExpense(Number(req.params.id), req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (e) { next(e) }
+  try { await deleteExpense(req.params.id, req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (e) { next(e) }
 }
 async function summaryCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.json({ success: true, data: await getSummaryByAccount(req.query.from as any, req.query.to as any) }) } catch (e) { next(e) }

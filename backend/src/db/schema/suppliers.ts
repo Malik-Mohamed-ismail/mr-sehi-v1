@@ -1,8 +1,8 @@
-import { pgTable, serial, varchar, boolean, integer, timestamp } from 'drizzle-orm/pg-core'
+import { uuid, pgTable, varchar, boolean, integer, timestamp } from 'drizzle-orm/pg-core'
 import { users } from './users'
 
 export const suppliers = pgTable('suppliers', {
-  id:           serial('id').primaryKey(),
+  id:           uuid('id').defaultRandom().primaryKey(),
   name_ar:      varchar('name_ar', { length: 150 }).notNull(),
   name_en:      varchar('name_en', { length: 150 }),
   vat_number:   varchar('vat_number', { length: 30 }),   // null = VAT exempt
@@ -11,7 +11,7 @@ export const suppliers = pgTable('suppliers', {
   category:     varchar('category', { length: 50 }),     // مواد غذائية | خضار | ...
   is_active:    boolean('is_active').default(true),
   notes:        varchar('notes', { length: 500 }),
-  created_by:   integer('created_by').references(() => users.id),
+  created_by:   uuid('created_by').references(() => users.id),
   created_at:   timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at:   timestamp('updated_at', { withTimezone: true }).defaultNow(),
 })

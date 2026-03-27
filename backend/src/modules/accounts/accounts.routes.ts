@@ -24,7 +24,7 @@ export async function listAccounts() {
     .orderBy(accounts.code)
 }
 
-export async function createAccount(dto: any, userId: number) {
+export async function createAccount(dto: any, userId: string) {
   const [existing] = await db.select().from(accounts).where(eq(accounts.code, dto.code))
   if (existing) throw new AppError('DUPLICATE_ENTRY', 409)
   const [row] = await db.transaction(async (tx) => {
@@ -35,7 +35,7 @@ export async function createAccount(dto: any, userId: number) {
   return row
 }
 
-export async function updateAccount(code: string, dto: any, userId: number) {
+export async function updateAccount(code: string, dto: any, userId: string) {
   const [old] = await db.select().from(accounts).where(eq(accounts.code, code))
   if (!old) throw new AppError('NOT_FOUND', 404)
   if (old.is_system) throw new AppError('FORBIDDEN', 403, 'لا يمكن تعديل حسابات النظام')

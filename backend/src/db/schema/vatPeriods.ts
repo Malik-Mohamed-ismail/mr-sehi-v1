@@ -1,7 +1,7 @@
-import { pgTable, serial, date, decimal, varchar, text, timestamp } from 'drizzle-orm/pg-core'
+import { uuid, pgTable, date, decimal, varchar, text, timestamp } from 'drizzle-orm/pg-core'
 
 export const vatPeriods = pgTable('vat_periods', {
-  id:               serial('id').primaryKey(),
+  id:               uuid('id').defaultRandom().primaryKey(),
   period_start:     date('period_start').notNull(),
   period_end:       date('period_end').notNull(),
   total_vat_input:  decimal('total_vat_input',  { precision: 12, scale: 4 }),

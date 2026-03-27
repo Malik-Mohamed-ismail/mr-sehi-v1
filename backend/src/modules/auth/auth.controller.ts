@@ -69,7 +69,7 @@ export async function listUsers(req: Request, res: Response, next: NextFunction)
 
 export async function updateUser(req: Request, res: Response, next: NextFunction) {
   try {
-    const user = await authService.updateUser(Number(req.params.id), req.body)
+    const user = await authService.updateUser(req.params.id, req.body)
     res.json({ success: true, data: user, message: 'تم تحديث المستخدم' })
   } catch (err) { next(err) }
 }

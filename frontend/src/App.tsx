@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { AppShell } from './components/layout/AppShell'
 import { useAuthStore } from './store/authStore'
+import { useAppBootstrap } from './hooks/useAppBootstrap'
 import './index.css'
 
 const LoginPage                = lazy(() => import('./features/auth/LoginPage'))
@@ -64,9 +65,15 @@ function PageSuspense({ children }: { children: React.ReactNode }) {
   )
 }
 
+function AppInner() {
+  useAppBootstrap()
+  return null
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <AppInner />
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<PageSuspense><LoginPage /></PageSuspense>} />

@@ -1,13 +1,11 @@
-import {
-  pgTable, serial, varchar, text, boolean,
-  integer, decimal, date, timestamp,
-} from 'drizzle-orm/pg-core'
+import { uuid, pgTable, varchar, text, boolean,
+  integer, decimal, date, timestamp, } from 'drizzle-orm/pg-core'
 import { users } from './users'
 import { journalEntries } from './journal'
 
 // ── Delivery Revenue (Keeta / HungerStation / Ninja) ──────────────────────
 export const deliveryRevenue = pgTable('delivery_revenue', {
-  id:               serial('id').primaryKey(),
+  id:               uuid('id').defaultRandom().primaryKey(),
   revenue_date:     date('revenue_date').notNull(),
   platform:         varchar('platform', { length: 30 })
                       .$type<'Keeta' | 'HungerStation' | 'Ninja'>()
@@ -20,16 +18,16 @@ export const deliveryRevenue = pgTable('delivery_revenue', {
                       .$type<'كاش' | 'بنك' | 'آجل'>()
                       .notNull(),
   notes:            text('notes'),
-  journal_entry_id: integer('journal_entry_id').references(() => journalEntries.id),
+  journal_entry_id: uuid('journal_entry_id').references(() => journalEntries.id),
   is_deleted:       boolean('is_deleted').default(false),
-  created_by:       integer('created_by').references(() => users.id),
+  created_by:       uuid('created_by').references(() => users.id),
   created_at:       timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at:       timestamp('updated_at', { withTimezone: true }).defaultNow(),
 })
 
 // ── Restaurant Revenue ─────────────────────────────────────────────────────
 export const restaurantRevenue = pgTable('restaurant_revenue', {
-  id:               serial('id').primaryKey(),
+  id:               uuid('id').defaultRandom().primaryKey(),
   revenue_date:     date('revenue_date').notNull(),
   amount:           decimal('amount',     { precision: 12, scale: 4 }).notNull(),
   payment_method:   varchar('payment_method', { length: 10 })
@@ -37,26 +35,26 @@ export const restaurantRevenue = pgTable('restaurant_revenue', {
                       .notNull(),
   covers:           integer('covers'),  // number of guests
   notes:            text('notes'),
-  journal_entry_id: integer('journal_entry_id').references(() => journalEntries.id),
+  journal_entry_id: uuid('journal_entry_id').references(() => journalEntries.id),
   is_deleted:       boolean('is_deleted').default(false),
-  created_by:       integer('created_by').references(() => users.id),
+  created_by:       uuid('created_by').references(() => users.id),
   created_at:       timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at:       timestamp('updated_at', { withTimezone: true }).defaultNow(),
 })
 
 // ── Subscription Revenue ───────────────────────────────────────────────────
 export const subscriptionRevenue = pgTable('subscription_revenue', {
-  id:               serial('id').primaryKey(),
+  id:               uuid('id').defaultRandom().primaryKey(),
   revenue_date:     date('revenue_date').notNull(),
-  subscriber_id:    integer('subscriber_id'),  // FK added after subscribers table
+  subscriber_id:    uuid('subscriber_id'),  // FK added after subscribers table
   amount:           decimal('amount', { precision: 12, scale: 4 }).notNull(),
   payment_method:   varchar('payment_method', { length: 10 })
                       .$type<'كاش' | 'بنك' | 'آجل'>()
                       .notNull(),
   notes:            text('notes'),
-  journal_entry_id: integer('journal_entry_id').references(() => journalEntries.id),
+  journal_entry_id: uuid('journal_entry_id').references(() => journalEntries.id),
   is_deleted:       boolean('is_deleted').default(false),
-  created_by:       integer('created_by').references(() => users.id),
+  created_by:       uuid('created_by').references(() => users.id),
   created_at:       timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at:       timestamp('updated_at', { withTimezone: true }).defaultNow(),
 })

@@ -1,9 +1,9 @@
-import { pgTable, serial, integer, varchar, boolean, timestamp } from 'drizzle-orm/pg-core'
+import { uuid, pgTable, integer, varchar, boolean, timestamp } from 'drizzle-orm/pg-core'
 import { users } from './users'
 
 export const refreshTokens = pgTable('refresh_tokens', {
-  id:         serial('id').primaryKey(),
-  user_id:    integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  id:         uuid('id').defaultRandom().primaryKey(),
+  user_id:    uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
   token_hash: varchar('token_hash', { length: 200 }).notNull(),
   expires_at: timestamp('expires_at', { withTimezone: true }).notNull(),
   revoked:    boolean('revoked').default(false),

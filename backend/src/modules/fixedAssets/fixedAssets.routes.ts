@@ -25,7 +25,7 @@ const PAYMENT_ACCOUNTS: Record<string, string> = {
 }
 
 // ── Journal helper ───────────────────────────────────────────────────────────
-async function createAssetJournalEntry(tx: any, asset: any, userId: number) {
+async function createAssetJournalEntry(tx: any, asset: any, userId: string) {
   const lines: any[] = [
     { account_code: asset.account_code, debit_amount: Number(asset.cost), credit_amount: 0 },
   ]
@@ -57,7 +57,7 @@ async function createAssetJournalEntry(tx: any, asset: any, userId: number) {
 }
 
 // ── Service functions ────────────────────────────────────────────────────────
-export async function createAsset(dto: any, userId: number) {
+export async function createAsset(dto: any, userId: string) {
   return db.transaction(async (tx) => {
     // If has_vat is true, dto.cost is the TOTAL amount.
     // Calculate backwards: base = total / 1.15, vat = total - base.
@@ -110,14 +110,14 @@ export async function listAssets(query: any) {
   return { data: rows, total: count, page, limit, totalPages: Math.ceil(count / limit) }
 }
 
-export async function getAsset(id: number) {
+export async function getAsset(id: string) {
   const [row] = await db.select().from(fixedAssets)
     .where(and(eq(fixedAssets.id, id), eq(fixedAssets.is_deleted, false)))
   if (!row) throw new AppError('NOT_FOUND', 404)
   return row
 }
 
-export async function deleteAsset(id: number, userId: number) {
+export async function deleteAsset(id: string, userId: string) {
   const asset = await getAsset(id)
 
   await db.transaction(async (tx) => {
@@ -171,7 +171,7 @@ export async function deleteAsset(id: number, userId: number) {
   })
 }
 
-export async function runDepreciation(userId: number) {
+export async function runDepreciation(userId: string) {
   return db.transaction(async (tx) => {
     const today = new Date()
     const allAssets = await tx.select().from(fixedAssets).where(eq(fixedAssets.is_deleted, false))
@@ -249,7 +249,7 @@ async function listCtrl(req: Request, res: Response, next: NextFunction) {
   try { res.json({ success: true, ...(await listAssets(req.query)) }) } catch (e) { next(e) }
 }
 async function getCtrl(req: Request, res: Response, next: NextFunction) {
-  try { res.json({ success: true, data: await getAsset(Number(req.params.id)) }) } catch (e) { next(e) }
+  try { res.json({ success: true, data: await getAsset(req.params.id) }) } catch (e) { next(e) }
 }
 async function createCtrl(req: Request, res: Response, next: NextFunction) {
   try {
@@ -262,7 +262,7 @@ async function createCtrl(req: Request, res: Response, next: NextFunction) {
 }
 async function removeCtrl(req: Request, res: Response, next: NextFunction) {
   try {
-    await deleteAsset(Number(req.params.id), req.user.id)
+    await deleteAsset(req.params.id, req.user.id)
     res.json({ success: true, message: 'تم حذف الأصل وعكس القيد المحاسبي' })
   } catch (e) { next(e) }
 }

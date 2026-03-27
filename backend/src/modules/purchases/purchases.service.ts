@@ -11,7 +11,7 @@ import { generateEntryNumber } from '../../utils/entryNumberGenerator.js'
 import { journalEntryLines } from '../../db/schema/journal.js'
 import type { CreatePurchaseDto, PurchaseQuery } from './purchases.schema.js'
 
-export async function createPurchaseInvoice(dto: CreatePurchaseDto, userId: number) {
+export async function createPurchaseInvoice(dto: CreatePurchaseDto, userId: string) {
   return db.transaction(async (tx) => {
     // 1. Resolve supplier + VAT status
     const [supplier] = await tx.select().from(suppliers).where(eq(suppliers.id, dto.supplier_id))
@@ -81,14 +81,14 @@ export async function listPurchases(query: PurchaseQuery) {
   return { data: rows, total: count, page: query.page, limit: query.limit, totalPages: Math.ceil(count / query.limit) }
 }
 
-export async function getPurchase(id: number) {
+export async function getPurchase(id: string) {
   const [row] = await db.select().from(purchaseInvoices)
     .where(and(eq(purchaseInvoices.id, id), eq(purchaseInvoices.is_deleted, false)))
   if (!row) throw new AppError('NOT_FOUND', 404)
   return row
 }
 
-export async function deletePurchase(id: number, userId: number) {
+export async function deletePurchase(id: string, userId: string) {
   const invoice = await getPurchase(id)
 
   await db.transaction(async (tx) => {

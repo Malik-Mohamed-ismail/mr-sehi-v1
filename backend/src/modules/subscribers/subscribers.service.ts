@@ -36,7 +36,7 @@ export async function getExpiringSubscribers(days = 7) {
     .orderBy(subscribers.end_date)
 }
 
-export async function createSubscriber(dto: any, userId: number) {
+export async function createSubscriber(dto: any, userId: string) {
   return db.transaction(async (tx) => {
     const [row] = await tx.insert(subscribers).values({ ...dto, created_by: userId } as any).returning()
     await writeAuditLog(tx, { userId, action: 'CREATE', tableName: 'subscribers', recordId: row.id, newValues: row })
@@ -44,7 +44,7 @@ export async function createSubscriber(dto: any, userId: number) {
   })
 }
 
-export async function updateSubscriber(id: number, dto: any, userId: number) {
+export async function updateSubscriber(id: string, dto: any, userId: string) {
   const [old] = await db.select().from(subscribers).where(eq(subscribers.id, id))
   if (!old) throw new AppError('NOT_FOUND', 404)
   const [row] = await db.transaction(async (tx) => {
@@ -57,7 +57,7 @@ export async function updateSubscriber(id: number, dto: any, userId: number) {
   return row
 }
 
-export async function renewSubscriber(id: number, userId: number) {
+export async function renewSubscriber(id: string, userId: string) {
   const [sub] = await db.select().from(subscribers).where(eq(subscribers.id, id))
   if (!sub) throw new AppError('NOT_FOUND', 404)
 
@@ -111,7 +111,7 @@ export async function updateAllStatuses() {
     ))
 }
 
-export async function deleteSubscriber(id: number, userId: number) {
+export async function deleteSubscriber(id: string, userId: string) {
   const [old] = await db.select().from(subscribers).where(eq(subscribers.id, id))
   if (!old) throw new AppError('NOT_FOUND', 404)
   return db.transaction(async (tx) => {

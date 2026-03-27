@@ -36,7 +36,7 @@ export default function FixedAssetsPage() {
   const { user } = useAuthStore()
   const [search, setSearch]     = useState('')
   const [showForm, setShowForm] = useState(false)
-  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   /* ── Data ── */
   const { data: assets = [], isLoading } = useQuery({
@@ -65,7 +65,7 @@ export default function FixedAssetsPage() {
     },
   })
 
-  const rawCost = Number(watch('cost')) || 0
+  const rawCost = watch('cost') || 0
   const hasVAT  = watch('has_vat')
   const baseAmt = hasVAT ? rawCost / 1.15 : rawCost
   const vatAmt  = hasVAT ? rawCost - baseAmt : 0
@@ -93,7 +93,14 @@ export default function FixedAssetsPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.delete(`/fixed-assets/${id}`),
+    onMutate: async (deletedId) => {
+      qc.setQueriesData({ type: 'active' }, (old: any) => {
+        if (Array.isArray(old)) return old.filter((item: any) => item?.id !== deletedId);
+        if (old?.data && Array.isArray(old.data)) return { ...old, data: old.data.filter((item: any) => item?.id !== deletedId) };
+        return old;
+      });
+    },
+    mutationFn: (id: string) => api.delete(`/fixed-assets/${id}`),
     onSuccess: () => {
       toast.success(t('fixedAssets.messages.deleteSuccess'))
       qc.invalidateQueries({ queryKey: ['fixed-assets'] })

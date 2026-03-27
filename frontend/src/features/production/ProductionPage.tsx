@@ -23,7 +23,7 @@ export default function ProductionPage() {
   const { user } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
   const [search, setSearch] = useState('')
-  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { data: records, isLoading } = useQuery({
     queryKey: ['production'],
@@ -56,7 +56,14 @@ export default function ProductionPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.delete(`/production/${id}`),
+    onMutate: async (deletedId) => {
+      qc.setQueriesData({ type: 'active' }, (old: any) => {
+        if (Array.isArray(old)) return old.filter((item: any) => item?.id !== deletedId);
+        if (old?.data && Array.isArray(old.data)) return { ...old, data: old.data.filter((item: any) => item?.id !== deletedId) };
+        return old;
+      });
+    },
+    mutationFn: (id: string) => api.delete(`/production/${id}`),
     onSuccess: () => {
       toast.success(t('purchases.messages.deleteSuccess') || 'تم الحذف')
       qc.invalidateQueries({ queryKey: ['production'] })

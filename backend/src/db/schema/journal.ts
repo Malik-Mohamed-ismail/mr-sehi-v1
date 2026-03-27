@@ -1,11 +1,9 @@
-import {
-  pgTable, serial, varchar, text, boolean,
-  integer, decimal, date, timestamp,
-} from 'drizzle-orm/pg-core'
+import { uuid, pgTable, varchar, text, boolean,
+  integer, decimal, date, timestamp, } from 'drizzle-orm/pg-core'
 import { users } from './users'
 
 export const journalEntries = pgTable('journal_entries', {
-  id:           serial('id').primaryKey(),
+  id:           uuid('id').defaultRandom().primaryKey(),
   entry_number: varchar('entry_number', { length: 20 }).unique().notNull(), // P-2026-0042
   entry_date:   date('entry_date').notNull(),
   description:  text('description').notNull(),
@@ -13,18 +11,18 @@ export const journalEntries = pgTable('journal_entries', {
   source_type:  varchar('source_type', { length: 30 })
                   .$type<'purchase' | 'revenue' | 'expense' | 'reversal' | 'manual'>()
                   .notNull(),
-  source_id:    integer('source_id'),
+  source_id:    uuid('source_id'),
   is_balanced:  boolean('is_balanced').default(false),
   is_reversed:  boolean('is_reversed').default(false),
-  reversed_by:  integer('reversed_by'),  // FK to self (reversal entry id)
-  created_by:   integer('created_by').references(() => users.id),
+  reversed_by:  uuid('reversed_by'),  // FK to self (reversal entry id)
+  created_by:   uuid('created_by').references(() => users.id),
   created_at:   timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at:   timestamp('updated_at', { withTimezone: true }).defaultNow(),
 })
 
 export const journalEntryLines = pgTable('journal_entry_lines', {
-  id:             serial('id').primaryKey(),
-  entry_id:       integer('entry_id').references(() => journalEntries.id, { onDelete: 'cascade' }).notNull(),
+  id:             uuid('id').defaultRandom().primaryKey(),
+  entry_id:       uuid('entry_id').references(() => journalEntries.id, { onDelete: 'cascade' }).notNull(),
   account_code:   varchar('account_code', { length: 20 }).notNull(),
   debit_amount:   decimal('debit_amount',  { precision: 12, scale: 4 }).notNull().default('0'),
   credit_amount:  decimal('credit_amount', { precision: 12, scale: 4 }).notNull().default('0'),

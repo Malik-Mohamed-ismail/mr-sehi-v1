@@ -7,7 +7,7 @@ export async function list(req: Request, res: Response, next: NextFunction) {
   catch (err) { next(err) }
 }
 export async function get(req: Request, res: Response, next: NextFunction) {
-  try { res.json({ success: true, data: await svc.getEntry(Number(req.params.id)) }) }
+  try { res.json({ success: true, data: await svc.getEntry(req.params.id) }) }
   catch (err) { next(err) }
 }
 export async function create(req: Request, res: Response, next: NextFunction) {
@@ -17,7 +17,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
 }
 export async function reverse(req: Request, res: Response, next: NextFunction) {
   try {
-    const reversal = await svc.reverseEntry(Number(req.params.id), req.body.reason ?? 'عكس يدوي', req.user.id)
+    const reversal = await svc.reverseEntry(req.params.id, req.body.reason ?? 'عكس يدوي', req.user.id)
     res.json({ success: true, data: reversal, message: 'تم عكس القيد بنجاح' })
   } catch (err) { next(err) }
 }

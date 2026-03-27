@@ -15,15 +15,15 @@ export async function create(req: Request, res: Response, next: NextFunction) {
   catch (err) { next(err) }
 }
 export async function update(req: Request, res: Response, next: NextFunction) {
-  try { res.json({ success: true, data: await svc.updateSubscriber(Number(req.params.id), req.body, req.user.id), message: 'تم تحديث المشترك' }) }
+  try { res.json({ success: true, data: await svc.updateSubscriber(req.params.id, req.body, req.user.id), message: 'تم تحديث المشترك' }) }
   catch (err) { next(err) }
 }
 export async function renew(req: Request, res: Response, next: NextFunction) {
-  try { res.json({ success: true, data: await svc.renewSubscriber(Number(req.params.id), req.user.id), message: 'تم تجديد الاشتراك وإنشاء قيد الإيراد' }) }
+  try { res.json({ success: true, data: await svc.renewSubscriber(req.params.id, req.user.id), message: 'تم تجديد الاشتراك وإنشاء قيد الإيراد' }) }
   catch (err) { next(err) }
 }
 export async function remove(req: Request, res: Response, next: NextFunction) {
-  try { await svc.deleteSubscriber(Number(req.params.id), req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) }
+  try { await svc.deleteSubscriber(req.params.id, req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) }
   catch (err) { next(err) }
 }
 export async function updateStatus(req: Request, res: Response, next: NextFunction) {

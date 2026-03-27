@@ -29,7 +29,7 @@ export async function createPurchaseJournalEntry(
   tx: any,
   invoice: any,
   supplier: any,
-  userId: number
+  userId: string
 ) {
   const lines: Array<{ account_code: string; debit_amount: number; credit_amount: number; description?: string }> = []
 

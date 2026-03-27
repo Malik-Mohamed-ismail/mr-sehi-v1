@@ -8,7 +8,7 @@ import { AppError } from '../../utils/AppError.js'
 import { authenticate } from '../../middleware/auth.js'
 import { authorize, ADMIN_ONLY, ACCOUNTANT_PLUS, ALL_ROLES } from '../../middleware/authorize.js'
 
-export async function createPettyCash(dto: any, userId: number) {
+export async function createPettyCash(dto: any, userId: string) {
   const reconciliation = reconcilePettyCash(dto)
   return db.transaction(async (tx) => {
     const [row] = await tx.insert(pettyCash).values({
@@ -40,7 +40,7 @@ export async function getReconciliation(date?: string) {
   return { date: d, ...row, ...reconciliation }
 }
 
-export async function deletePettyCash(id: number, userId: number) {
+export async function deletePettyCash(id: string, userId: string) {
   const [old] = await db.select().from(pettyCash).where(eq(pettyCash.id, id))
   if (!old) throw new AppError('NOT_FOUND', 404)
   return db.transaction(async (tx) => {
@@ -85,7 +85,7 @@ async function reconciliationCtrl(req: Request, res: Response, next: NextFunctio
   try { res.json({ success: true, data: await getReconciliation(req.query.date as string) }) } catch (e) { next(e) }
 }
 async function removeCtrl(req: Request, res: Response, next: NextFunction) {
-  try { await deletePettyCash(Number(req.params.id), req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (e) { next(e) }
+  try { await deletePettyCash(req.params.id, req.user.id); res.json({ success: true, message: 'تم الحذف بنجاح' }) } catch (e) { next(e) }
 }
 
 const router = Router()

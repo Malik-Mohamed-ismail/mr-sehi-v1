@@ -1,10 +1,10 @@
 import { auditLog } from '../db/schema/auditLog.js'
 
 export interface AuditParams {
-  userId:    number
+  userId: string
   action:    'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'EXPORT'
   tableName: string
-  recordId?: number
+  recordId?: string
   oldValues?: unknown
   newValues?: unknown
   ipAddress?: string
